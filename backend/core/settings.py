@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.academic',
     'apps.forum',
     'django_filters',
+    'taggit',
     'corsheaders',
     'rest_framework'
 ]
