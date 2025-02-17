@@ -8,7 +8,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ForumPostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    author_name = serializers.CharField(source='author.username', read_only=True)
     
     class Meta:
         model = ForumPost
-        fields = ('id', 'title', 'content', 'author', 'created_at', 'updated_at', 'comments')
+        fields = ('id', 'title', 'content', 'author', 'author_name', 'created_at', 'updated_at', 'comments')
+

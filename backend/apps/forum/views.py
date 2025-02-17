@@ -2,10 +2,7 @@ from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import ForumPost, Comment
 from .serializers import ForumPostSerializer, CommentSerializer
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
-
-
 
 
 class ForumPostViewSet(viewsets.ModelViewSet):
@@ -16,7 +13,10 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     filterset_fields = ['author', 'title']
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'updated_at', 'title']
-    ordering = ['-created_at']  # Default to newest first
+    ordering = ['-created_at']
+
+#admin.site.register(ForumPost, ForumPostAdmin)
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
