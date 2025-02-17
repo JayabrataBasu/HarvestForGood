@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import ForumPost, Comment
 
+@admin.register(ForumPost)
 class ForumPostAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'get_created_at', 'get_updated_at')
     list_filter = ('author',)
@@ -20,5 +21,3 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('post', 'author', 'created_at')
     search_fields = ('content',)
     list_filter = ('created_at',)
-
-admin.site.register(ForumPost, ForumPostAdmin)

@@ -3,6 +3,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import ForumPost, Comment
 from .serializers import ForumPostSerializer, CommentSerializer
 from rest_framework.permissions import IsAuthenticated
+import logging
+#logger = logging.getLogger('django')
 
 
 class ForumPostViewSet(viewsets.ModelViewSet):
@@ -14,9 +16,9 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'updated_at', 'title']
     ordering = ['-created_at']
-
-#admin.site.register(ForumPost, ForumPostAdmin)
-
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -27,3 +29,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     search_fields = ['content']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
