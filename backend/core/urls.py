@@ -15,33 +15,36 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import RedirectView
-from rest_framework.authtoken import views
-from rest_framework_simplejwt.views import TokenObtainPairView,TokenRefreshView
 from django.urls import path, include, re_path
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
+from rest_framework.authtoken import views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/')), # Redirect root to admin
+    path('', RedirectView.as_view(url='/admin/')),  # Redirect root to admin
     path('admin/', admin.site.urls),
-    path('api/users/', include('apps.users.urls')),
+    
+    # User-related endpoints
+    path('api/users/', include('apps.users.urls')),  
+    
+    # App-specific endpoints
     path('api/academic/', include('apps.academic.urls')),
     path('api/forum/', include('apps.forum.urls')),
+
+    # Auth & Token Authentication
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', views.obtain_auth_token),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # dj-rest-auth (Unified)
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+
+    # Email Verification
     re_path(
         r'^verify-email/(?P<key>[-:\w]+)/$',
         TemplateView.as_view(),
-        name='account_email_verification_sent',),
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('auth/', include('dj_rest_auth.urls')),
-    path('auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('api/forum/', include('apps.forum.urls')),
+        name='account_email_verification_sent',
+    ),
 ]
-

@@ -6,3 +6,4 @@ class User(AbstractUser):
     role = models.CharField(max_length=50, default='user')
     date_joined = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    email_verified = models.BooleanField(default=False)

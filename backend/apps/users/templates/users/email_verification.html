@@ -1,0 +1,32 @@
+<!-- apps/users/templates/users/email_verification.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Email Verification</title>
+  </head>
+  <body>
+    <p>Hello {{ user.username }},</p>
+
+    <p>
+      Thank you for registering with Harvest For Good. Please verify your email
+      by clicking the link below:
+    </p>
+
+    <p>
+      <a
+        href="http://{{ domain }}/api/users/verify-email/{{ uid }}/{{ token }}/"
+      >
+        Click here to verify your email
+      </a>
+    </p>
+
+    <p>This link will expire in 24 hours.</p>
+
+    <p>If you didn't register for an account, please ignore this email.</p>
+
+    <p>
+      Best regards,<br />
+      The Harvest For Good Team
+    </p>
+  </body>
+</html>

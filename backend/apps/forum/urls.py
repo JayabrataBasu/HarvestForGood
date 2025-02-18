@@ -6,4 +6,5 @@ router = DefaultRouter()
 router.register(r'posts', ForumPostViewSet)
 router.register(r'comments', CommentViewSet)
 
+
 urlpatterns = router.urls
