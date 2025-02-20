@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.academic',
     'apps.forum',
+    'apps.security',
 ]
 
 MIDDLEWARE = [
@@ -89,6 +90,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'apps.security.middleware.IPSecurityMiddleware',
     
 ]
 SITE_ID = 1
@@ -222,11 +224,13 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/hour',  # Limit anonymous users
         'user': '1000/hour',  # Limit authenticated users
         'forum_posts': '20/hour',
+        'auth_attempts': '5/hour',
         }
 }
 
@@ -236,10 +240,14 @@ JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30), #change it later to 5, 5 is too less of a time
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': 'your-secure-key',  # Change this!
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
 
