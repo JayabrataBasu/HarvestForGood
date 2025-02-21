@@ -49,8 +49,8 @@ $headers = @{
 
 # 3. Create a forum post
 $postData = @{
-    "title" = "Test Post by sbasu123"
-    "content" = "This is a test post content created via PowerShell"
+    "title" = "Test Post by diya123"
+    "content" = "check 21/02/25"
 } | ConvertTo-Json -Compress
 
 Write-Host "Creating forum post..."

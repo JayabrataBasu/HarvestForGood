@@ -96,13 +96,13 @@ MIDDLEWARE = [
 SITE_ID = 1
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Replace with your SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jayabratabasu@gmail.com'  # Replace with your email
-EMAIL_HOST_PASSWORD = 'rfrg otzs phvv bmdb'  # Use app-specific password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = 'kxqb devj miap guad'  # Use app-specific password
+#DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Authentication settings
 ACCOUNT_EMAIL_REQUIRED = True
@@ -173,6 +173,7 @@ LOGGING = {
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5 MB
+MAX_CONTENT_LENGTH = 5242880  # 5 MB
 
 ROOT_URLCONF = 'core.urls'
 
@@ -249,6 +250,20 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+
+
+# Security Settings
+API_SIGNATURE_TIMEOUT = 300  # 5 minutes in seconds
+API_EXCLUDED_PATHS = [
+    '/api/token/',
+    '/api/users/register/',
+    '/api/token/refresh/',  # JWT token refresh endpoint
+    '/api/auth/registration/',  # Registration verification
+    '/api/users/password/reset/',  # Password reset request
+    '/api/users/password-reset-confirm/',  # Password reset confirmation
+    '/api/users/verify-email/',  # Email verification endpoints
+]
+
 
 
 WSGI_APPLICATION = 'core.wsgi.application'

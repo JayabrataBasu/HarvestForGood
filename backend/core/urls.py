@@ -40,6 +40,9 @@ urlpatterns = [
     # dj-rest-auth (Unified)
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    # core/urls.py
+    path('api/', include('apps.security.urls')),
+
 
     # Email Verification
     re_path(
