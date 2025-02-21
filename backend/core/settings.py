@@ -262,6 +262,8 @@ API_EXCLUDED_PATHS = [
     '/api/users/password/reset/',  # Password reset request
     '/api/users/password-reset-confirm/',  # Password reset confirmation
     '/api/users/verify-email/',  # Email verification endpoints
+    '/api/users/profile/',  # User profile update endpoint
+    '/api/auth/logout/',  # Logout endpoint
 ]
 
 
