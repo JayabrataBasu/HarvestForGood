@@ -19,5 +19,8 @@ urlpatterns = [
     path('resend-verification/', 
          views.resend_verification_email, 
          name='resend_verification'),
+    path('resend-verification-email/', views.resend_verification_email, name='resend-verification-email'),
+    
+
     
 ]

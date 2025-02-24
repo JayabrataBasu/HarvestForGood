@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'False'
 
 DATABASES = {
     'default': {
@@ -39,13 +39,14 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
+        
     }
 }
 
 
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','testserver']
 
 
 # Application definition
@@ -113,7 +114,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 
-#ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -195,16 +196,16 @@ TEMPLATES = [
 ]
 
 # Security Settings
-SECURE_SSL_REDIRECT = False  # Forces HTTPS
-SESSION_COOKIE_SECURE = False  # Cookies over HTTPS only
-CSRF_COOKIE_SECURE = False  # CSRF cookies over HTTPS only
+SECURE_SSL_REDIRECT = True  # Forces HTTPS
+SESSION_COOKIE_SECURE = True  # Cookies over HTTPS only
+CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
 SECURE_BROWSER_XSS_FILTER = True  # XSS protection
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Content type sniffing prevention
 X_FRAME_OPTIONS = 'DENY'  # Clickjacking protection
 
 
 # HSTS Settings
-SECURE_HSTS_SECONDS = 0  # 1 year
+SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 
@@ -233,6 +234,7 @@ REST_FRAMEWORK = {
         'user': '1000/hour',  # Limit authenticated users
         'forum_posts': '20/hour',
         'auth_attempts': '5/hour',
+        'dj_rest_auth': '5/min',
         }
 }
 
