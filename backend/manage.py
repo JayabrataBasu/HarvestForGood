@@ -3,7 +3,7 @@
 import os
 import sys
 
-
+#s.environ['PATH'] = r'C:\Program Files\PostgreSQL\17\bin;' + os.environ['PATH']
 
 def main():
     """Run administrative tasks."""
