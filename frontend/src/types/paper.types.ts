@@ -7,6 +7,11 @@ export interface Author {
   email?: string;
 }
 
+export interface Keyword {
+  id: string;
+  name: string;
+}
+
 export interface Paper {
   id: string;
   title: string;
@@ -14,16 +19,11 @@ export interface Paper {
   authors: Author[];
   publicationDate: Date;
   journal: string;
-  methodologyType: 'qualitative' | 'quantitative' | 'mixed';
+  methodologyType: MethodologyType;
   citationCount: number;
   citationTrend: 'increasing' | 'stable' | 'decreasing';
   keywords: Keyword[];
   downloadUrl: string;
-}
-
-export interface Keyword {
-  id: string;
-  name: string;
 }
 
 export interface ResearchPaper {
@@ -37,11 +37,11 @@ export interface ResearchPaper {
   keywords: Keyword[];
   url?: string;
   doi?: string;
-  journal: string; // Changed from string|number to just string to match Paper interface
+  journal: string;
   volume?: string;
   issue?: string;
   pages?: string;
-  citationTrend: 'increasing' | 'stable' | 'decreasing' | string | number[];
+  citationTrend: 'increasing' | 'stable' | 'decreasing' | string;
   downloadUrl: string;
 }
 
@@ -54,5 +54,3 @@ export interface PaperFilterOptions {
   keywords: string[];
   minCitations: number;
 }
-
-

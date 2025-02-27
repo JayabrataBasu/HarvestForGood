@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
-import PaperGrid from '../components/research/PaperGrid';
+import { PaperGrid } from '../components/research/PaperGrid';
 import { Paper, Keyword } from '../types/paper.types';
 
 export const ResearchPapersPage: React.FC = () => {
