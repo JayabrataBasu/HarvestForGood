@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { ResearchPaper, Keyword } from '../../types/paper.types';
 
