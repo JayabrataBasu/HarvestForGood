@@ -24,27 +24,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <header className="bg-white shadow-sm">
-          <div className="container mx-auto px-4 py-4">
-            <nav className="flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-800">
-                Harvest For Good
-              </Link>
-              <div className="flex space-x-6">
-                <Link href="/" className="text-gray-700 hover:text-blue-600">Home</Link>
-                <Link href="/about" className="text-gray-700 hover:text-blue-600">About</Link>
-                <Link href="/research" className="text-gray-700 hover:text-blue-600">Research</Link>
-                <Link href="/forums" className="text-gray-700 hover:text-blue-600">Forums</Link>
-              </div>
+        <header className="bg-white border-b border-gray-200">
+          <div className="container mx-auto px-4">
+            <nav className="flex justify-center space-x-12 py-4">
+              <Link href="/" className="text-green-800 hover:text-green-600 border-b-2 border-green-800">Home</Link>
+              <Link href="/about" className="text-gray-700 hover:text-green-600">About</Link>
+              <Link href="/categories" className="text-gray-700 hover:text-green-600">Categories</Link>
+              <Link href="/search" className="text-gray-700 hover:text-green-600">Search</Link>
+              <Link href="/forum" className="text-gray-700 hover:text-green-600">Forum</Link>
             </nav>
           </div>
         </header>
-        <main className="min-h-screen py-8 px-4 md:px-8">
-          {children}
-        </main>
-        <footer className="bg-gray-100 py-6">
-          <div className="container mx-auto px-4 text-center text-gray-600">
-            <p>© 2024 Harvest For Good. All rights reserved.</p>
+        <main>{children}</main>
+        <footer className="bg-green-800 text-white py-6">
+          <div className="container mx-auto px-4 text-center">
+            © 2025 Harvest For Good. All rights reserved.
           </div>
         </footer>
       </body>
