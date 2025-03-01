@@ -19,10 +19,16 @@ from django.urls import path, include, re_path
 from django.views.generic import RedirectView, TemplateView
 from rest_framework.authtoken import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.http import HttpResponse
+
+# Simple view function for the root URL
+def home_view(request):
+    return HttpResponse("<h1>Welcome to Harvest For Good</h1><p>The application is running successfully.</p>")
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/')),  # Redirect root to admin
     path('admin/', admin.site.urls),
+    # Add the root URL pattern
+    path('', home_view, name='home'),
     
     # User-related endpoints
     path('api/users/', include('apps.users.urls')),  

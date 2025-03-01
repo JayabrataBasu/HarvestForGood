@@ -29,7 +29,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'False'
+# Modified to properly evaluate 'True' string as boolean True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
 DATABASES = {
     'default': {
@@ -72,7 +73,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'dj_rest_auth',
     'dj_rest_auth.registration',
-    "sslserver",
+    "django_extensions",
     
     # Local apps
     'apps.users',
@@ -144,6 +145,10 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {message}',
             'style': '{',
         },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'file': {
@@ -154,22 +159,24 @@ LOGGING = {
         },
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
+            'level': 'ERROR',  # Changed from DEBUG to ERROR
         },
     },
     'loggers': {
         'django': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # Keep DEBUG for file logging
             'propagate': True,
         },
         'apps.forum': {
             'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # Keep DEBUG for file logging
             'propagate': True,
         },
     },
 }
+
 
 
 # File Upload Settings
@@ -195,10 +202,11 @@ TEMPLATES = [
     },
 ]
 
-# Security Settings
-SECURE_SSL_REDIRECT = True  # Forces HTTPS
-SESSION_COOKIE_SECURE = True  # Cookies over HTTPS only
-CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
+# Security Settings - Ensure these are correctly set for local development
+SECURE_SSL_REDIRECT = False  # Keep False for local development
+SESSION_COOKIE_SECURE = False  # Set to False for local development
+CSRF_COOKIE_SECURE = False    # Set to False for local development
+
 SECURE_BROWSER_XSS_FILTER = True  # XSS protection
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Content type sniffing prevention
 X_FRAME_OPTIONS = 'DENY'  # Clickjacking protection
@@ -213,6 +221,11 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Strict'
 SESSION_COOKIE_SAMESITE = 'Strict'
+
+# SSL Server Settings - Make sure these point to valid certificate files
+# Comment out or remove these lines for local development
+# SSL_CERTIFICATE = os.path.join(BASE_DIR, 'certs', 'localhost.crt')
+# SSL_KEY = os.path.join(BASE_DIR, 'certs', 'localhost.key')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -343,6 +356,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Include local settings if they exist
+try:
+    from .local_settings import *
+except ImportError:
+    pass
 
 
 
