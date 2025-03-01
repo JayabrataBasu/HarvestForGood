@@ -6,15 +6,28 @@ import { ResearchPapersPage } from "../pages/ResearchPapers";
 
 const slides = [
   {
-    image: "/src/app/images/slide1.jpg",
+    image: "/images/slide1.jpg",
     category: "SUSTAINABLE AGRICULTURE",
     title: "A Future Of Sustaining And Thriving For Small Farmers In Global South",
     description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
   },
 
   {
-    image: "/src/app/images/slide2.jpg",
+    image: "/images/slide2.jpg",
     category: "Joyful Harvest",
+    title: "Harvesting For Good",
+    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
+  },
+
+  {
+    image: "/images/slide3.jpg",
+    category: "A Day in the Farm",
+    title: "Harvesting For Good",
+    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
+  },
+  {
+    image: "/images/slide4.jpg",
+    category: "Machines and Harvest",
     title: "Harvesting For Good",
     description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
   }
