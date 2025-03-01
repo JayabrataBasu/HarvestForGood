@@ -27,7 +27,7 @@ export default function RootLayout({
         <header className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4">
             <nav className="flex justify-center space-x-12 py-4">
-              <Link href="/" className="text-green-800 hover:text-green-600 border-b-2 border-green-800">Home</Link>
+              <Link href="/" className="text-green-800 hover:text-green-600">Home</Link>
               <Link href="/about" className="text-gray-700 hover:text-green-600">About</Link>
               <Link href="/categories" className="text-gray-700 hover:text-green-600">Categories</Link>
               <Link href="/search" className="text-gray-700 hover:text-green-600">Search</Link>
