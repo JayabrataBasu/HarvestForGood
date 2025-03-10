@@ -26,10 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-development-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'False'
+# For development, we explicitly set these to True and False
+DEBUG = True
+DEV_HTTPS = False
 
 DATABASES = {
     'default': {
@@ -39,14 +41,10 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
-        
     }
 }
 
-
-
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost','testserver']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -72,7 +70,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'dj_rest_auth',
     'dj_rest_auth.registration',
-    "sslserver",
+    'django_extensions',
     
     # Local apps
     'apps.users',
@@ -92,12 +90,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'apps.security.middleware.IPSecurityMiddleware',
-    
 ]
+
 SITE_ID = 1
 
 
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+# Email settings
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
@@ -107,14 +106,8 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 # Authentication settings
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-
-
-
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Changed to optional for easier testing
 ACCOUNT_UNIQUE_EMAIL = True
-
-
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -126,51 +119,71 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# Security settings for development - all disabled
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
+# JWT settings - allow insecure cookies for development
 REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'apps.users.serializers.UserSerializer',
     'REGISTER_SERIALIZER': 'apps.users.serializers.CustomRegisterSerializer',
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'my-app-auth',
     'JWT_AUTH_REFRESH_COOKIE': 'my-refresh-token',
+    'JWT_AUTH_SECURE': False,  # Allow cookies over HTTP
 }
 
+# Common security settings - keep basic XSS protection
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
+# HSTS settings - disabled for development
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+# Cookie security - keep HttpOnly but make SameSite Lax
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Session security - relaxed for testing
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 86400  # 24 hours for easier testing
+
+# Logging - make it less verbose
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{',
         },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
-        },
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
+            'level': 'WARNING',  # Only show warnings and above
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
+            'handlers': ['console'],
+            'level': 'WARNING',
             'propagate': True,
         },
-        'apps.forum': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
-
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5 MB
@@ -182,7 +195,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'apps/users/templates',],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'apps/users/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -194,25 +207,6 @@ TEMPLATES = [
         },
     },
 ]
-
-# Security Settings
-SECURE_SSL_REDIRECT = True  # Forces HTTPS
-SESSION_COOKIE_SECURE = True  # Cookies over HTTPS only
-CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
-SECURE_BROWSER_XSS_FILTER = True  # XSS protection
-SECURE_CONTENT_TYPE_NOSNIFF = True  # Content type sniffing prevention
-X_FRAME_OPTIONS = 'DENY'  # Clickjacking protection
-
-
-# HSTS Settings
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
-
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Strict'
-SESSION_COOKIE_SAMESITE = 'Strict'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -230,12 +224,12 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',  # Limit anonymous users
-        'user': '1000/hour',  # Limit authenticated users
+        'anon': '100/hour',
+        'user': '1000/hour',
         'forum_posts': '20/hour',
         'auth_attempts': '5/hour',
         'dj_rest_auth': '5/min',
-        }
+    }
 }
 
 REST_USE_JWT = True
@@ -244,51 +238,36 @@ JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Extended for easier testing
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Extended for easier testing
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': 'your-secure-key',  # Change this!
+    'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
-
-# Security Settings
+# Security Settings - paths that don't require authentication
 API_SIGNATURE_TIMEOUT = 300  # 5 minutes in seconds
 API_EXCLUDED_PATHS = [
     '/api/token/',
     '/api/users/register/',
-    '/api/token/refresh/',  # JWT token refresh endpoint
-    '/api/auth/registration/',  # Registration verification
-    '/api/users/password/reset/',  # Password reset request
-    '/api/users/password-reset-confirm/',  # Password reset confirmation
-    '/api/users/verify-email/',  # Email verification endpoints
-    '/api/users/profile/',  # User profile update endpoint
-    '/api/auth/logout/',  # Logout endpoint
+    '/api/token/refresh/',
+    '/api/auth/registration/',
+    '/api/users/password/reset/',
+    '/api/users/password-reset-confirm/',
+    '/api/users/verify-email/',
+    '/api/users/profile/',
+    '/api/auth/logout/',
+    '/api/forum/posts/',  # Allow anonymous users to view posts
 ]
-
-
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Your frontend development server
-    "https://your-production-domain.com",
-    "http://127.0.0.1:3000",
-]
-
-CORS_ALLOW_HEADERS = [
-    "Authorization",
-    "Content-Type",
-]
+# CORS settings - allow frontend to communicate with backend
+CORS_ALLOW_ALL_ORIGINS = True  # Simplified for development
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -299,10 +278,7 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -321,28 +297,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = 'static/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
