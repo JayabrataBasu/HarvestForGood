@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { ErrorBoundary } from "react-error-boundary";
 import ReactMarkdown from "react-markdown";
+import { ErrorBoundary } from "react-error-boundary";
+import { forumAPI } from "@/lib/api"; // Import the API utility
 
 // Types for API responses
 interface Comment {
@@ -14,11 +15,6 @@ interface Comment {
   postId: string;
   createdAt: string;
   updatedAt?: string;
-}
-
-interface ErrorResponse {
-  error: string;
-  details?: string;
 }
 
 interface Post {
@@ -91,19 +87,10 @@ const CommentsSection = ({ postId }: { postId: string }) => {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/forum/comments?postId=${postId}`, {
-          signal: controller.signal,
-        });
+        const response = await forumAPI.getComments(postId);
 
-        if (!response.ok) {
-          const errorData: ErrorResponse = await response.json();
-          throw new Error(
-            errorData.details || errorData.error || `Error: ${response.status}`
-          );
-        }
-
-        const data: Comment[] = await response.json();
-        setComments(data);
+        setComments(response.data || []);
+        setError(null);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
           setError("Request timed out. Please try again.");
@@ -135,31 +122,13 @@ const CommentsSection = ({ postId }: { postId: string }) => {
       setSubmitting(true);
       setSubmitError(null);
 
-      const response = await fetch("/api/forum/comments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Use your auth mechanism here
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-        body: JSON.stringify({
-          content: newComment,
-          postId,
-        }),
-        signal: AbortSignal.timeout(10000), // 10-second timeout
+      const response = await forumAPI.createComment({
+        postId,
+        content: newComment.trim(),
       });
 
-      if (!response.ok) {
-        const errorData: ErrorResponse = await response.json();
-        throw new Error(
-          errorData.details || errorData.error || `Error: ${response.status}`
-        );
-      }
-
-      const newCommentData: Comment = await response.json();
-
       // Optimistically update UI with new comment
-      setComments((prev) => [...prev, newCommentData]);
+      setComments((prev) => [...prev, response.data]);
       setNewComment("");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
@@ -275,19 +244,9 @@ export default function PostPage() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/forum/posts/${postId}`, {
-          signal: controller.signal,
-        });
+        const response = await forumAPI.getPost(postId);
 
-        if (!response.ok) {
-          const errorData: ErrorResponse = await response.json();
-          throw new Error(
-            errorData.details || errorData.error || `Error: ${response.status}`
-          );
-        }
-
-        const data: Post = await response.json();
-        setPost(data);
+        setPost(response.data);
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
           setError("Request timed out. Please try again.");

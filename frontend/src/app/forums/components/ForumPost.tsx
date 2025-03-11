@@ -12,7 +12,7 @@ interface ForumPostProps {
   tags?: string[];
 }
 
-export default function ForumPost({
+const ForumPost = ({
   id,
   title,
   content,
@@ -20,30 +20,36 @@ export default function ForumPost({
   createdAt,
   commentCount,
   tags,
-}: ForumPostProps) {
+}: ForumPostProps) => {
+  // Format date
+  const formattedDate = new Date(createdAt).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mb-4 hover:shadow-md transition-shadow">
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
-        <Link href={`/forums/posts/${id}`} className="hover:text-green-700">
+    <div className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+      <Link href={`/forums/posts/${id}`} className="block">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-green-700">
           {title}
-        </Link>
-      </h2>
+        </h2>
+      </Link>
+
       <div className="flex items-center text-sm text-gray-500 mb-3">
         <span className="mr-3">{author}</span>
         <span className="mr-3">•</span>
-        <span>{new Date(createdAt).toLocaleDateString()}</span>
+        <span>{formattedDate}</span>
       </div>
 
-      <p className="text-gray-700 mb-4 line-clamp-2">
-        {content.replace(/(<([^>]+)>)/gi, "").substring(0, 150)}
-        {content.length > 150 ? "..." : ""}
-      </p>
+      <p className="text-gray-700 mb-4 line-clamp-2">{content}</p>
+
       <div className="flex items-center justify-between">
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
           {tags?.map((tag) => (
             <span
               key={tag}
-              className="px-2 py-1 bg-green-50 text-green-700 text-sm rounded-full"
+              className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
             >
               {tag}
             </span>
@@ -56,6 +62,7 @@ export default function ForumPost({
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -69,4 +76,6 @@ export default function ForumPost({
       </div>
     </div>
   );
-}
+};
+
+export default ForumPost;

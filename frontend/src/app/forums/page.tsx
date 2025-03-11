@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ForumPost from "./components/ForumPost";
+import { forumAPI } from "@/lib/api"; // Import the API utility
 
 // Define interface for forum post data
 interface ForumPostType {
@@ -11,7 +12,7 @@ interface ForumPostType {
   authorName?: string;
   createdAt: string;
   commentCount?: number;
-  tags: string[];
+  tags?: string[];
 }
 
 export default function ForumsPage() {
@@ -26,22 +27,14 @@ export default function ForumsPage() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-        const response = await fetch("/api/forum/posts", {
-          signal: controller.signal,
-        });
-
+        const response = await forumAPI.getPosts();
         clearTimeout(timeoutId);
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
-        }
-
-        const data = await response.json();
-        setPosts(data.data || []);
+        setPosts(response.data || []);
         setError(null);
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "An error occurred";
+          err instanceof Error ? err.message : "Failed to connect to forum API";
         setError(errorMessage);
         console.error("Error fetching posts:", err);
       } finally {

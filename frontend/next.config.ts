@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   },
   // Add only necessary options
   reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
 };
 
 export default nextConfig;
