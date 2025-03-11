@@ -24,24 +24,16 @@ export default function ForumsPage() {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
         const response = await forumAPI.getPosts();
-        clearTimeout(timeoutId);
-
         setPosts(response.data || []);
         setError(null);
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to connect to forum API";
-        setError(errorMessage);
+        setError("Failed to fetch posts");
         console.error("Error fetching posts:", err);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchPosts();
   }, []);
 
@@ -58,49 +50,16 @@ export default function ForumsPage() {
       {/* Loading skeleton */}
       {isLoading && (
         <div className="space-y-6">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse bg-white rounded-lg shadow-sm border p-6"
-            >
-              <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              </div>
-            </div>
-          ))}
+          <div className="bg-white p-4 rounded shadow animate-pulse"></div>
+          <div className="bg-white p-4 rounded shadow animate-pulse"></div>
+          <div className="bg-white p-4 rounded shadow animate-pulse"></div>
         </div>
       )}
 
       {/* Error state */}
-      {!isLoading && error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-600">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-2 text-sm text-red-800 font-medium hover:underline"
-              >
-                Try again
-              </button>
-            </div>
-          </div>
+      {error && (
+        <div className="p-4 border border-red-500 bg-red-50 text-red-700 rounded-md mb-6">
+          {error}
         </div>
       )}
 
@@ -117,7 +76,7 @@ export default function ForumsPage() {
       )}
 
       {!isLoading && !error && posts.length > 0 && (
-        <div className="space-y-6">
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <ForumPost
               key={post.id}

@@ -6,28 +6,25 @@ const MOCK_POSTS = [
     id: "1",
     title: "Best practices for urban community gardens",
     content: "I've been running a community garden in Chicago for 3 years and wanted to share some lessons learned...",
-    authorName: "GreenThumb",
-    createdAt: "2025-02-15T14:23:00Z",
-    commentCount: 8,
-    tags: ["urban gardening", "community", "tips"]
+    authorId: "user-1",
+    createdAt: "2023-05-15T14:23:00Z",
+    updatedAt: "2023-05-15T14:23:00Z",
   },
   {
     id: "2",
     title: "Sustainable irrigation methods for dry climates",
     content: "With water becoming scarcer in many regions, I've been experimenting with several water-saving techniques...",
-    authorName: "WaterWise",
-    createdAt: "2025-03-02T09:15:00Z",
-    commentCount: 12,
-    tags: ["irrigation", "sustainability", "drought"]
+    authorId: "user-2",
+    createdAt: "2023-06-02T09:15:00Z",
+    updatedAt: "2023-06-02T09:15:00Z",
   },
   {
     id: "3",
     title: "Connecting local farmers with food banks",
     content: "Our nonprofit has developed a system to help small farmers donate excess produce to local food banks...",
-    authorName: "HarvestShare",
-    createdAt: "2025-03-05T16:30:00Z",
-    commentCount: 6,
-    tags: ["food banks", "donations", "community support"]
+    authorId: "user-3",
+    createdAt: "2023-06-05T16:30:00Z",
+    updatedAt: "2023-06-05T16:30:00Z",
   }
 ];
 
@@ -57,10 +54,9 @@ export async function POST(request: NextRequest) {
       id: (MOCK_POSTS.length + 1).toString(),
       title: body.title,
       content: body.content,
-      authorName: "CurrentUser", // In real app, get from auth
+      authorId: "current-user", // In real app, get from auth
       createdAt: new Date().toISOString(),
-      commentCount: 0,
-      tags: body.tags || []
+      updatedAt: new Date().toISOString(),
     };
     
     return NextResponse.json({

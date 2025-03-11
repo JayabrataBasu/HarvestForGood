@@ -57,7 +57,7 @@ export const forumAPI = {
   // Get all forum posts
   getPosts: async () => {
     console.log('Fetching posts from API...');
-    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forum/posts');
+    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forums/posts');
     console.log('API response:', response);
     return response;
   },
@@ -65,7 +65,7 @@ export const forumAPI = {
   // Get single post
   getPost: async (id: string) => {
     console.log(`Fetching post with id ${id} from API...`);
-    const response = await fetchAPI<{success: boolean; data: ForumPost}>(`/api/forum/posts/${id}`);
+    const response = await fetchAPI<{success: boolean; data: ForumPost}>(`/api/forums/posts/${id}`);
     console.log('API response:', response);
     return response;
   },
@@ -73,7 +73,7 @@ export const forumAPI = {
   // Get comments for a post
   getComments: async (postId: string) => {
     console.log(`Fetching comments for post with id ${postId} from API...`);
-    const response = await fetchAPI<{success: boolean; data: ForumComment[]}>(`/api/forum/comments?postId=${postId}`);
+    const response = await fetchAPI<{success: boolean; data: ForumComment[]}>(`/api/forums/comments?postId=${postId}`);
     console.log('API response:', response);
     return response;
   },
@@ -81,7 +81,7 @@ export const forumAPI = {
   // Create comment
   createComment: async (data: {postId: string; content: string}) => {
     console.log('Creating comment with data:', data);
-    const response = await fetchAPI<{success: boolean; data: ForumComment}>('/api/forum/comments', {
+    const response = await fetchAPI<{success: boolean; data: ForumComment}>('/api/forums/comments', {
       method: 'POST',
       body: JSON.stringify(data),
     });
