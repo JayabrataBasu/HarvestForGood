@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Harvest For Good",
-  description: "Academic Research Repository",
+  description: "Sustainable agriculture and farming practices for global south",
 };
 
 export default function RootLayout({
@@ -23,22 +23,45 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>
-        <header className="bg-white border-b border-gray-200">
-          <div className="container mx-auto px-4">
-            <nav className="flex justify-center space-x-12 py-4">
-              <Link href="/" className="text-green-800 hover:text-green-600">Home</Link>
-              <Link href="/about" className="text-gray-700 hover:text-green-600">About</Link>
-              <Link href="/categories" className="text-gray-700 hover:text-green-600">Categories</Link>
-              <Link href="/search" className="text-gray-700 hover:text-green-600">Search</Link>
-              <Link href="/forum" className="text-gray-700 hover:text-green-600">Forum</Link>
-            </nav>
+      <body className="min-h-screen flex flex-col">
+        <header className="bg-green-700 text-white">
+          <div className="container mx-auto py-4 px-4">
+            <div className="flex justify-between items-center">
+              <Link href="/" className="text-2xl font-bold">Harvest For Good</Link>
+              <nav>
+                <ul className="flex space-x-6">
+                  <li><Link href="/" className="hover:text-green-200">Home</Link></li>
+                  <li><Link href="/about" className="hover:text-green-200">About</Link></li>
+                  <li><Link href="/categories" className="hover:text-green-200">Categories</Link></li>
+                  <li><Link href="/search" className="hover:text-green-200">Search</Link></li>
+                  <li><Link href="/forums" className="hover:text-green-200">Forums</Link></li>
+                </ul>
+              </nav>
+            </div>
           </div>
         </header>
-        <main>{children}</main>
-        <footer className="bg-green-800 text-white py-6">
-          <div className="container mx-auto px-4 text-center">
-            © 2025 Harvest For Good. All rights reserved.
+        <main className="flex-grow">
+          {children}
+        </main>
+        <footer className="bg-green-800 text-white py-8">
+          <div className="container mx-auto px-4">
+            <div className="md:flex md:justify-between">
+              <div className="mb-6 md:mb-0">
+                <h2 className="text-xl font-bold">Harvest For Good</h2>
+                <p className="mt-2">Sustainable farming for the global south</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Connect With Us</h3>
+                <ul>
+                  <li><a href="#" className="hover:text-green-300">Twitter</a></li>
+                  <li><a href="#" className="hover:text-green-300">Facebook</a></li>
+                  <li><a href="#" className="hover:text-green-300">Instagram</a></li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-8 border-t border-green-700 pt-4">
+              <p className="text-sm">&copy; {new Date().getFullYear()} Harvest For Good. All rights reserved.</p>
+            </div>
           </div>
         </footer>
       </body>

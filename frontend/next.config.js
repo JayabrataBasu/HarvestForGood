@@ -1,10 +1,24 @@
 /** @type {import('next').NextConfig} */
-
 const nextConfig = {
+  // Add redirects from /forum/* to /forums/*
+  async redirects() {
+    return [
+      // Redirect from /forum to /forums
+      {
+        source: '/forum',
+        destination: '/forums',
+        permanent: true, // This is a 301 redirect
+      },
+      // Redirect from /forum/anything to /forums/anything
+      {
+        source: '/forum/:path*',
+        destination: '/forums/:path*',
+        permanent: true, // This is a 301 redirect
+      }
+    ];
+  },
+  // Add only necessary options
   reactStrictMode: true,
-  swcMinify: true,
-  // Remove the experimental section if you're using Next.js 13.4 or later
-  // as App Router is now stable
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

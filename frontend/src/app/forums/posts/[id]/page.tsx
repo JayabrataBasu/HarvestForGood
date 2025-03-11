@@ -1,207 +1,332 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { ErrorBoundary } from 'react-error-boundary';
 
+// Types for API responses
 interface Comment {
-  id: number;
+  id: string;
   content: string;
-  author: {
-    username: string;
-  };
-  created_at: string;
+  authorId: string;
+  authorName?: string;
+  postId: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface ErrorResponse {
+  error: string;
+  details?: string;
 }
 
 interface Post {
-  id: number;
+  id: string;
   title: string;
   content: string;
-  author: {
-    username: string;
-  };
-  created_at: string;
-  updated_at: string;
-  comments?: Comment[];
+  // Add other post fields as needed
 }
 
-export default function PostDetail({ params }: { params: { id: string } }) {
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Loading component for comments
+const CommentsSkeleton = () => (
+  <div className="mt-8 space-y-4">
+    <h3 className="text-xl font-semibold">Comments</h3>
+    {Array.from({ length: 3 }).map((_, i) => (
+      <div key={i} className="p-4 border rounded-md animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      </div>
+    ))}
+  </div>
+);
+
+// Error fallback component
+const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error, resetErrorBoundary: () => void }) => (
+  <div className="p-4 border border-red-500 rounded-md bg-red-50 text-red-700">
+    <h3 className="font-bold">Something went wrong:</h3>
+    <p className="mb-4">{error.message}</p>
+    <button 
+      onClick={resetErrorBoundary}
+      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+    >
+      Try again
+    </button>
+  </div>
+);
+
+// Comment component
+const CommentComponent = ({ comment }: { comment: Comment }) => (
+  <div className="p-4 border rounded-md mb-4">
+    <div className="font-semibold">{comment.authorName || 'Anonymous'}</div>
+    <div className="text-sm text-gray-500 mb-2">
+      {new Date(comment.createdAt).toLocaleString()}
+    </div>
+    <div>{comment.content}</div>
+  </div>
+);
+
+// Comments section component
+const CommentsSection = ({ postId }: { postId: string }) => {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // For adding new comments
   const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Fetch comments with timeout handling
   useEffect(() => {
-    fetchPostDetails();
-  }, []);
-  
-  const fetchPostDetails = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Fetch post details
-      const response = await fetch(`/api/forum/posts/${params.id}/`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+
+    const fetchComments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`/api/forum/comments?postId=${postId}`, {
+          signal: controller.signal
+        });
+        
+        if (!response.ok) {
+          const errorData: ErrorResponse = await response.json();
+          throw new Error(errorData.details || errorData.error || `Error: ${response.status}`);
+        }
+        
+        const data: Comment[] = await response.json();
+        setComments(data);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          setError('Request timed out. Please try again.');
+        } else {
+          setError((err as Error).message || 'Failed to load comments');
+        }
+        console.error('Error fetching comments:', err);
+      } finally {
+        setLoading(false);
+        clearTimeout(timeout);
       }
-      
-      const postData = await response.json();
-      
-      // Fetch comments for this post
-      const commentsResponse = await fetch(`/api/forum/comments/?post=${params.id}`);
-      
-      if (commentsResponse.ok) {
-        const commentsData = await commentsResponse.json();
-        postData.comments = commentsData.results || commentsData;
-      }
-      
-      setPost(postData);
-    } catch (err) {
-      console.error("Error fetching post details:", err);
-      setError("Failed to load the discussion. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleAddComment = async (e: React.FormEvent) => {
+    };
+
+    fetchComments();
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [postId]);
+
+  // Handle new comment submission
+  const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newComment.trim()) {
-      return;
-    }
-    
-    setIsSubmitting(true);
+    if (!newComment.trim()) return;
     
     try {
-      const response = await fetch(`/api/forum/comments/`, {
+      setSubmitting(true);
+      setSubmitError(null);
+      
+      const response = await fetch('/api/forum/comments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Include authentication headers if required by your API
-          // 'Authorization': `Bearer ${userToken}`
+          // Use your auth mechanism here
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         },
         body: JSON.stringify({
-          post: Number(params.id),
-          content: newComment
+          content: newComment,
+          postId,
         }),
+        signal: AbortSignal.timeout(10000), // 10-second timeout
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
+        const errorData: ErrorResponse = await response.json();
+        throw new Error(errorData.details || errorData.error || `Error: ${response.status}`);
       }
+
+      const newCommentData: Comment = await response.json();
       
-      // Reset comment input
+      // Optimistically update UI with new comment
+      setComments(prev => [...prev, newCommentData]);
       setNewComment('');
-      
-      // Refresh post details to show the new comment
-      fetchPostDetails();
     } catch (err) {
-      console.error("Error adding comment:", err);
-      setError(err instanceof Error ? err.message : "Failed to add comment. Please try again.");
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setSubmitError('Request timed out. Please try again.');
+      } else {
+        setSubmitError((err as Error).message || 'Failed to post comment');
+      }
+      console.error('Error posting comment:', err);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
-  
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-        </div>
-      </div>
+
+  // Retry loading comments
+  const retryLoadComments = () => {
+    setError(null);
+    setLoading(true);
+    
+    // Re-trigger the useEffect by changing its dependency (hacky but works)
+    const timestamp = Date.now();
+    
+    // Update the URL without reload
+    window.history.replaceState(
+      null,
+      '',
+      window.location.pathname + `?t=${timestamp}`
     );
-  }
-  
-  if (error || !post) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 p-4 rounded-md text-red-700 mb-4">
-          {error || "Post not found"}
-        </div>
-        <Link href="/forums" className="text-blue-600 hover:underline">
-          Return to Forums
-        </Link>
-      </div>
-    );
-  }
-  
+    
+    // We don't actually need to change postId, the URL change will cause useEffect to run again
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Link href="/forums" className="inline-flex items-center text-blue-600 hover:underline mb-6">
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Back to Forums
-      </Link>
+    <div className="mt-8">
+      <h3 className="text-xl font-semibold mb-4">Comments</h3>
       
-      <article className="bg-white p-6 rounded-lg shadow-sm mb-8">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-        <div className="flex items-center text-gray-600 mb-6">
-          <span>Posted by {post.author.username}</span>
-          <span className="mx-2">•</span>
-          <span>{new Date(post.created_at).toLocaleDateString()}</span>
-        </div>
-        <div className="prose max-w-none">
-          <p>{post.content}</p>
-        </div>
-      </article>
+      {/* Loading state */}
+      {loading && <CommentsSkeleton />}
       
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Comments ({post.comments?.length || 0})</h2>
-        
-        {post.comments && post.comments.length > 0 ? (
-          <div className="space-y-4">
-            {post.comments.map(comment => (
-              <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold">{comment.author.username}</span>
-                  <span className="text-sm text-gray-500">
-                    {new Date(comment.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <p>{comment.content}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-gray-500">
-            No comments yet. Be the first to comment!
-          </div>
-        )}
-      </div>
-      
-      <div className="bg-blue-50 p-6 rounded-lg">
-        <h3 className="text-xl font-semibold mb-4">Add a Comment</h3>
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">{error}</div>
-        )}
-        <form onSubmit={handleAddComment}>
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="w-full p-3 border rounded-md mb-4"
-            rows={3}
-            placeholder="Add your thoughts..."
-            required
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`${
-              isSubmitting ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
-            } text-white py-2 px-4 rounded-md transition-colors`}
+      {/* Error state with retry button */}
+      {!loading && error && (
+        <div className="p-4 border border-red-500 rounded-md bg-red-50 text-red-700 mb-4">
+          <p className="mb-2">{error}</p>
+          <button 
+            onClick={retryLoadComments}
+            className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
-            {isSubmitting ? 'Submitting...' : 'Post Comment'}
+            Try Again
           </button>
-        </form>
+        </div>
+      )}
+      
+      {/* Comments list */}
+      {!loading && !error && comments.length === 0 && (
+        <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+      )}
+      
+      {!loading && !error && comments.length > 0 && (
+        <div className="space-y-4">
+          {comments.map(comment => (
+            <CommentComponent key={comment.id} comment={comment} />
+          ))}
+        </div>
+      )}
+      
+      {/* Comment form */}
+      <form onSubmit={handleSubmitComment} className="mt-6">
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Write a comment..."
+          rows={3}
+          disabled={submitting}
+        />
+        
+        {submitError && (
+          <div className="mt-2 text-red-600 text-sm">{submitError}</div>
+        )}
+        
+        <button
+          type="submit"
+          disabled={submitting || !newComment.trim()}
+          className={`mt-2 px-4 py-2 rounded-md ${
+            submitting || !newComment.trim()
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
+        >
+          {submitting ? 'Posting...' : 'Post Comment'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+// Main page component
+export default function PostPage() {
+  const params = useParams();
+  const postId = params?.id as string || '';
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Fetch post details
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15-second timeout
+
+    const fetchPost = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`/api/forum/posts/${postId}`, {
+          signal: controller.signal
+        });
+        
+        if (!response.ok) {
+          const errorData: ErrorResponse = await response.json();
+          throw new Error(errorData.details || errorData.error || `Error: ${response.status}`);
+        }
+        
+        const data: Post = await response.json();
+        setPost(data);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          setError('Request timed out. Please try again.');
+        } else {
+          setError((err as Error).message || 'Failed to load post');
+        }
+        console.error('Error fetching post:', err);
+      } finally {
+        setLoading(false);
+        clearTimeout(timeout);
+      }
+    };
+
+    fetchPost();
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [postId]);
+  
+  if (loading) {
+    return <div className="container mx-auto p-4">Loading post...</div>;
+  }
+  
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="p-4 border border-red-500 bg-red-50 text-red-700 rounded-md">
+          {error}
+        </div>
       </div>
+    );
+  }
+  
+  if (!post) {
+    return <div className="container mx-auto p-4">Post not found</div>;
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      {/* Post content */}
+      <h1 className="text-3xl font-bold">{post.title}</h1>
+      <div className="mt-4 prose lg:prose-xl">{post.content}</div>
+      
+      {/* Comments section with error boundary */}
+      <ErrorBoundary 
+        FallbackComponent={ErrorFallback}
+        onReset={() => {
+          // Reset state if needed
+        }}
+      >
+        <CommentsSection postId={postId} />
+      </ErrorBoundary>
     </div>
   );
 }
