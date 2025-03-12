@@ -27,22 +27,45 @@ export default function RootLayout({
         <header className="bg-green-700 text-white">
           <div className="container mx-auto py-4 px-4">
             <div className="flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold">Harvest For Good</Link>
+              <Link href="/" className="text-2xl font-bold">
+                Harvest For Good
+              </Link>
               <nav>
                 <ul className="flex space-x-6">
-                  <li><Link href="/" className="hover:text-green-200">Home</Link></li>
-                  <li><Link href="/about" className="hover:text-green-200">About</Link></li>
-                  <li><Link href="/categories" className="hover:text-green-200">Categories</Link></li>
-                  <li><Link href="/search" className="hover:text-green-200">Search</Link></li>
-                  <li><Link href="/forums" className="hover:text-green-200">Forums</Link></li>
+                  <li>
+                    <Link href="/" className="hover:text-green-200">
+                      Home
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/about" className="hover:text-green-200">
+                      About
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/categories" className="hover:text-green-200">
+                      Categories
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/search" className="hover:text-green-200">
+                      Search
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="api/forums/posts"
+                      className="hover:text-green-200"
+                    >
+                      Forums
+                    </Link>
+                  </li>
                 </ul>
               </nav>
             </div>
           </div>
         </header>
-        <main className="flex-grow">
-          {children}
-        </main>
+        <main className="flex-grow">{children}</main>
         <footer className="bg-green-800 text-white py-8">
           <div className="container mx-auto px-4">
             <div className="md:flex md:justify-between">
@@ -53,14 +76,29 @@ export default function RootLayout({
               <div>
                 <h3 className="text-lg font-semibold mb-2">Connect With Us</h3>
                 <ul>
-                  <li><a href="#" className="hover:text-green-300">Twitter</a></li>
-                  <li><a href="#" className="hover:text-green-300">Facebook</a></li>
-                  <li><a href="#" className="hover:text-green-300">Instagram</a></li>
+                  <li>
+                    <a href="#" className="hover:text-green-300">
+                      Twitter
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-green-300">
+                      Facebook
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-green-300">
+                      Instagram
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
             <div className="mt-8 border-t border-green-700 pt-4">
-              <p className="text-sm">&copy; {new Date().getFullYear()} Harvest For Good. All rights reserved.</p>
+              <p className="text-sm">
+                &copy; {new Date().getFullYear()} Harvest For Good. All rights
+                reserved.
+              </p>
             </div>
           </div>
         </footer>

@@ -57,8 +57,7 @@ export const forumAPI = {
   // Get all forum posts
   getPosts: async (signal?: AbortSignal) => {
     console.log('Fetching posts from API...');
-    // Use the correct API path (change to "forum" singular if needed)
-    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forum/posts', {
+    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forums', {
       signal, // Pass the abort signal to the fetch call
     });
     console.log('API response:', response);
