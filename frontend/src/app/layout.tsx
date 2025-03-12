@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { AuthProvider } from "@/contexts/AuthContext";
+import React from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,55 +19,53 @@ export const metadata: Metadata = {
   title: "Harvest For Good",
   description: "Sustainable agriculture and farming practices for global south",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-screen flex flex-col">
-        <header className="bg-green-700 text-white">
-          <div className="container mx-auto py-4 px-4">
-            <div className="flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold">
-                Harvest For Good
-              </Link>
-              <nav>
-                <ul className="flex space-x-6">
-                  <li>
-                    <Link href="/" className="hover:text-green-200">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/about" className="hover:text-green-200">
-                      About
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/categories" className="hover:text-green-200">
-                      Categories
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/search" className="hover:text-green-200">
-                      Search
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="api/forums/posts"
-                      className="hover:text-green-200"
-                    >
-                      Forums
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
+        <AuthProvider>
+          <header className="bg-green-700 text-white">
+            <div className="container mx-auto py-4 px-4">
+              <div className="flex justify-between items-center">
+                <Link href="/" className="text-2xl font-bold">
+                  Harvest For Good
+                </Link>
+                <nav>
+                  <ul className="flex space-x-6">
+                    <li>
+                      <Link href="/" className="hover:text-green-200">
+                        Home
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/about" className="hover:text-green-200">
+                        About
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/categories" className="hover:text-green-200">
+                        Categories
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/search" className="hover:text-green-200">
+                        Search
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/forums" className="hover:text-green-200">
+                        Forums
+                      </Link>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="flex-grow">{children}</main>
+          </header>
+          <main className="flex-grow">{children}</main>
+        </AuthProvider>
         <footer className="bg-green-800 text-white py-8">
           <div className="container mx-auto px-4">
             <div className="md:flex md:justify-between">

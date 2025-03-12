@@ -11,7 +11,7 @@ export default function Navbar() {
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
     { name: "Categories", href: "/categories" },
-    { name: "Forums", href: "/api/forums/posts" },
+    { name: "Forums", href: "/forums" },
     { name: "Research", href: "/research" },
   ];
 
