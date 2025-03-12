@@ -30,7 +30,7 @@ const ForumPost = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
-      <Link href={`/forums/posts/${id}`} className="block">
+      <Link href={`/forums/posts/${id}`}>
         <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-green-700">
           {title}
         </h2>
@@ -56,13 +56,12 @@ const ForumPost = ({
           ))}
         </div>
 
-        <div className="flex items-center text-gray-500">
+        <div className="flex items-center">
           <svg
             className="w-5 h-5 mr-1"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"

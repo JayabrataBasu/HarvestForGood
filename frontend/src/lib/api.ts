@@ -55,17 +55,22 @@ export interface ForumComment {
 // Type-safe API methods for forums
 export const forumAPI = {
   // Get all forum posts
-  getPosts: async () => {
+  getPosts: async (signal?: AbortSignal) => {
     console.log('Fetching posts from API...');
-    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forums/posts');
+    // Use the correct API path (change to "forum" singular if needed)
+    const response = await fetchAPI<{success: boolean; data: ForumPost[]}>('/api/forum/posts', {
+      signal, // Pass the abort signal to the fetch call
+    });
     console.log('API response:', response);
     return response;
   },
   
   // Get single post
-  getPost: async (id: string) => {
+  getPost: async (id: string, signal?: AbortSignal) => {
     console.log(`Fetching post with id ${id} from API...`);
-    const response = await fetchAPI<{success: boolean; data: ForumPost}>(`/api/forums/posts/${id}`);
+    const response = await fetchAPI<{success: boolean; data: ForumPost}>(`/api/forum/posts/${id}`, {
+      signal,
+    });
     console.log('API response:', response);
     return response;
   },
