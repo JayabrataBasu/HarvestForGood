@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import ForumPost, Comment
 from .serializers import ForumPostSerializer, CommentSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 import logging
 from rest_framework.throttling import ScopedRateThrottle
 
@@ -16,7 +16,8 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     throttle_scope = 'forum_posts'
     queryset = ForumPost.objects.all()
     serializer_class = ForumPostSerializer
-    permission_classes = [IsAuthenticated]
+    # Use IsAuthenticatedOrReadOnly to allow anonymous users to read posts
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'title']
     search_fields = ['title', 'content']
@@ -34,7 +35,6 @@ class ForumPostViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-
     @action(detail=True, methods=['post'])
     def add_comment(self, request, pk=None):
         post = self.get_object()
@@ -47,7 +47,8 @@ class ForumPostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    # Also update this to IsAuthenticatedOrReadOnly if you want to allow viewing comments without authentication
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'post']
     search_fields = ['content']

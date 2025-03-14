@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Harvest For Good API</title>
+    <style>
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+      }
+      h1 {
+          color: #2c7a2a;
+          border-bottom: 2px solid #eee;
+          padding-bottom: 10px;
+      }
+      .endpoint {
+          background: #f8f9fa;
+          border-left: 4px solid #2c7a2a;
+          padding: 10px 15px;
+          margin: 15px 0;
+          border-radius: 0 4px 4px 0;
+      }
+      code {
+          background: #e9ecef;
+          padding: 2px 5px;
+          border-radius: 3px;
+          font-family: monospace;
+      }
+      .method {
+          display: inline-block;
+          padding: 2px 6px;
+          border-radius: 3px;
+          color: white;
+          font-weight: bold;
+          font-size: 0.8em;
+          margin-right: 5px;
+      }
+      .get { background: #61affe; }
+      .post { background: #49cc90; }
+      .put { background: #fca130; }
+      .delete { background: #f93e3e; }
+      .note {
+          background: #fff3cd;
+          border-left: 4px solid #ffeeba;
+          padding: 10px 15px;
+          margin: 15px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Harvest For Good API</h1>
+    <p>
+      Welcome to the Harvest For Good API. This page provides basic information
+      about available endpoints.
+    </p>
+
+    <div class="note">
+      This is a backend API server. For the full application, please use the
+      frontend application running on
+      <a href="http://localhost:3000">http://localhost:3000</a>.
+    </div>
+
+    <h2>Authentication Endpoints</h2>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <code>/api/token/</code>
+      <p>Obtain a JSON Web Token by providing your credentials.</p>
+      <p>Example request body:</p>
+      <pre><code>{
+  "email": "user@example.com",
+  "password": "yourpassword"
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <code>/api/token/refresh/</code>
+      <p>Refresh your token before it expires.</p>
+      <p>Example request body:</p>
+      <pre><code>{
+  "refresh": "your_refresh_token"
+}</code></pre>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <code>/api/users/register/</code>
+      <p>Register a new user account.</p>
+    </div>
+
+    <h2>User Endpoints</h2>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <code>/api/users/me/</code>
+      <p>Get information about the currently authenticated user.</p>
+    </div>
+
+    <h2>Forum Endpoints</h2>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <code>/api/forum/posts/</code>
+      <p>List all forum posts. This endpoint is publicly accessible.</p>
+    </div>
+
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <code>/api/forum/posts/</code>
+      <p>Create a new forum post. Authentication required.</p>
+    </div>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <code>/api/forum/posts/{id}/</code>
+      <p>View a specific forum post. This endpoint is publicly accessible.</p>
+    </div>
+
+    <h2>Academic Endpoints</h2>
+
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <code>/api/academic/</code>
+      <p>Access academic resources. Authentication required.</p>
+    </div>
+
+    <div class="note">
+      <p>
+        For more detailed API documentation or assistance, please contact the
+        development team.
+      </p>
+    </div>
+  </body>
+</html>

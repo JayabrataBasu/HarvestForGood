@@ -16,7 +16,8 @@
     "react-datepicker": "^8.1.0",
     "react-dom": "^19.0.0",
     "react-error-boundary": "^5.0.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "date-fns": "^2.30.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

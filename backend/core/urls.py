@@ -15,39 +15,52 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
-from django.views.generic import RedirectView, TemplateView
-from rest_framework.authtoken import views
+from django.urls import path, include
+from django.views.generic import TemplateView
+from django.shortcuts import render
+from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+# Define a view for the API root
+def api_root(request):
+    """
+    API root view that provides basic information about the API endpoints
+    """
+    api_endpoints = {
+        "message": "Welcome to the Harvest For Good API",
+        "version": "1.0",
+        "endpoints": {
+            "auth": {
+                "token": "/api/token/",
+                "refresh": "/api/token/refresh/",
+                "registration": "/api/auth/registration/",
+            },
+            "users": "/api/users/",
+            "forum": "/api/forum/posts/",
+            "academic": "/api/academic/",
+        },
+        "documentation": "For more information, contact the development team",
+        "frontend": "This is a backend API server. The frontend is running on a separate server (typically http://localhost:3000)"
+    }
+    return JsonResponse(api_endpoints)
+
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/')),  # Redirect root to admin
+    # Root URL - API documentation
+    path('', api_root, name='api_root'),
+    
+    # Admin site
     path('admin/', admin.site.urls),
     
-    # User-related endpoints
-    path('api/users/', include('apps.users.urls')),  
-    
-    # App-specific endpoints
-    path('api/academic/', include('apps.academic.urls')),
-    path('api/forum/', include('apps.forum.urls')),
-
-    # Auth & Token Authentication
-    path('api-auth/', include('rest_framework.urls')),
-    path('api-token-auth/', views.obtain_auth_token),
+    # Authentication endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    # dj-rest-auth (Unified)
+    
+    # Include app URLs - make sure the path matches what the frontend expects
+    path('api/users/', include('apps.users.urls')),
+    path('api/forum/', include('apps.forum.urls')),
+    path('api/academic/', include('apps.academic.urls')),
+    
+    # Add dj-rest-auth URLs
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
-    # core/urls.py
-    path('api/', include('apps.security.urls')),
-
-
-    # Email Verification
-    re_path(
-        r'^verify-email/(?P<key>[-:\w]+)/$',
-        TemplateView.as_view(),
-        name='account_email_verification_sent',
-    ),
 ]

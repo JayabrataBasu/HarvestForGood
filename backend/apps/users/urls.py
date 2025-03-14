@@ -1,15 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet
-from .views import RegisterView
+# Fix the import statement
+from .views import UserViewSet, RegisterView, MeView
 from . import views
 from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'', UserViewSet)  # Changed from 'users' to '' since we're already in the users namespace
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Add the "me" endpoint before the router includes
+    path('me/', MeView.as_view(), name='me'),
+    
     path('register/', RegisterView.as_view(), name='register'),
     path('password/reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
@@ -21,6 +23,6 @@ urlpatterns = [
          name='resend_verification'),
     path('resend-verification-email/', views.resend_verification_email, name='resend-verification-email'),
     
-
-    
+    # Include the router URLs at the end to avoid conflicts
+    path('', include(router.urls)),
 ]

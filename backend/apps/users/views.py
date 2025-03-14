@@ -13,6 +13,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from .tokens import email_verification_token
 from django.contrib.auth.tokens import default_token_generator
+from rest_framework.views import APIView
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -136,3 +137,17 @@ def resend_verification_email(request):
         {'message': 'Email is already verified.'},
         status=status.HTTP_400_BAD_REQUEST
     )
+
+class MeView(APIView):
+    """
+    View to retrieve the currently authenticated user's information
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        """
+        Return the authenticated user's details
+        """
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

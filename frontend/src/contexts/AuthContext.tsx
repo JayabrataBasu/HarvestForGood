@@ -1,99 +1,43 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useMemo,
-} from "react";
-import { API_BASE_URL } from "@/lib/api";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { API_BASE_URL } from "@/lib/api"; // Use alias import
+import { useRouter } from "next/navigation";
 import { parseCookies, setCookie, destroyCookie } from "nookies";
 
+// Define types for TypeScript
 interface User {
   id: number;
-  username: string;
+  username?: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  [key: string]: unknown;
+  role?: string;
+  is_active?: boolean;
+  date_joined?: string;
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register: (userData: any) => Promise<any>; // Changed from string to any
   logout: () => void;
-  setError: (error: string | null) => void;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  // Create an API instance with appropriate headers using useMemo
-  const api = useMemo(
-    () => ({
-      get: async (url: string, options = {}) => {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_BASE_URL}${url}`, {
-          ...options,
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...(options as { headers?: Record<string, string> }).headers,
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.detail || `Request failed with status ${response.status}`
-          );
-        }
-
-        return response.json();
-      },
-
-      post: async (
-        url: string,
-        data: Record<string, unknown>,
-        options: Omit<RequestInit, "headers"> & {
-          headers?: Record<string, string>;
-        } = {}
-      ) => {
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_BASE_URL}${url}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...(options.headers || {}),
-          },
-          body: JSON.stringify(data),
-          ...options,
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.detail || `Request failed with status ${response.status}`
-          );
-        }
-
-        return response.json();
-      },
-    }),
-    []
-  );
-
-  // Check authentication on mount
+  // Check if user is authenticated on load
   useEffect(() => {
     async function loadUser() {
       try {
@@ -107,167 +51,187 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!token) {
-          setIsLoading(false);
+          setLoading(false);
           return;
         }
 
-        try {
-          // Try to get user data with the current token
-          const response = await api.get("/users/me/");
-          setUser(response);
-        } catch (err) {
-          console.error("Error fetching user data:", err);
-          // If token might be expired, try to refresh
-          const refreshToken =
-            typeof window !== "undefined"
-              ? localStorage.getItem("refresh_token")
-              : parseCookies().refresh_token;
+        // Update the API endpoint to use the correct path
+        const response = await fetch(`${API_BASE_URL}/users/me/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-          if (refreshToken) {
-            try {
-              // Attempt to refresh the token
-              const refreshResponse = await fetch(
-                `${API_BASE_URL}/token/refresh/`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ refresh: refreshToken }),
-                }
-              );
-
-              if (refreshResponse.ok) {
-                const { access } = await refreshResponse.json();
-
-                // Update tokens
-                if (typeof window !== "undefined") {
-                  localStorage.setItem("access_token", access);
-                }
-                setCookie(null, "access_token", access, {
-                  maxAge: 30 * 24 * 60 * 60,
-                  path: "/",
-                });
-
-                // Retry getting user data with new token
-                const userResponse = await fetch(`${API_BASE_URL}/users/me/`, {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access}`,
-                  },
-                });
-
-                if (userResponse.ok) {
-                  const userData = await userResponse.json();
-                  setUser(userData);
-                } else {
-                  throw new Error(
-                    "Failed to get user data after token refresh"
-                  );
-                }
-              } else {
-                throw new Error("Token refresh failed");
-              }
-            } catch (refreshError) {
-              console.error("Token refresh failed:", refreshError);
-              // Clear auth data on refresh failure
-              logout();
-            }
-          } else {
-            // No refresh token, clear auth data
-            logout();
-          }
+        if (!response.ok) {
+          throw new Error(`Failed to load user: ${response.status}`);
         }
+
+        const userData = await response.json();
+        setUser(userData);
       } catch (err) {
         console.error("Failed to load user:", err);
         // Clear tokens if authentication fails
-        logout();
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        }
+        // Also clear cookies
+        destroyCookie(null, "access_token");
+        destroyCookie(null, "refresh_token");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     }
 
     loadUser();
-  }, [api]);
+  }, []);
 
-  // Login function - works with Django REST Framework's token auth
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<boolean> => {
+  // Login function
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setError(null);
-      setIsLoading(true);
 
-      // For Django REST Framework JWT or token auth
+      // Try with username field instead of email (many Django backends expect username)
+      // Some backends might expect 'username' instead of 'email'
       const response = await fetch(`${API_BASE_URL}/token/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: email, // Try with username field
+          email: email, // Also include email field
+          password,
+        }),
+        credentials: "include",
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Invalid credentials");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Login failed");
       }
 
       const { access, refresh } = await response.json();
 
-      // Store tokens in localStorage for client-side access
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh_token", refresh);
+      // Store in both localStorage and cookies
+      if (typeof window !== "undefined") {
+        localStorage.setItem("access_token", access);
+        localStorage.setItem("refresh_token", refresh);
+      }
 
       // Set cookies for server-side access
       setCookie(null, "access_token", access, {
         maxAge: 30 * 24 * 60 * 60,
         path: "/",
+        sameSite: "lax",
       });
       setCookie(null, "refresh_token", refresh, {
         maxAge: 30 * 24 * 60 * 60,
         path: "/",
+        sameSite: "lax",
       });
 
       // Get user data
-      const userResponse = await api.get("/users/me/");
-      setUser(userResponse);
+      const userResponse = await fetch(`${API_BASE_URL}/users/me/`, {
+        headers: {
+          Authorization: `Bearer ${access}`,
+        },
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+
+      const userData = await userResponse.json();
+      setUser(userData);
 
       return true;
-    } catch (err: unknown) {
-      setError((err as Error).message || "Login failed");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.message || "Login failed");
+      throw err;
+    }
+  };
+
+  // Register function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const register = async (userData: any) => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      // Use our API endpoint for registration
+      const response = await fetch(`${API_BASE_URL}/users/register/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage =
+          errorData.detail ||
+          errorData.email?.[0] ||
+          errorData.password?.[0] ||
+          "Registration failed";
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      // Some implementations might return tokens on registration
+      // But usually registration just creates the account and requires email verification
+      return data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setError(err.message || "Registration failed");
       throw err;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   // Logout function
   const logout = () => {
-    // Clear tokens from localStorage
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
 
-    // Clear cookies
+    // Clear cookies as well
     destroyCookie(null, "access_token");
     destroyCookie(null, "refresh_token");
 
     setUser(null);
+    router.push("/login");
   };
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    error,
-    login,
-    logout,
-    setError,
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        login,
+        register,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
+};

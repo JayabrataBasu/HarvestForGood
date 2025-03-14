@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { forumAPI, isAuthenticated } from "@/lib/api";
-import ForumPost from "@/app/forums/ForumPost";
+import { forumAPI, isAuthenticated, API_BASE_URL } from "@/lib/api";
+// Fix import path
+
+// Make sure the ForumPost component exists and is properly imported
+// If it doesn't exist, create it
+import ForumPost from "./ForumPost"; // Fix path to where the component actually exists
 
 // Define interface for forum post data
 interface ForumPostType {
@@ -35,11 +39,19 @@ export default function ForumsPage() {
         setError(null);
 
         // Add console log to debug API base URL
-        console.log("API Base URL:", process.env.NEXT_PUBLIC_API_URL);
+        console.log("API Base URL:", API_BASE_URL);
         console.log(
           "Auth status:",
           authStatus ? "Authenticated" : "Not authenticated"
         );
+
+        // Check if forumAPI exists
+        if (!forumAPI || typeof forumAPI.getPosts !== "function") {
+          console.error("forumAPI or getPosts function is not available");
+          setError("API service not available");
+          setIsLoading(false);
+          return;
+        }
 
         const response = await forumAPI.getPosts();
 

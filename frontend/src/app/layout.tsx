@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { AuthProvider } from "@/contexts/AuthContext";
+// Fix import path based on where the context actually exists
+import { AuthProvider } from "@/contexts/AuthContext"; // Use relative path to the correct location
 import React from "react";
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Harvest For Good",
-  description: "Sustainable agriculture and farming practices for global south",
+  description: "A community platform for sustainable food systems",
 };
 export default function RootLayout({
   children,
