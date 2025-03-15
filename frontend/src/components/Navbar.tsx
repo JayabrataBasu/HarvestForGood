@@ -1,5 +1,6 @@
 export const navigation = [
   // ...existing code...
-  { name: 'Forums', href: '/forums' },
+  { name: "Forums", href: "/forums" },
+  { name: "Forum", href: "/forums/posts" },
   // ...existing code...
 ];

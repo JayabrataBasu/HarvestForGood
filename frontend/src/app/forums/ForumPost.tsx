@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 
 interface ForumPostProps {
   id: string;
@@ -19,70 +18,86 @@ export default function ForumPost({
   author,
   createdAt,
   commentCount,
-  tags = [],
+  tags,
 }: ForumPostProps) {
-  // Format the content to truncate if needed
-  const truncatedContent =
-    content.length > 150 ? `${content.substring(0, 150)}...` : content;
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
 
-  // Parse the date and format it
-  let formattedDate = "Unknown date";
-  try {
-    const postDate = new Date(createdAt);
-    formattedDate = formatDistanceToNow(postDate, { addSuffix: true });
-  } catch (error) {
-    console.error("Error formatting date:", error);
-  }
+  // Truncate content if it's too long
+  const truncateContent = (text: string, maxLength = 150) => {
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength)}...`;
+  };
 
   return (
-    <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow duration-300">
-      <Link href={`/forums/posts/${id}`}>
-        <div className="p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+    <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200">
+      <div className="p-5">
+        <div className="flex items-center text-xs text-gray-500 mb-2">
+          <span>
+            Posted by {author} • {formatDate(createdAt)}
+          </span>
+        </div>
 
-          <div className="text-sm text-gray-500 mb-3">
-            <span>
-              Posted by {author} • {formattedDate}
-            </span>
-          </div>
+        <Link href={`/forums/posts/${id}`}>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-green-600">
+            {title}
+          </h2>
+        </Link>
 
-          <div className="prose prose-sm mb-4 text-gray-600">
-            <p>{truncatedContent}</p>
-          </div>
+        <p className="text-gray-600 mb-4">{truncateContent(content)}</p>
 
-          <div className="flex flex-wrap gap-1 mb-3">
-            {tags.map((tag) => (
+        {/* Display tags if any */}
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {tags.map((tag, index) => (
               <span
-                key={tag}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                key={index}
+                className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
               >
                 {tag}
               </span>
             ))}
           </div>
+        )}
 
-          <div className="flex justify-between items-center text-sm text-gray-500">
-            <div>
-              <span className="flex items-center">
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {commentCount} {commentCount === 1 ? "comment" : "comments"}
-              </span>
-            </div>
-            <span className="text-green-600 font-medium">Read more →</span>
+        <div className="flex items-center space-x-4 text-sm">
+          <div className="flex items-center space-x-1 text-gray-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+              />
+            </svg>
+            <span>{commentCount} comments</span>
           </div>
+
+          <Link
+            href={`/forums/posts/${id}`}
+            className="text-green-600 hover:text-green-800 text-sm font-medium"
+          >
+            Read more →
+          </Link>
         </div>
-      </Link>
+      </div>
     </div>
   );
 }

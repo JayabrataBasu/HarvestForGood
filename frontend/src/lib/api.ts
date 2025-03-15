@@ -38,9 +38,8 @@ export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false;
   
   try {
-    const accessToken = localStorage.getItem('access_token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    return !!accessToken && !!refreshToken;
+    const token = localStorage.getItem('access_token');
+    return !!token;
   } catch (error) {
     // In case of any errors accessing localStorage (e.g., private browsing)
     console.error('Error checking authentication status:', error);
@@ -185,6 +184,61 @@ export const forumAPI = {
         message: error instanceof Error ? error.message : 'Failed to fetch posts'
       };
     }
-  }
-  // Add other forum-related API methods here as needed
+  },
+  getPost: async (id: string | number) => {
+    try {
+      const data = await fetchAPI(`/forums/posts/${id}/`);
+      return { success: true, data };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to fetch post" 
+      };
+    }
+  },
+  createPost: async (postData: { title: string; content: string }) => {
+    try {
+      const data = await fetchAPI("/forum/posts/", {
+        method: "POST",
+        body: JSON.stringify(postData),
+      });
+      return { success: true, data };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to create post" 
+      };
+    }
+  },
+  addComment: async (postId: string | number, content: string) => {
+    try {
+      const data = await fetchAPI(`/forums/posts/${postId}/comments/`, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+      return { success: true, data };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to add comment" 
+      };
+    }
+  },
+  likePost: async (postId: string | number) => {
+    try {
+      const data = await fetchAPI(`/forums/posts/${postId}/like/`, {
+        method: "POST",
+      });
+      return { success: true, data };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to like post" 
+      };
+    }
+  },
 };
+
+// Remove these duplicate functions as they're now handled by forumAPI
+// export const createPost = async ...
+// export const getPosts = async ...

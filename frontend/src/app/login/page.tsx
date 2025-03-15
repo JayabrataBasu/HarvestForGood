@@ -52,9 +52,9 @@ export default function Login() {
       const success = await login(email, password);
       if (success) {
         setSuccessMessage("Login successful! Redirecting...");
-        // Redirect to dashboard or home page after successful login
+        // Redirect to forums page after successful login
         setTimeout(() => {
-          router.push("/");
+          router.push("/forums");
         }, 1500);
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
