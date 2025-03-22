@@ -171,6 +171,7 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
 export const forumAPI = {
   getPosts: async (): Promise<APIResponse<ForumPostType[]>> => {
     try {
+      // Fix the endpoint to match the backend URL structure: forum not forums
       const data = await fetchAPI<ForumPostType[]>('/forum/posts/');
       return {
         success: true,
@@ -187,7 +188,8 @@ export const forumAPI = {
   },
   getPost: async (id: string | number) => {
     try {
-      const data = await fetchAPI(`/forums/posts/${id}/`);
+      // Fix the endpoint to match the backend URL structure: forum not forums
+      const data = await fetchAPI(`/forum/posts/${id}/`);
       return { success: true, data };
     } catch (error) {
       return { 
@@ -196,8 +198,10 @@ export const forumAPI = {
       };
     }
   },
+  // Also fix this endpoint:
   createPost: async (postData: { title: string; content: string }) => {
     try {
+      // Fix the endpoint to match the backend URL structure: forum not forums
       const data = await fetchAPI("/forum/posts/", {
         method: "POST",
         body: JSON.stringify(postData),
@@ -212,7 +216,8 @@ export const forumAPI = {
   },
   addComment: async (postId: string | number, content: string) => {
     try {
-      const data = await fetchAPI(`/forums/posts/${postId}/comments/`, {
+      // Fix the endpoint to match the backend URL structure: forum not forums
+      const data = await fetchAPI(`/forum/posts/${postId}/comments/`, {
         method: "POST",
         body: JSON.stringify({ content }),
       });
@@ -226,7 +231,8 @@ export const forumAPI = {
   },
   likePost: async (postId: string | number) => {
     try {
-      const data = await fetchAPI(`/forums/posts/${postId}/like/`, {
+      // Fix the endpoint to match the backend URL structure: forum not forums
+      const data = await fetchAPI(`/forum/posts/${postId}/like/`, {
         method: "POST",
       });
       return { success: true, data };

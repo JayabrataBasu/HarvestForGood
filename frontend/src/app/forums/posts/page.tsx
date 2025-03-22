@@ -39,10 +39,10 @@ export default function ForumPosts() {
       try {
         const token = localStorage.getItem("access_token");
 
-        // Log API endpoint for debugging
-        console.log("Fetching posts from:", `${API_BASE_URL}/forums/posts/`);
+        // Log API endpoint for debugging with corrected URL
+        console.log("Fetching posts from:", `${API_BASE_URL}/forum/posts/`);
 
-        const response = await fetch(`${API_BASE_URL}/forums/posts/`, {
+        const response = await fetch(`${API_BASE_URL}/forum/posts/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

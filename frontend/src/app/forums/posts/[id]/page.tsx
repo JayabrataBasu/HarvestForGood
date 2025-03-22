@@ -52,7 +52,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
       try {
         const token = localStorage.getItem("access_token");
         const response = await fetch(
-          `${API_BASE_URL}/forums/posts/${params.id}/`,
+          `${API_BASE_URL}/forum/posts/${params.id}/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -93,7 +93,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${API_BASE_URL}/forums/posts/${post.id}/like/`,
+        `${API_BASE_URL}/forum/posts/${post.id}/like/`,
         {
           method: "POST",
           headers: {
@@ -122,7 +122,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${API_BASE_URL}/forums/posts/${params.id}/comments/`,
+        `${API_BASE_URL}/forum/posts/${params.id}/comments/`,
         {
           method: "POST",
           headers: {

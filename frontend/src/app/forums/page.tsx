@@ -38,20 +38,7 @@ export default function ForumsPage() {
         setIsLoading(true);
         setError(null);
 
-        // Add console log to debug API base URL
         console.log("API Base URL:", API_BASE_URL);
-        console.log(
-          "Auth status:",
-          authStatus ? "Authenticated" : "Not authenticated"
-        );
-
-        // Check if forumAPI exists
-        if (!forumAPI || typeof forumAPI.getPosts !== "function") {
-          console.error("forumAPI or getPosts function is not available");
-          setError("API service not available");
-          setIsLoading(false);
-          return;
-        }
 
         const response = await forumAPI.getPosts();
 
@@ -74,7 +61,6 @@ export default function ForumsPage() {
       } catch (err: unknown) {
         console.error("Error fetching forum posts:", err);
 
-        // Provide more specific error message based on error type
         if (
           err instanceof Error &&
           err.message.includes("Authentication required")
@@ -116,61 +102,50 @@ export default function ForumsPage() {
       </div>
 
       {/* Create Post button */}
-      <div className="mb-8 flex justify-end">
-        <Link href="/forums/posts/new">
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Create New Post
-          </button>
-        </Link>
-      </div>
-
-      {/* Auth warning if needed */}
-      {!authStatus && (
-        <div className="mb-4 p-4 bg-blue-50 text-blue-700 rounded-md">
-          <p>You are browsing as a guest. Some features may be limited.</p>
-          <Link href="/login">
-            <button className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              Login for full access
-            </button>
-          </Link>
-        </div>
-      )}
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="space-y-6">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-white p-6 rounded-lg shadow-sm border animate-pulse"
-            >
-              <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Error state */}
-      {!isLoading && error && (
-        <div className="p-4 border border-red-500 bg-red-50 text-red-700 rounded-md mb-6">
-          {error}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!isLoading && !error && posts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
-            No discussions yet. Be the first to start one!
-          </p>
+      {authStatus && (
+        <div className="mb-8 flex justify-end">
           <Link href="/forums/posts/new">
             <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
               Create New Post
             </button>
           </Link>
+        </div>
+      )}
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && !isLoading && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* No posts message */}
+      {!isLoading && !error && posts.length === 0 && (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <p className="text-gray-500 text-lg">
+            No posts have been created yet.
+          </p>
+          {authStatus && (
+            <p className="mt-2 text-gray-500">
+              Be the first to start a discussion by clicking the &ldquo;Create
+              New Post&rdquo; button!
+            </p>
+          )}
+          {!authStatus && (
+            <p className="mt-2 text-gray-500">
+              <Link href="/login" className="text-green-600 hover:underline">
+                Log in
+              </Link>{" "}
+              to create the first post!
+            </p>
+          )}
         </div>
       )}
 

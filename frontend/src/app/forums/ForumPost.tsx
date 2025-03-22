@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
 
 interface ForumPostProps {
   id: string;
@@ -20,32 +21,21 @@ export default function ForumPost({
   commentCount,
   tags,
 }: ForumPostProps) {
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return dateString;
-    }
-  };
+  // Format the date to show as "X time ago"
+  const formattedDate = formatDistanceToNow(new Date(createdAt), {
+    addSuffix: true,
+  });
 
   // Truncate content if it's too long
-  const truncateContent = (text: string, maxLength = 150) => {
-    if (text.length <= maxLength) return text;
-    return `${text.slice(0, maxLength)}...`;
-  };
+  const truncatedContent =
+    content.length > 150 ? content.substring(0, 150) + "..." : content;
 
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200">
-      <div className="p-5">
-        <div className="flex items-center text-xs text-gray-500 mb-2">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <div className="p-6">
+        <div className="flex items-center text-sm text-gray-500 mb-2">
           <span>
-            Posted by {author} • {formatDate(createdAt)}
+            Posted by {author} • {formattedDate}
           </span>
         </div>
 
@@ -55,15 +45,14 @@ export default function ForumPost({
           </h2>
         </Link>
 
-        <p className="text-gray-600 mb-4">{truncateContent(content)}</p>
+        <p className="text-gray-600 mb-4">{truncatedContent}</p>
 
-        {/* Display tags if any */}
         {tags && tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((tag, index) => (
+          <div className="mb-4 flex flex-wrap">
+            {tags.map((tag) => (
               <span
-                key={index}
-                className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
+                key={tag}
+                className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2 mb-2"
               >
                 {tag}
               </span>
@@ -71,11 +60,11 @@ export default function ForumPost({
           </div>
         )}
 
-        <div className="flex items-center space-x-4 text-sm">
-          <div className="flex items-center space-x-1 text-gray-500">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center text-sm text-gray-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-5 w-5 mr-1"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -84,17 +73,16 @@ export default function ForumPost({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
-            <span>{commentCount} comments</span>
+            {commentCount} {commentCount === 1 ? "comment" : "comments"}
           </div>
 
-          <Link
-            href={`/forums/posts/${id}`}
-            className="text-green-600 hover:text-green-800 text-sm font-medium"
-          >
-            Read more →
+          <Link href={`/forums/posts/${id}`}>
+            <span className="text-sm font-medium text-green-600 hover:text-green-800">
+              Read more →
+            </span>
           </Link>
         </div>
       </div>
