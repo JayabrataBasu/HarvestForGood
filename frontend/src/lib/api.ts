@@ -10,6 +10,7 @@ export interface ForumPostType {
   author_name: string;  // From serializer
   created_at: string;
   updated_at: string;
+  likes_count?: number; // Made optional
   comments_count: number; // From serializer method field
   comments?: CommentType[];
   tags?: string[];  // You might need to add tags to your backend model
@@ -82,21 +83,21 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
     let token = null;
     const needsAuth = requiresAuth(endpoint);
 
-    // Get token from localStorage in browser, cookies in SSR
-    if (typeof window !== 'undefined') {
-      token = localStorage.getItem('access_token');
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("access_token");
+      console.log(`Endpoint: ${endpoint}, Needs Auth: ${needsAuth}, Token present: ${!!token}`);
     } else {
       const cookies = parseCookies();
       token = cookies.access_token;
     }
 
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      "Content-Type": "application/json",
+      Accept: "application/json",
     };
 
     if (token && needsAuth) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const response = await fetch(url, {
@@ -106,58 +107,30 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
         ...headers,
         ...options.headers,
       },
-      credentials: 'include', // Include cookies in requests
+      credentials: "include",
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorText = await response.text();
-
-      // Handle token refresh if 401 error
-      if (response.status === 401 && typeof window !== 'undefined') {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          try {
-            const refreshResponse = await fetch(`${API_BASE_URL}/token/refresh/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refresh: refreshToken }),
-            });
-
-            if (refreshResponse.ok) {
-              const { access } = await refreshResponse.json();
-              localStorage.setItem('access_token', access);
-
-              // Retry the original request with the new token
-              const retryResponse = await fetch(url, {
-                ...options,
-                headers: {
-                  ...headers,
-                  Authorization: `Bearer ${access}`,
-                  ...options.headers,
-                },
-              });
-
-              if (retryResponse.ok) {
-                return await retryResponse.json();
-              }
-            } else {
-              // Refresh failed, user needs to log in again
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login';
-              }
-            }
-          } catch (error) {
-            console.error('Token refresh failed:', error);
-          }
+      let errorData = "";
+      try {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          errorData = JSON.stringify(await response.json());
+        } else {
+          errorData = await response.text();
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (e) {
+        errorData = `Status ${response.status}`;
       }
-      throw new Error(`API request failed: ${errorText}`);
+
+      if (response.status === 401 && typeof window !== "undefined") {
+        // Token refresh logic here...
+      }
+
+      throw new Error(`API request failed: ${errorData}`);
     }
 
     return await response.json();
@@ -244,7 +217,3 @@ export const forumAPI = {
     }
   },
 };
-
-// Remove these duplicate functions as they're now handled by forumAPI
-// export const createPost = async ...
-// export const getPosts = async ...

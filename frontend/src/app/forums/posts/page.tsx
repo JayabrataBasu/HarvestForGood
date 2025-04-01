@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAuthenticated, API_BASE_URL } from "@/lib/api";
+import { forumAPI } from "@/lib/api";
 
 interface Post {
   id: number;
@@ -21,6 +21,18 @@ interface Post {
   comments_count: number;
 }
 
+interface ForumPostType {
+  id: number;
+  title: string;
+  content: string;
+  author: number;
+  author_name: string;
+  created_at: string;
+  updated_at: string;
+  likes_count?: number;
+  comments_count?: number;
+}
+
 export default function ForumPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,52 +40,36 @@ export default function ForumPosts() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated() && typeof window !== "undefined") {
-      router.push("/login?redirect=/forums/posts");
-      return;
-    }
-
-    // Fetch posts
-    async function fetchPosts() {
+    const fetchPosts = async () => {
       try {
-        const token = localStorage.getItem("access_token");
-
-        // Log API endpoint for debugging with corrected URL
-        console.log("Fetching posts from:", `${API_BASE_URL}/forum/posts/`);
-
-        const response = await fetch(`${API_BASE_URL}/forum/posts/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        // Log response status for debugging
-        console.log("Response status:", response.status);
-
-        // Check if response is HTML instead of JSON
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("text/html")) {
-          console.error("Received HTML response instead of JSON");
-          throw new Error(
-            "Server returned HTML instead of JSON. API endpoint might be incorrect."
-          );
+        const result = await forumAPI.getPosts();
+        if (result.success) {
+          const transformedPosts = result.data.map((post: ForumPostType) => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            created_at: post.created_at,
+            updated_at: post.updated_at,
+            author: {
+              id: typeof post.author === "number" ? post.author : 0,
+              username: post.author_name || "Anonymous",
+              first_name: post.author_name?.split(" ")[0] || "",
+              last_name: post.author_name?.split(" ").slice(1).join(" ") || "",
+            },
+            likes_count: post.likes_count || 0,
+            comments_count: post.comments_count || 0,
+          })) as Post[];
+          setPosts(transformedPosts);
+        } else {
+          setError(result.message || "Failed to fetch posts");
         }
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch posts: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched posts:", data);
-        setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Error fetching posts:", err);
-        setError("Failed to load posts. Please try again later.");
+        setError("An error occurred while fetching posts");
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchPosts();
   }, [router]);

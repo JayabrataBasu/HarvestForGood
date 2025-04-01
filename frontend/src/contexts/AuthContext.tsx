@@ -91,16 +91,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setError(null);
 
-      // Try with username field instead of email (many Django backends expect username)
-      // Some backends might expect 'username' instead of 'email'
       const response = await fetch(`${API_BASE_URL}/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: email, // Try with username field
-          email: email, // Also include email field
+          username: email,
+          email: email,
           password,
         }),
         credentials: "include",
@@ -113,13 +111,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const { access, refresh } = await response.json();
 
-      // Store in both localStorage and cookies
+      // Store tokens in localStorage and cookies
       if (typeof window !== "undefined") {
         localStorage.setItem("access_token", access);
         localStorage.setItem("refresh_token", refresh);
       }
 
-      // Set cookies for server-side access
       setCookie(null, "access_token", access, {
         maxAge: 30 * 24 * 60 * 60,
         path: "/",
@@ -131,7 +128,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sameSite: "lax",
       });
 
-      // Get user data
+      // Debug logs for verification
+      console.log("Tokens stored:", {
+        access: !!access,
+        refresh: !!refresh,
+      });
+
       const userResponse = await fetch(`${API_BASE_URL}/users/me/`, {
         headers: {
           Authorization: `Bearer ${access}`,

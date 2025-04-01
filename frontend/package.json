@@ -11,7 +11,7 @@
   "dependencies": {
     "date-fns": "^2.30.0",
     "jsonwebtoken": "^9.0.2",
-    "next": "^15.2.2",
+    "next": "^15.2.4",
     "nookies": "^2.5.2",
     "react": "^19.0.0",
     "react-datepicker": "^8.1.0",
