@@ -44,6 +44,24 @@ class ForumPostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['post'])
+    def like_post(self, request, pk=None):
+        """
+        Like a forum post
+        """
+        post = self.get_object()
+        
+        # Simple implementation: just increment likes_count field
+        # For a real app, you'd likely want to track which users liked which posts
+        if not hasattr(post, 'likes_count'):
+            post.likes_count = 1
+        else:
+            post.likes_count += 1
+        post.save()
+        
+        serializer = self.get_serializer(post)
+        return Response(serializer.data)
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

@@ -6,5 +6,7 @@ router = DefaultRouter()
 router.register(r'posts', ForumPostViewSet)
 router.register(r'comments', CommentViewSet)
 
-
-urlpatterns = router.urls
+# Add like endpoint
+urlpatterns = router.urls + [
+    path('posts/<int:post_id>/like/', ForumPostViewSet.as_view({'post': 'like_post'}), name='post-like'),
+]

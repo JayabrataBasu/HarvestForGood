@@ -1,142 +1,146 @@
 "use client";
 
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { API_BASE_URL } from "@/lib/api"; // Use alias import
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { setCookie, parseCookies, destroyCookie } from "nookies";
 import { useRouter } from "next/navigation";
-import { parseCookies, setCookie, destroyCookie } from "nookies";
+import { API_BASE_URL } from "@/lib/api";
 
-// Define types for TypeScript
+// Define the shape of the user object
 interface User {
-  id: number;
-  username?: string;
+  id: string;
+  username: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  role?: string;
-  is_active?: boolean;
-  date_joined?: string;
-  [key: string]: string | number | boolean | undefined;
 }
 
+// Define the shape of the auth context
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: (userData: any) => Promise<any>; // Changed from string to any
+  register: (userData: any) => Promise<any>;
   logout: () => void;
-  isAuthenticated: boolean;
+  isAuthenticated: () => boolean;
 }
 
+// Create the auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+// Auth provider component
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check if user is authenticated on load
+  // Check if the user is authenticated on mount
   useEffect(() => {
-    async function loadUser() {
+    async function loadUserFromTokens() {
       try {
-        let token;
+        const cookies = parseCookies();
+        const accessToken =
+          cookies.accessToken || localStorage.getItem("access_token");
 
-        if (typeof window !== "undefined") {
-          token = localStorage.getItem("access_token");
-        } else {
-          const cookies = parseCookies();
-          token = cookies.access_token;
-        }
-
-        if (!token) {
+        if (!accessToken) {
           setLoading(false);
           return;
         }
 
-        // Update the API endpoint to use the correct path
-        const response = await fetch(`${API_BASE_URL}/users/me/`, {
+        const userResponse = await fetch(`${API_BASE_URL}/users/me/`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to load user: ${response.status}`);
-        }
-
-        const userData = await response.json();
-        setUser(userData);
-      } catch (err) {
-        console.error("Failed to load user:", err);
-        // Clear tokens if authentication fails
-        if (typeof window !== "undefined") {
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser(userData);
+        } else {
+          // Handle token refresh if possible or clear tokens
           localStorage.removeItem("access_token");
           localStorage.removeItem("refresh_token");
         }
-        // Also clear cookies
-        destroyCookie(null, "access_token");
-        destroyCookie(null, "refresh_token");
+      } catch (err) {
+        console.error("Failed to load user data:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadUser();
+    loadUserFromTokens();
   }, []);
 
-  // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      setError(null);
+  // Check if user is authenticated
+  const isAuthenticated = () => {
+    // For client-side usage
+    if (typeof window !== "undefined") {
+      const cookies = parseCookies();
+      return !!(cookies.accessToken || localStorage.getItem("access_token"));
+    }
+    return false;
+  };
 
-      const response = await fetch(`${API_BASE_URL}/token/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: email,
-          email: email,
-          password,
-        }),
-        credentials: "include",
-      });
+  // Login function
+  const login = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/login/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Login failed");
+        let errorMessage = "Login failed";
+
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.non_field_errors) {
+            errorMessage = errorData.non_field_errors.join(", ");
+          }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (e) {
+          // If we can't parse the JSON, just use the status text
+          errorMessage = `Login failed: ${response.statusText}`;
+        }
+
+        throw new Error(errorMessage);
       }
 
-      const { access, refresh } = await response.json();
+      const data = await response.json();
 
-      // Store tokens in localStorage and cookies
-      if (typeof window !== "undefined") {
-        localStorage.setItem("access_token", access);
-        localStorage.setItem("refresh_token", refresh);
-      }
-
-      setCookie(null, "access_token", access, {
-        maxAge: 30 * 24 * 60 * 60,
+      // Set cookies for the tokens
+      setCookie(null, "accessToken", data.access, {
+        maxAge: 60 * 60, // 1 hour
         path: "/",
-        sameSite: "lax",
-      });
-      setCookie(null, "refresh_token", refresh, {
-        maxAge: 30 * 24 * 60 * 60,
-        path: "/",
+        secure: process.env.NODE_ENV !== "development",
         sameSite: "lax",
       });
 
-      // Debug logs for verification
-      console.log("Tokens stored:", {
-        access: !!access,
-        refresh: !!refresh,
+      setCookie(null, "refreshToken", data.refresh, {
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        path: "/",
+        secure: process.env.NODE_ENV !== "development",
+        sameSite: "lax",
       });
 
+      // Update user data with fetchProfile
       const userResponse = await fetch(`${API_BASE_URL}/users/me/`, {
         headers: {
-          Authorization: `Bearer ${access}`,
+          Authorization: `Bearer ${data.access}`,
         },
       });
 
@@ -146,13 +150,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const userData = await userResponse.json();
       setUser(userData);
-
-      return true;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setError(err.message || "Login failed");
-      throw err;
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error instanceof Error ? error.message : "Login failed");
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -163,7 +166,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError(null);
       setLoading(true);
 
-      // Use our API endpoint for registration
       const response = await fetch(`${API_BASE_URL}/users/register/`, {
         method: "POST",
         headers: {
@@ -184,9 +186,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const data = await response.json();
-
-      // Some implementations might return tokens on registration
-      // But usually registration just creates the account and requires email verification
       return data;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -200,17 +199,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Logout function
   const logout = () => {
+    // Clear tokens from localStorage
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
     }
 
-    // Clear cookies as well
-    destroyCookie(null, "access_token");
-    destroyCookie(null, "refresh_token");
+    // Clear cookies
+    destroyCookie(null, "accessToken");
+    destroyCookie(null, "refreshToken");
 
+    // Reset user state
     setUser(null);
-    router.push("/login");
+
+    // Redirect to homepage
+    router.push("/");
   };
 
   return (
@@ -222,7 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         register,
         logout,
-        isAuthenticated: !!user,
+        isAuthenticated,
       }}
     >
       {children}
@@ -230,7 +233,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = (): AuthContextType => {
+// Custom hook to use the auth context
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");

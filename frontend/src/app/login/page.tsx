@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// Fix import path based on where the context actually exists
-import { useAuth } from "../../contexts/AuthContext"; // Use relative path to the correct location
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAuthenticated } from "@/lib/api"; // Import isAuthenticated helper
+import { isAuthenticated } from "@/lib/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -29,12 +28,11 @@ export default function Login() {
 
           // Redirect to home page after a short delay
           const redirectTimer = setTimeout(() => {
-            router.push("/");
+            router.push("/forums/posts");
           }, 1500);
 
           return () => {
             clearTimeout(redirectTimer);
-            clearTimeout(checkAuth);
           };
         }
       }, 100);
@@ -49,14 +47,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
-        setSuccessMessage("Login successful! Redirecting...");
-        // Redirect to forums page after successful login
-        setTimeout(() => {
-          router.push("/forums");
-        }, 1500);
-      }
+      await login(email, password);
+      // If login doesn't throw an error, consider it successful
+      setSuccessMessage("Login successful! Redirecting...");
+      // Redirect to forums page after successful login
+      setTimeout(() => {
+        router.push("/forums/posts");
+      }, 1500);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Login error:", err);
@@ -79,10 +76,10 @@ export default function Login() {
           </div>
           <div className="mt-4 flex gap-4 justify-center">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/forums/posts")}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
-              Go to Dashboard
+              Go to Forums
             </button>
             <button
               onClick={() => {

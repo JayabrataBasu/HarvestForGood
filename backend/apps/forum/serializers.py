@@ -40,7 +40,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = ForumPost
         fields = ('id', 'title', 'content', 'author', 'author_name', 
-                 'created_at', 'updated_at', 'comments', 'comments_count')
+                 'created_at', 'updated_at', 'comments', 'comments_count', 'likes_count')
         extra_kwargs = {
             'title': {'validators': [validate_title]},
             'content': {'validators': [validate_post_content]},

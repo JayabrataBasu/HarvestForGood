@@ -1,201 +1,129 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { forumAPI } from "@/lib/api";
+import ForumPost from "../ForumPost";
+import { useAuth } from "../../../contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Post {
-  id: number;
+  id: string;
   title: string;
   content: string;
-  author: {
-    id: number;
-    username: string;
-    first_name: string;
-    last_name: string;
-  };
+  author: string;
   created_at: string;
-  updated_at: string;
-  likes_count: number;
-  comments_count: number;
+  comment_count: number;
+  tags?: string[];
 }
 
-interface ForumPostType {
-  id: number;
-  title: string;
-  content: string;
-  author: number;
-  author_name: string;
-  created_at: string;
-  updated_at: string;
-  likes_count?: number;
-  comments_count?: number;
-}
+// Improved fetch function with better error handling
+const fetchPosts = async (): Promise<Post[]> => {
+  try {
+    // Remove the duplicate /api prefix since API_BASE_URL already includes it
+    const response = await fetch(`${API_BASE_URL}/forum/posts/`);
 
-export default function ForumPosts() {
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Failed to fetch posts: HTTP ${response.status} - ${errorText}`
+      );
+      throw new Error(`Failed to fetch posts: HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Handle different API response structures
+    if (Array.isArray(data)) {
+      return data; // Response is already an array
+    } else if (data.results && Array.isArray(data.results)) {
+      return data.results; // Response is paginated with a results array
+    } else {
+      console.error("Unexpected API response structure:", data);
+      return []; // Return empty array as fallback
+    }
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+    return []; // Return empty array instead of throwing to avoid breaking the UI
+  }
+};
+
+export default function Posts() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const loadPosts = async () => {
       try {
-        const result = await forumAPI.getPosts();
-        if (result.success) {
-          const transformedPosts = result.data.map((post: ForumPostType) => ({
-            id: post.id,
-            title: post.title,
-            content: post.content,
-            created_at: post.created_at,
-            updated_at: post.updated_at,
-            author: {
-              id: typeof post.author === "number" ? post.author : 0,
-              username: post.author_name || "Anonymous",
-              first_name: post.author_name?.split(" ")[0] || "",
-              last_name: post.author_name?.split(" ").slice(1).join(" ") || "",
-            },
-            likes_count: post.likes_count || 0,
-            comments_count: post.comments_count || 0,
-          })) as Post[];
-          setPosts(transformedPosts);
-        } else {
-          setError(result.message || "Failed to fetch posts");
-        }
+        setIsLoading(true);
+        const data = await fetchPosts();
+        setPosts(data);
+        setError(null);
       } catch (err) {
-        setError("An error occurred while fetching posts");
-        console.error(err);
+        setError("Failed to load posts. Please try again later.");
+        console.error("Error loading posts:", err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchPosts();
-  }, [router]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="animate-pulse flex space-x-4">
-              <div className="flex-1 space-y-6 py-1">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="h-4 bg-gray-200 rounded col-span-2"></div>
-                    <div className="h-4 bg-gray-200 rounded col-span-1"></div>
-                  </div>
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    loadPosts();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Forum Posts</h1>
-          <Link
-            href="/forums/posts/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            Create New Post
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Forum Posts</h1>
+        {user && (
+          <Link href="/forums/posts/new">
+            <span className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+              Create New Post
+            </span>
           </Link>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
-            {error}
-          </div>
-        )}
-
-        {posts.length === 0 && !error ? (
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500">
-              No posts yet. Be the first to create a post!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="p-5">
-                  <div className="flex items-center text-xs text-gray-500 mb-2">
-                    <span>
-                      Posted by {post.author.first_name} {post.author.last_name}{" "}
-                      • {formatDate(post.created_at)}
-                    </span>
-                  </div>
-                  <Link href={`/forums/posts/${post.id}`}>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-green-600">
-                      {post.title}
-                    </h2>
-                  </Link>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                        />
-                      </svg>
-                      <span>{post.likes_count} likes</span>
-                    </div>
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                        />
-                      </svg>
-                      <span>{post.comments_count} comments</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         )}
       </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        </div>
+      ) : error ? (
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
+          <span className="block sm:inline">{error}</span>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-gray-600">No posts available yet.</p>
+          {user && (
+            <p className="mt-4">
+              <Link href="/forums/posts/new">
+                <span className="text-green-600 hover:underline">
+                  Create the first post!
+                </span>
+              </Link>
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <ForumPost
+              key={post.id}
+              id={post.id}
+              title={post.title}
+              content={post.content}
+              author={post.author}
+              createdAt={post.created_at}
+              commentCount={post.comment_count}
+              tags={post.tags}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
