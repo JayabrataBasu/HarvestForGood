@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAuthenticated, API_BASE_URL } from "@/lib/api";
+import { isAuthenticated, API_BASE_URL, forumAPI } from "@/lib/api";
+import { use } from "react"; // Add this import
 
 interface Author {
   id: number;
@@ -33,6 +34,11 @@ interface Post {
 }
 
 export default function PostDetail({ params }: { params: { id: string } }) {
+  // Unwrap params using React.use if params is a Promise
+  const unwrappedParams =
+    typeof params === "object" && "then" in params ? use(params) : params;
+  const postId = unwrappedParams.id;
+
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,22 +49,20 @@ export default function PostDetail({ params }: { params: { id: string } }) {
   useEffect(() => {
     // Check if user is authenticated
     if (!isAuthenticated() && typeof window !== "undefined") {
-      router.push(`/login?redirect=/forums/posts/${params.id}`);
+      router.push(`/login?redirect=/forums/posts/${postId}`);
       return;
     }
 
     // Fetch post details
     async function fetchPost() {
       try {
+        setLoading(true);
         const token = localStorage.getItem("access_token");
-        const response = await fetch(
-          `${API_BASE_URL}/forum/posts/${params.id}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch post");
@@ -66,6 +70,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
 
         const data = await response.json();
         setPost(data);
+        setError("");
       } catch (err) {
         console.error("Error fetching post:", err);
         setError("Failed to load post. Please try again later.");
@@ -75,7 +80,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     }
 
     fetchPost();
-  }, [params.id, router]);
+  }, [postId, router]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -91,24 +96,20 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     if (!post) return;
 
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/forum/posts/${post.id}/like/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const result = await forumAPI.likePost(postId);
 
-      if (!response.ok) {
-        throw new Error("Failed to like post");
+      if (result.success) {
+        // Update the post with new like count
+        setPost((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            likes_count: (prev.likes_count || 0) + 1,
+          };
+        });
+      } else {
+        console.error("Failed to like post:", result.message);
       }
-
-      // Update the post with new like count
-      const updatedPost = { ...post, likes_count: post.likes_count + 1 };
-      setPost(updatedPost);
     } catch (err) {
       console.error("Error liking post:", err);
     }
@@ -119,36 +120,26 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     if (!newComment.trim()) return;
 
     setSubmittingComment(true);
-    try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/forum/posts/${params.id}/comments/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content: newComment }),
-        }
-      );
 
-      if (!response.ok) {
+    try {
+      const result = await forumAPI.createComment(postId, newComment);
+
+      if (result.success) {
+        // Update our post state with the new comment
+        if (post && result.data) {
+          const newCommentData = result.data;
+
+          setPost({
+            ...post,
+            comments: [...post.comments, newCommentData],
+          });
+
+          // Clear the comment input
+          setNewComment("");
+        }
+      } else {
         throw new Error("Failed to submit comment");
       }
-
-      const commentData = await response.json();
-
-      // Update our post state with the new comment
-      if (post) {
-        setPost({
-          ...post,
-          comments: [...post.comments, commentData],
-        });
-      }
-
-      // Clear the comment input
-      setNewComment("");
     } catch (err) {
       console.error("Error submitting comment:", err);
     } finally {

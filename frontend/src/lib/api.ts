@@ -137,25 +137,90 @@ export const forumAPI = {
   },
   
   createPost: async (data: { title: string; content: string }) => {
-    return fetchAPI('/forum/posts/', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/forum/posts/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to create post: ${response.status} - ${errorText}`);
+        throw new Error('Failed to create post');
+      }
+      
+      return { success: true, data: await response.json() };
+    } catch (error) {
+      console.error('Create post error:', error);
+      return { success: false, message: 'Failed to create post' };
+    }
   },
   
   createComment: async (postId: string, content: string) => {
-    return fetchAPI('/forum/comments/', {
-      method: 'POST',
-      body: JSON.stringify({
-        post: postId,
-        content,
-      }),
-    });
+    try {
+      // First try the direct post comments endpoint
+      const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/comments/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ content })
+      });
+      
+      if (!response.ok) {
+        // If the direct endpoint fails, try the comment endpoint with post ID in body
+        const fallbackResponse = await fetch(`${API_BASE_URL}/forum/comments/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify({
+            post: postId,
+            content
+          })
+        });
+        
+        if (!fallbackResponse.ok) {
+          const errorText = await fallbackResponse.text();
+          console.error(`Failed to submit comment: ${fallbackResponse.status} - ${errorText}`);
+          throw new Error('Failed to submit comment');
+        }
+        
+        return { success: true, data: await fallbackResponse.json() };
+      }
+      
+      return { success: true, data: await response.json() };
+    } catch (error) {
+      console.error('Create comment error:', error);
+      return { success: false, message: 'Failed to create comment' };
+    }
   },
   
   likePost: async (postId: string) => {
-    return fetchAPI(`/forum/posts/${postId}/like/`, {
-      method: 'POST',
-    });
-  },
+    try {
+      const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to like post: ${response.status} - ${errorText}`);
+        throw new Error('Failed to like post');
+      }
+      
+      return { success: true, data: await response.json() };
+    } catch (error) {
+      console.error('Like post error:', error);
+      return { success: false, message: 'Failed to like post' };
+    }
+  }
 };

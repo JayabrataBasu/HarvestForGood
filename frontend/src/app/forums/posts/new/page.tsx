@@ -17,6 +17,7 @@ export default function NewPost() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     if (!user) {
       setError("You must be logged in to create a post.");
       setLoading(false);
@@ -30,7 +31,7 @@ export default function NewPost() {
       });
 
       if (result.success) {
-        router.push("/forums");
+        router.push("/forums/posts");
       } else {
         throw new Error(result.message || "Failed to create post");
       }
