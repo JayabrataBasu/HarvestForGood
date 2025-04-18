@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isAuthenticated, API_BASE_URL, forumAPI } from "@/lib/api";
-import { use } from "react"; // Add this import
+import { use } from "react"; // Remove eslint-disable comment since we're using it now
 
 interface Author {
   id: number;
@@ -34,9 +34,14 @@ interface Post {
 }
 
 export default function PostDetail({ params }: { params: { id: string } }) {
-  // Unwrap params using React.use if params is a Promise
+  // Fix the typechecking for params unwrapping
   const unwrappedParams =
-    typeof params === "object" && "then" in params ? use(params) : params;
+    typeof params === "object" &&
+    params !== null &&
+    "then" in params &&
+    typeof params.then === "function"
+      ? use(params as unknown as Promise<{ id: string }>)
+      : params;
   const postId = unwrappedParams.id;
 
   const [post, setPost] = useState<Post | null>(null);
