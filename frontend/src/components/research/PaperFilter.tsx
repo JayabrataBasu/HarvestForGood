@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { PaperFilterOptions, MethodologyType, Keyword } from '../../types/paper.types';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import React, { useState, useEffect } from "react";
+import {
+  PaperFilterOptions,
+  MethodologyType,
+  KeywordCategory,
+} from "../../types/paper.types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface PaperFilterProps {
-  availableKeywords: Keyword[];
+  keywordCategories: KeywordCategory[];
   onFilterChange: (filters: PaperFilterOptions) => void;
   initialFilters?: Partial<PaperFilterOptions>;
 }
 
 const PaperFilter: React.FC<PaperFilterProps> = ({
-  availableKeywords,
+  keywordCategories,
   onFilterChange,
-  initialFilters
+  initialFilters,
 }) => {
   const [filters, setFilters] = useState<PaperFilterOptions>({
     dateRange: {
@@ -22,92 +26,202 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
     methodologyTypes: [],
     keywords: [],
     minCitations: 0,
-    ...initialFilters
+    ...initialFilters,
   });
-  
+
   const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
 
   const handleMethodologyChange = (type: MethodologyType) => {
-    setFilters(prev => {
+    setFilters((prev) => {
       if (prev.methodologyTypes.includes(type)) {
         return {
           ...prev,
-          methodologyTypes: prev.methodologyTypes.filter(t => t !== type)
+          methodologyTypes: prev.methodologyTypes.filter((t) => t !== type),
         };
       } else {
         return {
           ...prev,
-          methodologyTypes: [...prev.methodologyTypes, type]
+          methodologyTypes: [...prev.methodologyTypes, type],
         };
       }
     });
   };
 
   const handleKeywordChange = (keywordName: string) => {
-    setFilters(prev => {
+    setFilters((prev) => {
       if (prev.keywords.includes(keywordName)) {
         return {
           ...prev,
-          keywords: prev.keywords.filter(k => k !== keywordName)
+          keywords: prev.keywords.filter((k) => k !== keywordName),
         };
       } else {
         return {
           ...prev,
-          keywords: [...prev.keywords, keywordName]
+          keywords: [...prev.keywords, keywordName],
         };
       }
     });
   };
 
   const handleCitationChange = (value: number) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      minCitations: value
+      minCitations: value,
     }));
   };
 
-  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null) => {
-    setFilters(prev => ({
+  const handleDateRangeChange = (
+    startDate: Date | null,
+    endDate: Date | null
+  ) => {
+    setFilters((prev) => ({
       ...prev,
-      dateRange: { startDate, endDate }
+      dateRange: { startDate, endDate },
     }));
   };
 
   const resetFilters = () => {
     setFilters({
-      dateRange: {
-        startDate: null,
-        endDate: null,
-      },
+      dateRange: { startDate: null, endDate: null },
       methodologyTypes: [],
       keywords: [],
-      minCitations: 0
+      minCitations: 0,
+    });
+    setSearchTerm("");
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) => {
+      if (prev.includes(categoryId)) {
+        return prev.filter((id) => id !== categoryId);
+      } else {
+        return [...prev, categoryId];
+      }
     });
   };
 
+  // Filter keywords based on search term
+  const getFilteredKeywords = () => {
+    if (!searchTerm.trim()) {
+      return null; // Return null to show categories when no search
+    }
+
+    const term = searchTerm.toLowerCase();
+    const results = keywordCategories.flatMap((category) =>
+      category.keywords.filter((keyword) =>
+        keyword.name.toLowerCase().includes(term)
+      )
+    );
+
+    return results;
+  };
+
+  const filteredKeywords = getFilteredKeywords();
+
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-      <button 
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex justify-between items-center w-full font-medium text-lg"
-      >
-        <span>Filter Research Papers</span>
-        <span>{isExpanded ? '▲' : '▼'}</span>
-      </button>
-      
+    <div className="bg-white p-4 rounded-lg shadow">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-sm text-blue-600 hover:text-blue-800"
+        >
+          {isExpanded ? "Collapse" : "Expand"}
+        </button>
+      </div>
+
+      {/* Search for keywords */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search for keywords..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 pl-8 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Basic filters always visible */}
+      <div className="space-y-4">
+        {/* Methodology type filter */}
+        <div>
+          <h3 className="font-medium mb-2">Methodology Type</h3>
+          <div className="flex flex-wrap gap-2">
+            {(
+              ["qualitative", "quantitative", "mixed"] as MethodologyType[]
+            ).map((type) => (
+              <button
+                key={type}
+                onClick={() => handleMethodologyChange(type)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium ${
+                  filters.methodologyTypes.includes(type)
+                    ? "bg-blue-100 text-blue-800 border-blue-300"
+                    : "bg-gray-100 text-gray-800 border-gray-200"
+                } border hover:bg-opacity-80 transition-colors`}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Citation threshold filter */}
+        <div>
+          <h3 className="font-medium mb-2">
+            Minimum Citations: {filters.minCitations}
+          </h3>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={filters.minCitations}
+            onChange={(e) => handleCitationChange(Number(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0</span>
+            <span>25</span>
+            <span>50</span>
+            <span>75</span>
+            <span>100+</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Expandable filters */}
       {isExpanded && (
-        <div className="mt-4 space-y-6">
+        <div className="mt-4 space-y-4 pt-4 border-t border-gray-200">
           {/* Date range filter */}
           <div>
-            <h3 className="font-medium mb-2">Publication Date Range</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <h3 className="font-medium mb-2">Publication Date</h3>
+            <div className="flex space-x-2">
               <DatePicker
                 selected={filters.dateRange.startDate}
-                onChange={(date) => handleDateRangeChange(date, filters.dateRange.endDate)}
+                onChange={(date) =>
+                  handleDateRangeChange(date, filters.dateRange.endDate)
+                }
                 selectsStart
                 startDate={filters.dateRange.startDate}
                 endDate={filters.dateRange.endDate}
@@ -116,7 +230,9 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
               />
               <DatePicker
                 selected={filters.dateRange.endDate}
-                onChange={(date) => handleDateRangeChange(filters.dateRange.startDate, date)}
+                onChange={(date) =>
+                  handleDateRangeChange(filters.dateRange.startDate, date)
+                }
                 selectsEnd
                 startDate={filters.dateRange.startDate}
                 endDate={filters.dateRange.endDate}
@@ -126,67 +242,124 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
               />
             </div>
           </div>
-          
-          {/* Methodology type filter */}
+
+          {/* Keywords section */}
           <div>
-            <h3 className="font-medium mb-2">Methodology Type</h3>
-            <div className="flex flex-wrap gap-2">
-              {(['qualitative', 'quantitative', 'mixed'] as MethodologyType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => handleMethodologyChange(type)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                    filters.methodologyTypes.includes(type)
-                      ? 'bg-blue-100 text-blue-800 border-blue-300'
-                      : 'bg-gray-100 text-gray-800 border-gray-200'
-                  } border hover:bg-opacity-80 transition-colors`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
-            </div>
+            <h3 className="font-medium mb-3">Keywords</h3>
+
+            {/* Display search results if searching */}
+            {filteredKeywords ? (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500 mb-2">
+                  Search results ({filteredKeywords.length}):
+                </p>
+                <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto">
+                  {filteredKeywords.map((keyword) => (
+                    <button
+                      key={keyword.id}
+                      onClick={() => handleKeywordChange(keyword.name)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium ${
+                        filters.keywords.includes(keyword.name)
+                          ? "bg-blue-100 text-blue-800 border-blue-300"
+                          : "bg-gray-50 text-gray-700 border-gray-200"
+                      } border hover:bg-opacity-80 transition-colors`}
+                    >
+                      {keyword.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              // Display categories when not searching
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {keywordCategories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="border border-gray-200 rounded-md overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleCategory(category.id)}
+                      className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 text-left"
+                    >
+                      <span className="font-medium">{category.name}</span>
+                      <svg
+                        className={`h-5 w-5 transition-transform ${
+                          expandedCategories.includes(category.id)
+                            ? "transform rotate-180"
+                            : ""
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    {expandedCategories.includes(category.id) && (
+                      <div className="p-3 bg-white">
+                        <div className="flex flex-wrap gap-2">
+                          {category.keywords.map((keyword) => (
+                            <button
+                              key={keyword.id}
+                              onClick={() => handleKeywordChange(keyword.name)}
+                              className={`px-2.5 py-1 rounded-md text-xs font-medium ${
+                                filters.keywords.includes(keyword.name)
+                                  ? "bg-blue-100 text-blue-800 border-blue-300"
+                                  : "bg-gray-50 text-gray-700 border-gray-200"
+                              } border hover:bg-opacity-80 transition-colors`}
+                            >
+                              {keyword.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          
-          {/* Keywords filter */}
-          <div>
-            <h3 className="font-medium mb-2">Keywords/Topics</h3>
-            <div className="flex flex-wrap gap-2">
-              {availableKeywords.map((keyword) => (
-                <button
-                  key={keyword.id}
-                  onClick={() => handleKeywordChange(keyword.name)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-                    filters.keywords.includes(keyword.name)
-                      ? 'bg-blue-100 text-blue-800 border-blue-300'
-                      : 'bg-gray-50 text-gray-700 border-gray-200'
-                  } border hover:bg-opacity-80 transition-colors`}
-                >
-                  {keyword.name}
-                </button>
-              ))}
+
+          {/* Selected keywords display */}
+          {filters.keywords.length > 0 && (
+            <div>
+              <h3 className="font-medium mb-2">
+                Selected Keywords ({filters.keywords.length})
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {filters.keywords.map((keywordName) => (
+                  <div
+                    key={keywordName}
+                    className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium flex items-center"
+                  >
+                    {keywordName}
+                    <button
+                      onClick={() => handleKeywordChange(keywordName)}
+                      className="ml-1.5 text-blue-600 hover:text-blue-800"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          
-          {/* Citation threshold filter */}
-          <div>
-            <h3 className="font-medium mb-2">Minimum Citations: {filters.minCitations}</h3>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={filters.minCitations}
-              onChange={(e) => handleCitationChange(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0</span>
-              <span>25</span>
-              <span>50</span>
-              <span>75</span>
-              <span>100+</span>
-            </div>
-          </div>
-          
+          )}
+
           <div className="flex justify-between pt-4 border-t border-gray-200">
             <button
               onClick={resetFilters}
@@ -194,7 +367,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
             >
               Reset Filters
             </button>
-            
+
             <button
               onClick={() => onFilterChange(filters)}
               className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

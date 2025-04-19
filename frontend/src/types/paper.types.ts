@@ -12,6 +12,12 @@ export interface Keyword {
   name: string;
 }
 
+export interface KeywordCategory {
+  id: string;
+  name: string;
+  keywords: Keyword[];
+}
+
 export interface Paper {
   id: string;
   title: string;
