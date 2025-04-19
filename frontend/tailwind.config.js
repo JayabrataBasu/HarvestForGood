@@ -9,27 +9,57 @@ const config = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: {
+          DEFAULT: "var(--primary)",
+          light: "var(--primary-light)",
+          dark: "var(--primary-dark)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          light: "var(--accent-light)",
+        },
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        "gray-light": "var(--gray-light)",
+        "gray-medium": "var(--gray-medium)",
+        "soft-green": "var(--soft-green)",
+      },
+      fontFamily: {
+        sans: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'soft': '0 4px 15px rgba(0, 0, 0, 0.05)',
+        'card': '0 4px 6px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 10px 25px rgba(0, 0, 0, 0.08)',
+      },
       typography: (theme) => ({
         DEFAULT: {
           css: {
-            color: theme('colors.gray.700'),
+            color: 'var(--foreground)',
             a: {
-              color: '#059669',
+              color: 'var(--primary)',
               '&:hover': {
-                color: '#047857',
+                color: 'var(--primary-dark)',
+              },
+              textDecoration: 'none',
+              borderBottom: '1px solid transparent',
+              transition: 'border-color 0.2s ease',
+              '&:hover': {
+                borderColor: 'var(--primary)',
               },
             },
             h1: {
-              color: '#1f2937',
+              color: 'var(--primary-dark)',
             },
             h2: {
-              color: '#1f2937',
+              color: 'var(--primary-dark)',
             },
             h3: {
-              color: '#1f2937',
+              color: 'var(--primary-dark)',
             },
             h4: {
-              color: '#1f2937',
+              color: 'var(--primary-dark)',
             },
             'code::before': {
               content: '""',
@@ -43,13 +73,14 @@ const config = {
               borderRadius: '0.25rem',
               padding: '0.25rem 0.5rem',
               fontWeight: '400',
+              fontSize: '0.875em',
             },
           },
         },
         green: {
           css: {
-            '--tw-prose-links': theme('colors.green.600'),
-            '--tw-prose-headings': theme('colors.gray.800'),
+            '--tw-prose-links': 'var(--primary)',
+            '--tw-prose-headings': 'var(--primary-dark)',
           },
         },
       }),

@@ -13,12 +13,13 @@ export default function Register() {
     password2: "", // Confirm password
     first_name: "",
     last_name: "",
+    username: "", // Add username field
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [alreadyAuthenticated, setAlreadyAuthenticated] = useState(false);
-  const { register } = useAuth();
+  const auth = useAuth(); // Use the entire auth object instead of destructuring
   const router = useRouter();
 
   // Check if user is already authenticated
@@ -60,8 +61,13 @@ export default function Register() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password2, ...registerData } = formData;
 
+      // Make sure auth.register exists and is a function
+      if (!auth.register || typeof auth.register !== "function") {
+        throw new Error("Registration functionality is not available");
+      }
+
       // Pass the object directly, not as a JSON string
-      const response = await register(registerData);
+      const response = await auth.register(registerData);
       if (response) {
         setSuccessMessage(
           "Registration successful! Please check your email to verify your account."
@@ -166,6 +172,27 @@ export default function Register() {
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Username
+              </label>
+              <div className="mt-1">
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                />
               </div>
             </div>
 
