@@ -72,58 +72,65 @@ export default function Posts() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Forum Posts</h1>
-        {user && (
-          <Link href="/forums/posts/new">
-            <span className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
-              Create New Post
-            </span>
-          </Link>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-        </div>
-      ) : error ? (
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <span className="block sm:inline">{error}</span>
-        </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-gray-600">No posts available yet.</p>
+    <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background">
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary-dark text-gradient mb-2">
+            Forum Posts
+          </h1>
           {user && (
-            <p className="mt-4">
-              <Link href="/forums/posts/new">
-                <span className="text-green-600 hover:underline">
-                  Create the first post!
-                </span>
-              </Link>
-            </p>
+            <Link href="/forums/posts/new">
+              <span className="inline-block bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                Create New Post
+              </span>
+            </Link>
           )}
         </div>
-      ) : (
-        <div className="space-y-6">
-          {posts.map((post) => (
-            <ForumPost
-              key={post.id}
-              id={post.id}
-              title={post.title}
-              content={post.content}
-              author={post.author}
-              createdAt={post.created_at}
-              commentCount={post.comment_count}
-              tags={post.tags}
-            />
-          ))}
-        </div>
-      )}
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div
+            className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-sm"
+            role="alert"
+          >
+            <span className="block sm:inline">{error}</span>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-16 bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-sm">
+            <p className="text-gray-600 text-lg mb-4">
+              No posts available yet.
+            </p>
+            {user && (
+              <p className="mt-4">
+                <Link
+                  href="/forums/posts/new"
+                  className="text-primary font-medium hover:text-primary-dark transition-colors"
+                >
+                  Create the first post!
+                </Link>
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {posts.map((post) => (
+              <ForumPost
+                key={post.id}
+                id={post.id}
+                title={post.title}
+                content={post.content}
+                author={post.author}
+                createdAt={post.created_at}
+                commentCount={post.comment_count}
+                tags={post.tags}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

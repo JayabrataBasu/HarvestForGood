@@ -43,22 +43,29 @@ export default function AboutPage() {
             style={{ objectFit: "cover" }}
             className="hover:scale-105 transition-transform duration-700 ease-in-out"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/70 via-primary/60 to-primary-light/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/60 via-primary/40 to-transparent"></div>
         </div>
         <div className="relative h-full flex items-center grain-overlay">
           <div className="container mx-auto px-6">
-            <div className="max-w-3xl backdrop-blur-sm bg-gradient-to-br from-white/20 to-white/5 p-8 rounded-xl border border-white/10 shadow-lg">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            <div
+              className="max-w-3xl backdrop-blur-sm bg-gradient-to-br from-white/10 to-transparent p-8 rounded-xl border border-white/10 shadow-xl animate-fade-in"
+              style={{
+                boxShadow:
+                  "0 10px 25px rgba(0,0,0,0.1), 0 5px 10px rgba(0,0,0,0.05)",
+                textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
                 Welcome To The Hub Of Sustainable Agriculture Research
               </h1>
-              <p className="text-white/90 text-lg md:text-xl">
+              <p className="text-white/95 text-lg md:text-xl leading-relaxed">
                 Collecting Research and Best Practices for Sustainable
                 Agriculture
               </p>
-              <div className="mt-6">
+              <div className="mt-8">
                 <Link
                   href="/research"
-                  className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-primary-dark hover:text-primary font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-highlight"
+                  className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-primary-dark hover:text-primary font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-highlight border border-white/20"
                 >
                   Explore Research
                 </Link>

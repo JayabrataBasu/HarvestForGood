@@ -152,11 +152,12 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     }
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6">
+      <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl shadow-md p-6">
             <div className="animate-pulse space-y-4">
               <div className="h-6 bg-gray-200 rounded w-3/4"></div>
               <div className="h-4 bg-gray-200 rounded w-1/4"></div>
@@ -173,15 +174,16 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     );
   }
 
+  // Error state
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-gray-100 p-6">
+      <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6 text-center">
+          <div className="bg-white rounded-xl shadow-md p-6 text-center">
             <p className="text-red-600 mb-4">{error || "Post not found"}</p>
             <Link
               href="/forums/posts"
-              className="text-green-600 hover:text-green-800"
+              className="text-primary hover:text-primary-dark font-medium"
             >
               Back to all posts
             </Link>
@@ -191,14 +193,15 @@ export default function PostDetail({ params }: { params: { id: string } }) {
     );
   }
 
+  // Main content with post
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Navigation */}
         <nav className="mb-6">
           <Link
             href="/forums/posts"
-            className="text-green-600 hover:text-green-800 flex items-center"
+            className="text-primary hover:text-primary-dark flex items-center font-medium"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -219,13 +222,13 @@ export default function PostDetail({ params }: { params: { id: string } }) {
         </nav>
 
         {/* Post */}
-        <article className="bg-white rounded-lg shadow mb-6">
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <article className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card mb-6">
+          <div className="p-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               {post.title}
             </h1>
             <div className="flex items-center text-sm text-gray-500 mb-6">
-              <span>
+              <span className="font-medium text-primary-dark">
                 Posted by {post.author.first_name} {post.author.last_name} •{" "}
                 {formatDate(post.created_at)}
               </span>
@@ -234,7 +237,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
             {/* Post content */}
             <div className="prose max-w-none mb-6">
               {post.content.split("\n").map((paragraph, idx) => (
-                <p key={idx} className="mb-4">
+                <p key={idx} className="mb-4 text-gray-700">
                   {paragraph}
                 </p>
               ))}
@@ -244,7 +247,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
             <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
               <button
                 onClick={handleLike}
-                className="flex items-center space-x-1 text-gray-500 hover:text-green-600"
+                className="flex items-center space-x-1 text-gray-500 hover:text-primary transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -284,9 +287,11 @@ export default function PostDetail({ params }: { params: { id: string } }) {
         </article>
 
         {/* Comments section */}
-        <section className="bg-white rounded-lg shadow mb-6">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Comments</h2>
+        <section className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card">
+          <div className="p-8">
+            <h2 className="text-xl font-semibold mb-6 text-primary-dark">
+              Comments
+            </h2>
 
             {/* Add comment form */}
             <form onSubmit={handleCommentSubmit} className="mb-8">
@@ -295,7 +300,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
                   placeholder="Add a comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent bg-white"
                   rows={3}
                   required
                 ></textarea>
@@ -304,7 +309,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
                 <button
                   type="submit"
                   disabled={submittingComment || !newComment.trim()}
-                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
+                  className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 ${
                     submittingComment || !newComment.trim()
                       ? "opacity-70 cursor-not-allowed"
                       : ""
@@ -318,7 +323,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
             {/* Comments list */}
             <div className="space-y-6">
               {post.comments.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
+                <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
                   Be the first to comment on this post!
                 </p>
               ) : (
@@ -328,7 +333,7 @@ export default function PostDetail({ params }: { params: { id: string } }) {
                     className="border-b border-gray-100 pb-6 last:border-0"
                   >
                     <div className="flex items-center mb-2">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-primary-dark">
                         {comment.author.first_name} {comment.author.last_name}
                       </div>
                       <span className="mx-2 text-gray-300">•</span>

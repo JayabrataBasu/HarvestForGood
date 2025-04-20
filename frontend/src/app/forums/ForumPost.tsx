@@ -31,16 +31,16 @@ export default function ForumPost({
     content.length > 150 ? content.substring(0, 150) + "..." : content;
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-gradient-to-br from-white via-white to-gray-50 rounded-xl shadow-card overflow-hidden hover:shadow-card-hover transition-all duration-300 border border-gray-100">
       <div className="p-6">
         <div className="flex items-center text-sm text-gray-500 mb-2">
-          <span>
+          <span className="font-medium text-primary-dark">
             Posted by {author} • {formattedDate}
           </span>
         </div>
 
         <Link href={`/forums/posts/${id}`}>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-green-600">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-primary transition-colors">
             {title}
           </h2>
         </Link>
@@ -52,7 +52,7 @@ export default function ForumPost({
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-2 mb-2"
+                className="bg-gradient-to-r from-green-50 to-green-100 text-primary-dark text-xs px-3 py-1 rounded-full mr-2 mb-2 border border-green-200"
               >
                 {tag}
               </span>
@@ -64,7 +64,7 @@ export default function ForumPost({
           <div className="flex items-center text-sm text-gray-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5 mr-1 text-primary-light"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -80,8 +80,22 @@ export default function ForumPost({
           </div>
 
           <Link href={`/forums/posts/${id}`}>
-            <span className="text-sm font-medium text-green-600 hover:text-green-800">
-              Read more →
+            <span className="text-sm font-medium text-primary hover:text-primary-dark transition-colors flex items-center">
+              Read more
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7-7 7"
+                />
+              </svg>
             </span>
           </Link>
         </div>
