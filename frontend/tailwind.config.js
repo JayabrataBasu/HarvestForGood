@@ -32,6 +32,12 @@ const config = {
         'soft': '0 4px 15px rgba(0, 0, 0, 0.05)',
         'card': '0 4px 6px rgba(0, 0, 0, 0.05)',
         'card-hover': '0 10px 25px rgba(0, 0, 0, 0.08)',
+        'inner-light': 'inset 0 1px 2px rgba(0, 0, 0, 0.05)',
+        'highlight': '0 0 15px rgba(58, 130, 56, 0.3)',
+      },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
       },
       typography: (theme) => ({
         DEFAULT: {
@@ -39,27 +45,29 @@ const config = {
             color: 'var(--foreground)',
             a: {
               color: 'var(--primary)',
-              '&:hover': {
-                color: 'var(--primary-dark)',
-              },
               textDecoration: 'none',
               borderBottom: '1px solid transparent',
               transition: 'border-color 0.2s ease',
               '&:hover': {
+                color: 'var(--primary-dark)',
                 borderColor: 'var(--primary)',
               },
             },
             h1: {
               color: 'var(--primary-dark)',
+              letterSpacing: '-0.025em',
             },
             h2: {
               color: 'var(--primary-dark)',
+              letterSpacing: '-0.025em',
             },
             h3: {
               color: 'var(--primary-dark)',
+              letterSpacing: '-0.025em',
             },
             h4: {
               color: 'var(--primary-dark)',
+              letterSpacing: '-0.025em',
             },
             'code::before': {
               content: '""',
@@ -75,6 +83,14 @@ const config = {
               fontWeight: '400',
               fontSize: '0.875em',
             },
+            blockquote: {
+              borderLeftColor: 'var(--primary-light)',
+              fontStyle: 'normal',
+              color: 'var(--foreground)',
+              backgroundColor: 'var(--soft-green)',
+              padding: '1rem 1.5rem',
+              borderRadius: '0 0.5rem 0.5rem 0',
+            },
           },
         },
         green: {
@@ -84,6 +100,17 @@ const config = {
           },
         },
       }),
+      animation: {
+        'bounce-slow': 'bounce 3s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.5s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: 0, transform: 'translateY(10px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' }
+        }
+      }
     },
   },
   plugins: [

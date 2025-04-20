@@ -18,10 +18,12 @@ urlpatterns = [
     path('verify-email/<str:uidb64>/<str:token>/', 
          views.verify_email, 
          name='verify_email'),
-    path('resend-verification/', 
+    path('resend-verification-email/', 
          views.resend_verification_email, 
-         name='resend_verification'),
-    path('resend-verification-email/', views.resend_verification_email, name='resend-verification-email'),
+         name='resend-verification-email'),
+    path('send-welcome-email/',
+         views.send_welcome_email,
+         name='send-welcome-email'),
     
     # Include the router URLs at the end to avoid conflicts
     path('', include(router.urls)),

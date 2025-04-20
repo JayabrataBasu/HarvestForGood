@@ -27,6 +27,9 @@ interface AuthContextType {
   }) => Promise<unknown>;
   resendVerificationEmail: () => Promise<{ success: boolean; message: string }>;
   checkEmailVerificationStatus: () => Promise<boolean>;
+  sendWelcomeEmail: (
+    email: string
+  ) => Promise<{ success: boolean; message: string }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -37,6 +40,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   resendVerificationEmail: async () => ({ success: false, message: "" }),
   checkEmailVerificationStatus: async () => false,
+  sendWelcomeEmail: async () => ({ success: false, message: "" }),
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -58,7 +62,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               Authorization: `Bearer ${token}`,
             },
           });
-
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
@@ -71,10 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Error loading user data:", error);
         }
       }
-
       setIsLoading(false);
     };
-
     loadUserData();
   }, []);
 
@@ -82,7 +83,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     setUser(null);
-
     // Redirect to home page after logout
     if (typeof window !== "undefined") {
       window.location.href = "/";
@@ -91,7 +91,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkEmailVerificationStatus = async (): Promise<boolean> => {
     if (!isAuthenticated()) return false;
-
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(`${API_BASE_URL}/users/me/`, {
@@ -99,7 +98,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           Authorization: `Bearer ${token}`,
         },
       });
-
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
@@ -121,7 +119,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         message: "You must be logged in to resend verification email",
       };
     }
-
     try {
       const token = localStorage.getItem("access_token");
       const response = await fetch(
@@ -134,7 +131,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         }
       );
-
       const data = await response.json();
       return {
         success: response.ok,
@@ -161,14 +157,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Update to the correct registration endpoint based on backend URLs
       console.log("Attempting to register user with data:", userData);
-
       // Make sure password2 is included in the request
       // If it's not provided, use the same value as password
       const registrationData = {
         ...userData,
         password2: userData.password2 || userData.password,
       };
-
       const response = await fetch(`${API_BASE_URL}/users/register/`, {
         method: "POST",
         headers: {
@@ -179,7 +173,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Check the content type of the response
       const contentType = response.headers.get("content-type");
-
       // Handle SMTP errors gracefully - if we get a 500 error, try to login anyway
       // since the user might have been created despite the email error
       if (response.status === 500) {
@@ -213,6 +206,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
+      // If registration was successful, attempt to send welcome email
+      if (response.ok) {
+        try {
+          await sendWelcomeEmail(userData.email);
+        } catch (emailError) {
+          console.warn(
+            "Welcome email could not be sent, but registration was successful:",
+            emailError
+          );
+        }
+      }
+
       // Check if response is JSON before parsing
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
@@ -226,6 +231,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const sendWelcomeEmail = async (
+    email: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/users/send-welcome-email/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+      const data = await response.json();
+      return {
+        success: response.ok,
+        message:
+          data.message ||
+          (response.ok
+            ? "Welcome email sent successfully"
+            : "Failed to send welcome email"),
+      };
+    } catch (error) {
+      console.error("Error sending welcome email:", error);
+      return { success: false, message: "Failed to send welcome email" };
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -234,6 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     register,
     resendVerificationEmail,
     checkEmailVerificationStatus,
+    sendWelcomeEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

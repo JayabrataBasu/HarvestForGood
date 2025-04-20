@@ -14,6 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from .tokens import email_verification_token
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
+import os
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -25,16 +26,34 @@ class RegisterView(generics.CreateAPIView):
         return user
 
     def send_verification_email(self, user):
-        current_site = get_current_site(self.request)
-        mail_subject = 'Verify your email address'
-        message = render_to_string('users/email_verification.html', {
-            'user': user,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': email_verification_token.make_token(user),
-        })
-        email = EmailMessage(mail_subject, message, to=[user.email])
-        email.send()
+        try:
+            current_site = get_current_site(self.request)
+            mail_subject = 'Verify your email address'
+            message = render_to_string('users/email_verification.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': email_verification_token.make_token(user),
+            })
+            
+            # Add debugging print statements
+            print(f"Attempting to send verification email to {user.email}")
+            print(f"Using mail host: {os.environ.get('EMAIL_HOST')}")
+            print(f"Using mail user: {os.environ.get('EMAIL_HOST_USER')}")
+            
+            email = EmailMessage(mail_subject, message, to=[user.email])
+            email.content_subtype = "html"  # Set content type to html
+            result = email.send()
+            
+            print(f"Email sending result: {result}")
+            
+            if result == 0:
+                print("Warning: Email send returned 0, it may not have been sent")
+                
+        except Exception as e:
+            print(f"Error sending verification email: {str(e)}")
+            # Don't raise the exception to prevent registration failure,
+            # but log it for debugging purposes
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -151,3 +170,59 @@ class MeView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def send_welcome_email(request):
+    """
+    Send a welcome email to a newly registered user
+    """
+    try:
+        email = request.data.get('email')
+        user = User.objects.get(email=email)
+        
+        # Generate verification token
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = email_verification_token.make_token(user)
+        
+        current_site = get_current_site(request)
+        mail_subject = 'Welcome to Harvest For Good!'
+        message = render_to_string('users/welcome_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': uid,
+            'token': token,
+        })
+        
+        email_message = EmailMessage(mail_subject, message, to=[email])
+        email_message.content_subtype = "html"
+        
+        # Add debug logs
+        print(f"Attempting to send welcome email to {email}")
+        
+        # Try sending the email and capture the result
+        send_result = email_message.send()
+        
+        print(f"Email send result: {send_result}")
+        
+        if send_result > 0:
+            return Response(
+                {'message': 'Welcome email has been sent successfully.'},
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                {'error': 'Failed to send welcome email. Email system returned 0.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'User with this email does not exist.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        print(f"Error sending welcome email: {str(e)}")
+        return Response(
+            {'error': f'Failed to send welcome email: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
