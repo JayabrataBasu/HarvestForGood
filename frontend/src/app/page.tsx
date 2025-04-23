@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ResearchPapersPage } from "../pages/ResearchPapers";
@@ -8,29 +8,34 @@ const slides = [
   {
     image: "/images/slide1.jpg",
     category: "SUSTAINABLE AGRICULTURE",
-    title: "A Future Of Sustaining And Thriving For Small Farmers In Global South",
-    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
+    title:
+      "A Future Of Sustaining And Thriving For Small Farmers In Global South",
+    description:
+      "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers.",
   },
 
   {
     image: "/images/slide2.jpg",
     category: "Joyful Harvest",
     title: "Harvesting For Good",
-    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
+    description:
+      "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers.",
   },
 
   {
     image: "/images/slide3.jpg",
     category: "A Day in the Farm",
     title: "Harvesting For Good",
-    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
+    description:
+      "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers.",
   },
   {
     image: "/images/slide4.jpg",
     category: "Machines and Harvest",
     title: "Harvesting For Good",
-    description: "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers."
-  }
+    description:
+      "Sustainable agriculture aims to provide for the growing populations while considering the future costs to both the communities and environment. Promoting the self-sufficiency of small farmers is the critical block for the progress of sustainable agriculture in global south. A major challenge is to construct the institutional infrastructures to empower rather than deplete small farmers.",
+  },
   // Add more slides as needed
 ];
 
@@ -53,7 +58,7 @@ export default function Home() {
           <div
             key={index}
             className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
+              index === currentSlide ? "opacity-100" : "opacity-0"
             }`}
           >
             <div className="relative h-full">
@@ -61,7 +66,7 @@ export default function Home() {
                 src={slide.image}
                 alt={slide.title}
                 fill
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: "cover" }}
                 priority={index === 0}
               />
               <div className="absolute inset-0 bg-black bg-opacity-30"></div>
@@ -69,7 +74,9 @@ export default function Home() {
                 <div className="container mx-auto px-8 md:px-16">
                   <div className="max-w-2xl">
                     <p className="text-green-300 mb-2">{slide.category}</p>
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{slide.title}</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                      {slide.title}
+                    </h1>
                     <p className="text-white text-lg">{slide.description}</p>
                   </div>
                 </div>
@@ -82,7 +89,7 @@ export default function Home() {
             <button
               key={index}
               className={`w-2 h-2 rounded-full ${
-                index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'
+                index === currentSlide ? "bg-white" : "bg-white bg-opacity-50"
               }`}
               onClick={() => setCurrentSlide(index)}
             ></button>
@@ -91,18 +98,23 @@ export default function Home() {
       </section>
 
       {/* Welcome section */}
-      <section className="bg-green-800 text-white py-12">
+      <section className="bg-gradient-to-r from-green-900 via-green-800 via-green-700 to-green-600 text-white py-12">
         <div className="container mx-auto px-4 md:flex">
           <div className="md:w-1/2 mb-6 md:mb-0">
             <h2 className="text-4xl font-bold mb-4">Welcome!</h2>
           </div>
           <div className="md:w-1/2">
             <p className="text-lg mb-4">
-              This website is a developing hub for archiving and communicating the issues and improvements in
-              sustainable agriculture, particularly in the Global South. We are currently building a directory page
-              for annotated bibliography. You are welcomed to send a message to us for development suggestions!
+              This website is a developing hub for archiving and communicating
+              the issues and improvements in sustainable agriculture,
+              particularly in the Global South. We are currently building a
+              directory page for annotated bibliography. You are welcomed to
+              send a message to us for development suggestions!
             </p>
-            <Link href="/research" className="inline-block bg-white text-green-800 px-6 py-2 rounded-full font-semibold hover:bg-green-100 transition-colors">
+            <Link
+              href="/research"
+              className="inline-block bg-white text-green-800 px-6 py-2 rounded-full font-semibold hover:bg-green-100 transition-colors"
+            >
               Explore resources
             </Link>
           </div>
@@ -112,7 +124,9 @@ export default function Home() {
       {/* Research Papers Section */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-green-800">Research Papers</h2>
+          <h2 className="text-3xl font-bold mb-8 text-green-800">
+            Research Papers
+          </h2>
           <ResearchPapersPage />
         </div>
       </section>
