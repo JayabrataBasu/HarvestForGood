@@ -1,65 +1,84 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { getPaperById } from "@/lib/api"; // We'll create this function
-import { ResearchPaper } from "@/types/paper.types";
+import { getPaperById } from "../../../../lib/api";
+import { ResearchPaper, Author, Keyword } from "../../../../types/paper.types";
 
 export default function PaperDetailPage() {
+  const params = useParams();
+  const router = useRouter();
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const params = useParams();
-  const router = useRouter();
-  const paperId = params.id as string;
+  const [activeTab, setActiveTab] = useState<"overview" | "methodology">(
+    "overview"
+  );
+  const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   useEffect(() => {
-    const fetchPaper = async () => {
+    async function loadPaper() {
+      if (!params.id) return;
+
       setIsLoading(true);
       try {
-        // In a real app, you would fetch from your API
-        const data = await getPaperById(paperId);
-        setPaper(data);
+        // In a real app, this would call an API
+        const paperData = await getPaperById(params.id as string);
+        setPaper(paperData);
 
-        // Check if paper is saved in local storage
+        // Check if paper is saved in localStorage
         const savedPapers = JSON.parse(
           localStorage.getItem("savedPapers") || "[]"
         );
-        setIsSaved(savedPapers.includes(paperId));
+        setIsSaved(savedPapers.includes(paperData.id));
       } catch (err) {
-        console.error("Error fetching paper:", err);
-        setError("Failed to load paper details. Please try again.");
+        setError("Failed to load paper details. Please try again later.");
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchPaper();
-  }, [paperId]);
-
-  const toggleSave = () => {
-    const savedPapers = JSON.parse(localStorage.getItem("savedPapers") || "[]");
-    if (isSaved) {
-      localStorage.setItem(
-        "savedPapers",
-        JSON.stringify(savedPapers.filter((id: string) => id !== paperId))
-      );
-    } else {
-      localStorage.setItem(
-        "savedPapers",
-        JSON.stringify([...savedPapers, paperId])
-      );
     }
+
+    loadPaper();
+  }, [params.id]);
+
+  const toggleSaveStatus = () => {
+    const savedPapers = JSON.parse(localStorage.getItem("savedPapers") || "[]");
+
+    if (isSaved) {
+      const updatedSavedPapers = savedPapers.filter(
+        (id: string) => id !== paper?.id
+      );
+      localStorage.setItem("savedPapers", JSON.stringify(updatedSavedPapers));
+    } else {
+      savedPapers.push(paper?.id);
+      localStorage.setItem("savedPapers", JSON.stringify(savedPapers));
+    }
+
     setIsSaved(!isSaved);
+  };
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
+  // Helper to format date
+  const formatDate = (date: Date) => {
+    return new Date(date).getFullYear();
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex justify-center items-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse flex flex-col space-y-6">
+            <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-72 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+          </div>
         </div>
       </div>
     );
@@ -67,151 +86,108 @@ export default function PaperDetailPage() {
 
   if (error || !paper) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <p className="text-red-700">{error || "Paper not found"}</p>
-        </div>
-        <div className="mt-6">
-          <Link
-            href="/research"
-            className="text-blue-600 hover:underline flex items-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+          <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <span className="block">Oops! Something went wrong.</span>
+          </h2>
+          <p className="mt-4 text-lg leading-6 text-gray-500">
+            {error || "We couldn't find the paper you're looking for."}
+          </p>
+          <div className="mt-8">
+            <button
+              onClick={handleGoBack}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700"
             >
-              <path
-                fillRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Back to Research Papers
-          </Link>
+              Go back
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="mb-6">
-        <Link
-          href="/research"
-          className="text-blue-600 hover:underline flex items-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Back to Research Papers
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50">
+      {/* Animation styles */}
+      <style jsx global>{`
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-      <article className="bg-white rounded-xl shadow-card p-8">
-        <div className="flex justify-between items-start mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 max-w-4xl">
-            {paper.title}
-          </h1>
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes borderPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(5, 150, 105, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+          }
+        }
+
+        .animate-fade-up {
+          animation: fadeUp 0.6s ease-out forwards;
+        }
+
+        .animate-scale-in {
+          animation: scaleIn 0.5s ease-out forwards;
+        }
+
+        .delay-100 {
+          animation-delay: 0.1s;
+        }
+        .delay-200 {
+          animation-delay: 0.2s;
+        }
+        .delay-300 {
+          animation-delay: 0.3s;
+        }
+
+        .card-hover-effect {
+          transition: all 0.3s ease;
+        }
+
+        .card-hover-effect:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1),
+            0 8px 10px -6px rgba(59, 130, 246, 0.1);
+        }
+
+        .pulse-border {
+          animation: borderPulse 2s infinite;
+        }
+      `}</style>
+
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        {/* Back button with animation */}
+        <div className="mb-8 animate-fade-up">
           <button
-            onClick={toggleSave}
-            className={`text-lg flex items-center gap-1 px-4 py-2 rounded-full ${
-              isSaved
-                ? "bg-blue-100 text-blue-800"
-                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-            }`}
-          >
-            <span>{isSaved ? "★" : "☆"}</span>
-            <span>{isSaved ? "Saved" : "Save"}</span>
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Authors</h2>
-          <div className="flex flex-wrap gap-4">
-            {paper.authors.map((author) => (
-              <div key={author.id} className="bg-gray-50 rounded-lg p-3">
-                <p className="font-medium">{author.name}</p>
-                <p className="text-sm text-gray-600">{author.affiliation}</p>
-                {author.email && (
-                  <a
-                    href={`mailto:${author.email}`}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    {author.email}
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm text-gray-600 flex flex-wrap gap-x-4 gap-y-2 mb-3">
-            <div>
-              <span className="font-medium">Published:</span>{" "}
-              {new Date(paper.publicationDate).toLocaleDateString()}
-            </div>
-            <div>
-              <span className="font-medium">Journal:</span> {paper.journal}
-            </div>
-            <div>
-              <span className="font-medium">Methodology:</span>{" "}
-              {paper.methodologyType}
-            </div>
-            <div>
-              <span className="font-medium">Citations:</span>{" "}
-              {paper.citationCount.toLocaleString()}
-              <span className="ml-1 text-xs">
-                {paper.citationTrend === "increasing" && "↑"}
-                {paper.citationTrend === "decreasing" && "↓"}
-                {paper.citationTrend === "stable" && "→"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-3">Abstract</h2>
-          <div className="prose max-w-none">
-            <p className="text-gray-800 leading-relaxed">{paper.abstract}</p>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-3">Keywords</h2>
-          <div className="flex flex-wrap gap-2">
-            {paper.keywords.map((keyword) => (
-              <span
-                key={keyword.id}
-                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full"
-              >
-                {keyword.name}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200 pt-6">
-          <a
-            href={paper.downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            onClick={handleGoBack}
+            className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-full shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
+              className="h-4 w-4 mr-1.5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -220,17 +196,228 @@ export default function PaperDetailPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Download Paper from Publisher
-          </a>
-          <p className="mt-2 text-sm text-gray-500">
-            This link will take you to the publisher's website where you can
-            access the full paper.
-          </p>
+            Back to Results
+          </button>
         </div>
-      </article>
+
+        {/* Title card with animation */}
+        <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8 mb-8 animate-fade-up">
+          <div className="text-center mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 leading-tight">
+              {paper.title}
+            </h1>
+            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+              QUALITATIVE DATA | SECONDARY/ARCHIVAL DATA | RESEARCH PAPER
+            </div>
+          </div>
+
+          {/* Save button */}
+          <div className="flex justify-center">
+            <button
+              onClick={toggleSaveStatus}
+              className={`mt-4 inline-flex items-center px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-all ${
+                isSaved
+                  ? "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {isSaved ? (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1.5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                  </svg>
+                  Saved to Library
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                    />
+                  </svg>
+                  Save to Library
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Author info card with gradient and animation */}
+        <div className="rounded-2xl overflow-hidden mb-10 shadow-lg animate-fade-up delay-100">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Author
+                  </th>
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Source
+                  </th>
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-4 px-4 font-medium">
+                    {paper.authors.map((author) => author.name).join(", ")}
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
+                      {paper.journal}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
+                      {formatDate(paper.publicationDate)}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Abstract card with animation */}
+        <div className="mb-10 animate-fade-up delay-200">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-2 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Abstract
+          </h2>
+          <div className="bg-white shadow-lg rounded-2xl p-8 card-hover-effect border border-blue-100">
+            <p className="text-gray-700 leading-relaxed">{paper.abstract}</p>
+          </div>
+        </div>
+
+        {/* Link to publisher card with animation */}
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg p-6 mb-10 text-center animate-fade-up delay-300">
+          <p className="text-white text-lg mb-4">
+            Access the full research paper through the publisher&apos;s website
+          </p>
+          <a
+            href={paper.downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-6 py-3 text-base font-medium bg-white text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors shadow-md hover:shadow-lg pulse-border"
+          >
+            <div className="flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              Link to publisher
+            </div>
+          </a>
+        </div>
+
+        {/* Keywords card with animation */}
+        {paper.keywords && paper.keywords.length > 0 && (
+          <div className="bg-white shadow-lg rounded-2xl p-6 mb-10 card-hover-effect border border-blue-100 animate-fade-up delay-300">
+            <div className="flex items-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2 text-indigo-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
+              <h3 className="font-bold text-gray-800">Keywords</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {paper.keywords.map((keyword) => (
+                <span
+                  key={keyword.id}
+                  className="bg-gradient-to-r from-teal-50 to-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all hover:shadow hover:-translate-y-1 border border-emerald-100"
+                >
+                  {keyword.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Citation count card */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl shadow-md p-6 mb-10 card-hover-effect border border-blue-100 animate-scale-in">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="bg-indigo-100 p-3 rounded-full mr-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-indigo-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm">Total Citations</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {paper.citationCount}
+                </p>
+              </div>
+            </div>
+            <a href="#" className="text-indigo-600 text-sm hover:underline">
+              View metrics
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
