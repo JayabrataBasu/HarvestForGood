@@ -23,7 +23,7 @@ export default function PaperDetailPage() {
       setIsLoading(true);
       try {
         // In a real app, this would call an API
-        const paperData = await getPaperById(params.id as string);
+        const paperData = await getPaperById(params!.id as string);
         setPaper(paperData);
 
         // Check if paper is saved in localStorage
