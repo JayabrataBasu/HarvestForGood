@@ -237,7 +237,7 @@ export async function getPaperById(paperId: string): Promise<ResearchPaper> {
   
   // For demo purposes, we'll generate dummy data
   // This simulates fetching a paper by ID
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // Simulate API latency
     setTimeout(() => {
       // Generate a sample paper based on the ID

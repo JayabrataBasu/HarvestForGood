@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginUser } from "@/lib/api";
@@ -13,9 +13,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setUser } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
-  const redirect = searchParams?.get("redirect") || "/";
+  const redirect = searchParams?.get("redirect") || "/dashboard";
+
+  // If user is already logged in, redirect to the dashboard
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push(redirect);
+    }
+  }, [user, authLoading, redirect, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,24 +33,8 @@ export default function Login() {
       const result = await loginUser(username, password);
 
       if (result.success) {
-        // Fetch user profile after successful login
-        try {
-          const userResponse = await fetch("/api/auth/user", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            },
-          });
-
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            setUser(userData); // Update user in context
-          }
-        } catch (profileError) {
-          console.error("Error fetching user profile:", profileError);
-        }
-
-        // Redirect to the intended page or home
-        router.push(redirect);
+        // Redirect to the intended page or dashboard
+        window.location.href = redirect;
       } else {
         setError(result.message || "Invalid username or password");
       }
@@ -55,19 +46,36 @@ export default function Login() {
     }
   };
 
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Or{" "}
+          <Link
+            href="/register"
+            className="font-medium text-green-600 hover:text-green-500"
+          >
+            create a new account
+          </Link>
+        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-              <div className="text-sm text-red-700">{error}</div>
+            <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded">
+              {error}
             </div>
           )}
 
@@ -87,7 +95,7 @@ export default function Login() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -107,8 +115,34 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember_me"
+                  name="remember_me"
+                  type="checkbox"
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="remember_me"
+                  className="ml-2 block text-sm text-gray-900"
+                >
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <Link
+                  href="/forgot-password"
+                  className="font-medium text-green-600 hover:text-green-500"
+                >
+                  Forgot your password?
+                </Link>
               </div>
             </div>
 
@@ -116,25 +150,19 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-                  isLoading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? (
+                  <>
+                    <span className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="text-sm text-center">
-              <Link
-                href="/register"
-                className="font-medium text-green-600 hover:text-green-500"
-              >
-                Don&apos;t have an account? Sign up
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

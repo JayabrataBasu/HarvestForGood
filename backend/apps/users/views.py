@@ -140,13 +140,15 @@ def resend_verification_email(request):
     if not user.email_verified:
         current_site = get_current_site(request)
         mail_subject = 'Verify your email address'
-        message = render_to_string('email_verification.html', {
+        # Fix the template path to include the 'users/' directory
+        message = render_to_string('users/email_verification.html', {
             'user': user,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': email_verification_token.make_token(user),
         })
         email = EmailMessage(mail_subject, message, to=[user.email])
+        email.content_subtype = "html"  # Set content type to html
         email.send()
         return Response(
             {'message': 'Verification email has been resent.'},

@@ -8,8 +8,8 @@ from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultR
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active')
-
+        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active', 'email_verified', 'first_name', 'last_name')
+        read_only_fields = ('id', 'date_joined', 'email_verified')
 
 User = get_user_model()
 

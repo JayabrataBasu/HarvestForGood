@@ -1,17 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const [isGuestUser, setIsGuestUser] = useState(false);
+
+  useEffect(() => {
+    const guestInfo = localStorage.getItem("guestInfo");
+    setIsGuestUser(!!guestInfo);
+  }, []);
 
   const navigation = [
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
     { name: "Categories", href: "/categories" },
-    { name: "Forums", href: "/forums" },
+    {
+      name: "Forums",
+      href: "/forums",
+      status: !user && !isGuestUser ? "(View Only)" : undefined,
+    },
     { name: "Research", href: "/research" },
   ];
 
@@ -44,9 +56,49 @@ export default function Navbar() {
                       : "text-gray-600 hover:text-green-700"
                   } px-1 py-2 font-medium`}
                 >
-                  {item.name}
+                  {item.name}{" "}
+                  {item.status && (
+                    <span className="text-xs text-gray-500">{item.status}</span>
+                  )}
                 </Link>
               ))}
+            </div>
+          </div>
+
+          {/* Auth links */}
+          <div className="hidden md:block">
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive("/dashboard")
+                        ? "bg-green-100 text-green-800"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                    }`}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    isActive("/login")
+                      ? "bg-green-100 text-green-800"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                  }`}
+                >
+                  Login
+                </Link>
+              )}
             </div>
           </div>
 
@@ -109,9 +161,50 @@ export default function Navbar() {
               } block px-3 py-2 rounded-md text-base font-medium`}
               onClick={() => setIsMenuOpen(false)}
             >
-              {item.name}
+              {item.name}{" "}
+              {item.status && (
+                <span className="text-xs text-gray-500">{item.status}</span>
+              )}
             </Link>
           ))}
+
+          {/* Mobile auth links */}
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className={`${
+                  isActive("/dashboard")
+                    ? "bg-green-100 text-green-800"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                } block px-3 py-2 rounded-md text-base font-medium`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-800 hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className={`${
+                isActive("/login")
+                  ? "bg-green-100 text-green-800"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+              } block px-3 py-2 rounded-md text-base font-medium`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>

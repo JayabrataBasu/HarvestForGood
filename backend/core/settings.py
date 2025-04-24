@@ -223,11 +223,11 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour',
-        'forum_posts': '20/hour',
-        'auth_attempts': '5/hour',
-        'dj_rest_auth': '5/min',
+        'anon': '1000/hour',  # Increased from 100 to 1000
+        'user': '2000/hour',  # Increased from 1000 to 2000
+        'forum_posts': '200/hour',  # Increased from 20 to 200
+        'auth_attempts': '20/hour',  # Increased from 5 to 20
+        'dj_rest_auth': '20/min',  # Increased from 5 to 20
     }
 }
 

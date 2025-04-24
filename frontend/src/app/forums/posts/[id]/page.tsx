@@ -33,7 +33,7 @@ interface Post {
   comments: Comment[];
 }
 
-export default function PostDetail({ params }: { params: { id: string } }) {
+export default function PostPage({ params }: { params: { id: string } }) {
   // Fix the typechecking for params unwrapping
   const unwrappedParams =
     typeof params === "object" &&
@@ -195,8 +195,8 @@ export default function PostDetail({ params }: { params: { id: string } }) {
 
   // Main content with post
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background py-12">
+      <div className="container mx-auto px-4">
         {/* Navigation */}
         <nav className="mb-6">
           <Link
@@ -286,74 +286,114 @@ export default function PostDetail({ params }: { params: { id: string } }) {
           </div>
         </article>
 
-        {/* Comments section */}
-        <section className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card">
-          <div className="p-8">
-            <h2 className="text-xl font-semibold mb-6 text-primary-dark">
-              Comments
-            </h2>
-
-            {/* Add comment form */}
-            <form onSubmit={handleCommentSubmit} className="mb-8">
-              <div className="mb-4">
-                <textarea
-                  placeholder="Add a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent bg-white"
-                  rows={3}
-                  required
-                ></textarea>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={submittingComment || !newComment.trim()}
-                  className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 ${
-                    submittingComment || !newComment.trim()
-                      ? "opacity-70 cursor-not-allowed"
-                      : ""
-                  }`}
-                >
-                  {submittingComment ? "Posting..." : "Post Comment"}
-                </button>
-              </div>
-            </form>
-
-            {/* Comments list */}
-            <div className="space-y-6">
-              {post.comments.length === 0 ? (
-                <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
-                  Be the first to comment on this post!
-                </p>
-              ) : (
-                post.comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="border-b border-gray-100 pb-6 last:border-0"
-                  >
-                    <div className="flex items-center mb-2">
-                      <div className="font-medium text-primary-dark">
-                        {comment.author.first_name} {comment.author.last_name}
-                      </div>
-                      <span className="mx-2 text-gray-300">•</span>
-                      <div className="text-sm text-gray-500">
-                        {formatDate(comment.created_at)}
-                      </div>
-                    </div>
-                    <div className="text-gray-700">
-                      {comment.content.split("\n").map((paragraph, idx) => (
-                        <p key={idx} className="mb-2 last:mb-0">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+        {/* Authentication banner for non-authenticated users */}
+        {!user && !isGuestUser && !isLoading && (
+          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+            <h3 className="font-semibold text-lg mb-2">Join the Discussion</h3>
+            <p className="mb-3">
+              You're currently in view-only mode. Sign in or continue as a guest
+              to interact with this post.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowGuestAuthModal(true)}
+                className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 rounded-md transition duration-300"
+              >
+                Continue as Guest
+              </button>
+              <Link
+                href={`/login?redirect=/forums/posts/${params.id}`}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300"
+              >
+                Login for Full Access
+              </Link>
             </div>
           </div>
-        </section>
+        )}
+
+        {/* Comments section */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-6">Comments</h2>
+
+          {/* Only show comment form for authenticated users */}
+          {(user || isGuestUser) && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-3">Leave a Comment</h3>
+              <form onSubmit={handleCommentSubmit}>
+                <div className="mb-4">
+                  <textarea
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent bg-white"
+                    rows={3}
+                    required
+                  ></textarea>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={submittingComment || !newComment.trim()}
+                    className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 ${
+                      submittingComment || !newComment.trim()
+                        ? "opacity-70 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {submittingComment ? "Posting..." : "Post Comment"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Comments list */}
+          <div className="space-y-6">
+            {post.comments.length === 0 ? (
+              <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
+                Be the first to comment on this post!
+              </p>
+            ) : (
+              post.comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="border-b border-gray-100 pb-6 last:border-0"
+                >
+                  <div className="flex items-center mb-2">
+                    <div className="font-medium text-primary-dark">
+                      {comment.author.first_name} {comment.author.last_name}
+                    </div>
+                    <span className="mx-2 text-gray-300">•</span>
+                    <div className="text-sm text-gray-500">
+                      {formatDate(comment.created_at)}
+                    </div>
+                  </div>
+                  <div className="text-gray-700">
+                    {comment.content.split("\n").map((paragraph, idx) => (
+                      <p key={idx} className="mb-2 last:mb-0">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Guest auth modal */}
+        {showGuestAuthModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Continue as Guest</h2>
+              <p className="mb-4 text-gray-600">
+                Provide your information to participate in the discussion. Note
+                that registered users have additional features.
+              </p>
+              {/* ...existing guest auth form code... */}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

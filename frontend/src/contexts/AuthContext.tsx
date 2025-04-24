@@ -57,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (isAuthenticated()) {
         try {
           const token = localStorage.getItem("access_token");
+          // Use the correct API endpoint for fetching user data
           const response = await fetch(`${API_BASE_URL}/users/me/`, {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -72,6 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         } catch (error) {
           console.error("Error loading user data:", error);
+          // If there's an error, consider the user not authenticated
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
         }
       }
       setIsLoading(false);
@@ -80,11 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const logout = () => {
+    // Clear authentication tokens
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+
+    // Clear user state
     setUser(null);
-    // Redirect to home page after logout
+
+    // Ensure we only redirect in client environment
     if (typeof window !== "undefined") {
+      // Use smooth redirection to home page
       window.location.href = "/";
     }
   };
@@ -93,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isAuthenticated()) return false;
     try {
       const token = localStorage.getItem("access_token");
+      // Make sure we're using the correct endpoint
       const response = await fetch(`${API_BASE_URL}/users/me/`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -105,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Error checking email verification status:", error);
+      return false;
     }
     return false;
   };
