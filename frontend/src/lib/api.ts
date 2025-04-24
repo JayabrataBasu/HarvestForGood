@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { parseCookies } from "nookies";
+import { ResearchPaper } from '@/types/paper.types';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 
@@ -224,3 +225,62 @@ export const forumAPI = {
     }
   }
 };
+
+/**
+ * Fetch individual paper details
+ */
+// This is a mock implementation for now
+// In a real app, this would call your actual API endpoint
+export async function getPaperById(paperId: string): Promise<ResearchPaper> {
+  // In a real app, fetch from an API
+  // return fetch(`/api/papers/${paperId}`).then(res => res.json());
+  
+  // For demo purposes, we'll generate dummy data
+  // This simulates fetching a paper by ID
+  return new Promise((resolve, reject) => {
+    // Simulate API latency
+    setTimeout(() => {
+      // Generate a sample paper based on the ID
+      const idNumber = parseInt(paperId.replace('paper-', '')) || 1;
+      
+      const paper: ResearchPaper = {
+        id: paperId,
+        title: `Research Paper ${idNumber}: Impact of Sustainable Agriculture Practices`,
+        abstract: `This comprehensive study examines how urban farming initiatives contribute to local food security and community resilience. The research presents data from 15 metropolitan areas and analyzes economic and social impacts of community-led agriculture projects over a three-year period. Our findings indicate significant improvements in food access, community engagement, and environmental awareness among participants. The paper concludes with policy recommendations for municipal governments seeking to support urban agriculture as a component of sustainable city planning.`,
+        authors: [
+          {
+            id: `author-${idNumber}-1`,
+            name: `Dr. ${['John Smith', 'Sarah Johnson', 'David Lee', 'Maria Garcia'][idNumber % 4]}`,
+            affiliation: `${['University of California', 'MIT', 'Stanford University', 'Oxford University'][idNumber % 4]}`,
+            email: `researcher${idNumber}@example.edu`
+          },
+          {
+            id: `author-${idNumber}-2`,
+            name: `Prof. ${['Robert Brown', 'Emily Chen', 'Michael Wilson', 'Lisa Wong'][idNumber % 4]}`,
+            affiliation: `${['Harvard University', 'Yale University', 'Princeton University', 'Cambridge University'][idNumber % 4]}`
+          }
+        ],
+        publicationDate: new Date(2020 + (idNumber % 4), (idNumber % 12), 1),
+        journal: `Journal of ${['Sustainable Agriculture', 'Food Studies', 'Environmental Science', 'Community Development'][idNumber % 4]}`,
+        methodologyType: ['qualitative', 'quantitative', 'mixed'][idNumber % 3] as 'qualitative' | 'quantitative' | 'mixed',
+        citationCount: 10 + (idNumber * 5),
+        citationTrend: ['increasing', 'stable', 'decreasing'][idNumber % 3] as 'increasing' | 'stable' | 'decreasing',
+        keywords: [
+          { id: 'k1', name: 'Food Security' },
+          { id: 'k2', name: 'Agriculture' },
+          { id: 'k3', name: 'Sustainability' },
+          { id: 'k4', name: 'Urban Farming' },
+          { id: 'k5', name: 'Food Waste' },
+        ].slice(0, 3 + (idNumber % 3)),
+        downloadUrl: `https://example.com/papers/sustainable-agriculture-${idNumber}.pdf`,
+        url: `https://doi.org/10.1234/ag.${2020 + (idNumber % 4)}.${idNumber}`,
+        doi: `10.1234/ag.${2020 + (idNumber % 4)}.${idNumber}`,
+        volume: `${4 + (idNumber % 10)}`,
+        issue: `${1 + (idNumber % 4)}`,
+        pages: `${100 + idNumber}-${150 + idNumber}`,
+      };
+      
+      resolve(paper);
+    }, 800); // Simulate network delay
+  });
+}

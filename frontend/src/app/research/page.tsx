@@ -270,16 +270,17 @@ export default function ResearchPage() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-background via-soft-green to-background min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-emerald-50">
       <div className="container mx-auto px-4 py-12">
-        {/* Hero section */}
+        {/* Hero section with improved styling */}
         <section className="mb-12">
-          <div className="bg-gradient-to-r from-primary/10 via-primary-light/10 to-primary/5 rounded-2xl p-8 md:p-12 relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-light/20 to-transparent rounded-full transform translate-x-1/3 -translate-y-1/3 z-0"></div>
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-primary/20 to-transparent rounded-full transform -translate-x-1/3 translate-y-1/3 z-0"></div>
+          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 backdrop-blur-sm rounded-2xl p-8 md:p-12 relative overflow-hidden shadow-card border border-emerald-100">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/30 to-transparent rounded-full transform translate-x-1/3 -translate-y-1/3 z-0"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-blue-200/30 to-transparent rounded-full transform -translate-x-1/3 translate-y-1/3 z-0"></div>
 
             <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-gradient mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-gradient bg-gradient-to-r from-emerald-700 to-blue-700 inline-block mb-4">
                 Agricultural Research Repository
               </h1>
               <p className="text-gray-700 max-w-3xl text-lg">
@@ -295,8 +296,8 @@ export default function ResearchPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar with filters */}
           <div className="lg:w-1/4">
-            <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card p-5 sticky top-24">
-              <h2 className="text-xl font-bold text-primary-dark mb-6">
+            <div className="bg-gradient-subtle backdrop-blur-sm rounded-xl shadow-card p-5 sticky top-24 border border-emerald-100">
+              <h2 className="text-xl font-bold text-gradient bg-gradient-to-r from-emerald-700 to-blue-700 inline-block mb-6">
                 Filter Research
               </h2>
               <PaperFilter
@@ -308,43 +309,47 @@ export default function ResearchPage() {
 
           {/* Main content area */}
           <div className="lg:w-3/4">
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Research Papers
-              </h2>
-              <div className="flex items-center">
-                <span className="mr-2 text-gray-600 text-sm">
-                  {/* Number of papers */}
-                </span>
-                <button className="ml-4 flex items-center bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm text-sm transition">
-                  <span>Sort</span>
-                  <svg
-                    className="w-4 h-4 ml-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
+            <div className="rounded-xl p-6">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-50 to-blue-50 p-4 rounded-lg shadow-card border border-emerald-100">
+                <h2 className="text-2xl font-bold text-gradient bg-gradient-to-r from-emerald-700 to-blue-700 inline-block">
+                  Research Papers
+                </h2>
+                <div className="flex items-center">
+                  <span className="mr-2 text-gray-600 text-sm">
+                    {papers.length} papers found
+                  </span>
+                  <button className="ml-4 flex items-center bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm text-sm transition">
+                    <span>Sort</span>
+                    <svg
+                      className="w-4 h-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-card border border-emerald-100">
+                <PaperGrid
+                  papers={papers}
+                  availableKeywords={keywordCategories.flatMap(
+                    (cat) => cat.keywords
+                  )}
+                  isLoading={isLoading}
+                  savedPaperIds={savedPaperIds}
+                  onSavePaper={handleSavePaper}
+                />
               </div>
             </div>
-
-            <PaperGrid
-              papers={papers}
-              availableKeywords={keywordCategories.flatMap(
-                (cat) => cat.keywords
-              )}
-              isLoading={isLoading}
-              savedPaperIds={savedPaperIds}
-              onSavePaper={handleSavePaper}
-            />
           </div>
         </div>
       </div>

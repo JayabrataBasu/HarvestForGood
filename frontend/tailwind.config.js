@@ -33,11 +33,22 @@ const config = {
         'card': '0 4px 6px rgba(0, 0, 0, 0.05)',
         'card-hover': '0 10px 25px rgba(0, 0, 0, 0.08)',
         'inner-light': 'inset 0 1px 2px rgba(0, 0, 0, 0.05)',
+        'inner-soft': 'inset 0 1px 3px rgba(0, 0, 0, 0.05)',
         'highlight': '0 0 15px rgba(58, 130, 56, 0.3)',
       },
       borderRadius: {
         'xl': '1rem',
         '2xl': '1.5rem',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-subtle': 'linear-gradient(to bottom right, #f9fcf7, #f1f8f1)',
+        'dots-pattern': 'radial-gradient(var(--primary) 1px, transparent 1px)',
+        'soft-grain': 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.05\'/%3E%3C/svg%3E")',
+      },
+      backgroundSize: {
+        'dots-sm': '20px 20px',
+        'dots-md': '30px 30px',
       },
       typography: (theme) => ({
         DEFAULT: {
