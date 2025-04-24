@@ -1,103 +1,213 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { forumAPI } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api";
+import GuestAuthModal, { GuestInfo } from "../../GuestAuthModal";
 
 export default function NewPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
   const { user } = useAuth();
+  const [isGuestUser, setIsGuestUser] = useState(false);
+  const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
+  const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+
+  // Check for stored guest information
+  useEffect(() => {
+    const storedGuestInfo = localStorage.getItem("guestInfo");
+    if (storedGuestInfo) {
+      try {
+        const parsedInfo = JSON.parse(storedGuestInfo);
+        setGuestInfo(parsedInfo);
+        setIsGuestUser(true);
+      } catch (e) {
+        console.error("Error parsing stored guest info:", e);
+        localStorage.removeItem("guestInfo");
+      }
+    } else if (!user) {
+      // If no guest info and no user, prompt for guest info
+      setShowGuestAuthModal(true);
+    }
+  }, [user]);
+
+  const handleGuestAuth = (info: GuestInfo) => {
+    setGuestInfo(info);
+    setIsGuestUser(true);
+    setShowGuestAuthModal(false);
+    localStorage.setItem("guestInfo", JSON.stringify(info));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
 
-    if (!user) {
-      setError("You must be logged in to create a post.");
-      setLoading(false);
+    if (!title.trim() || !content.trim()) {
+      setError("Title and content are required.");
       return;
     }
 
-    try {
-      const result = await forumAPI.createPost({
-        title,
-        content,
-      });
+    setIsSubmitting(true);
+    setError("");
 
-      if (result.success) {
+    try {
+      let response;
+
+      if (user) {
+        // Logged-in user post creation
+        const token = localStorage.getItem("access_token");
+        response = await fetch(`${API_BASE_URL}/forum/posts/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ title, content }),
+        });
+      } else if (guestInfo) {
+        // Guest post creation
+        response = await fetch(`${API_BASE_URL}/forum/guest/posts/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            content,
+            guest_name: guestInfo.name,
+            guest_affiliation: guestInfo.affiliation,
+            guest_email: guestInfo.email || "",
+          }),
+        });
+      } else {
+        setError(
+          "You must be logged in or continue as a guest to create a post"
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (response.ok) {
         router.push("/forums/posts");
       } else {
-        throw new Error(result.message || "Failed to create post");
+        let errorMessage = "Failed to create post. Please try again.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          console.error("Error parsing error response:", e);
+        }
+        setError(errorMessage);
       }
     } catch (err) {
-      setError("Failed to create post. Please try again.");
-      console.error("Post creation error:", err);
+      console.error("Error creating post:", err);
+      setError("An error occurred while creating your post. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  // Redirect if no authentication and user dismisses guest login
+  const handleModalClose = () => {
+    if (!user && !guestInfo) {
+      router.push("/forums/posts");
+    } else {
+      setShowGuestAuthModal(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-8 p-4">
-      <h1 className="text-2xl font-bold mb-6">Create New Post</h1>
+    <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background py-12">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-8">
+          <h1 className="text-3xl font-bold text-primary-dark mb-8">
+            Create New Post
+          </h1>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-md">
-          {error}
+          {isGuestUser && guestInfo && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <p className="text-gray-700">
+                Posting as guest:{" "}
+                <span className="font-medium">{guestInfo.name}</span>
+                {guestInfo.affiliation && (
+                  <span> ({guestInfo.affiliation})</span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Title
+              </label>
+              <input
+                type="text"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="content"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Content
+              </label>
+              <textarea
+                id="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={8}
+                className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
+                required
+              ></textarea>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => router.push("/forums/posts")}
+                className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
+                  isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                {isSubmitting ? "Creating..." : "Create Post"}
+              </button>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
-            required
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="content"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Content
-          </label>
-          <textarea
-            id="content"
-            rows={6}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-            loading ? "opacity-70 cursor-not-allowed" : ""
-          }`}
-        >
-          {loading ? "Creating..." : "Create Post"}
-        </button>
-      </form>
+      <GuestAuthModal
+        isOpen={showGuestAuthModal}
+        onClose={handleModalClose}
+        onSubmit={handleGuestAuth}
+        mode="post"
+      />
     </div>
   );
 }

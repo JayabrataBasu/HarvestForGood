@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ForumPostViewSet, CommentViewSet
+from .views import ForumPostViewSet, CommentViewSet, create_guest_post, create_guest_comment
 
 router = DefaultRouter()
 router.register(r'posts', ForumPostViewSet)
 router.register(r'comments', CommentViewSet)
 
-# Add like endpoint
-urlpatterns = router.urls + [
-    path('posts/<int:post_id>/like/', ForumPostViewSet.as_view({'post': 'like_post'}), name='post-like'),
+urlpatterns = [
+    path('', include(router.urls)),
+    path('guest/posts/', create_guest_post, name='guest-post'),
+    path('guest/comments/', create_guest_comment, name='guest-comment'),
 ]

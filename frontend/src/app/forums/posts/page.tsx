@@ -5,14 +5,18 @@ import Link from "next/link";
 import ForumPost from "../ForumPost";
 import { useAuth } from "../../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import GuestAuthModal, { GuestInfo } from "../GuestAuthModal";
 
 interface Post {
   id: string;
   title: string;
   content: string;
   author: string;
+  author_name?: string;
+  guest_name?: string;
+  guest_affiliation?: string;
   created_at: string;
-  comment_count: number;
+  comments_count: number;
   tags?: string[];
 }
 
@@ -52,6 +56,24 @@ export default function Posts() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const [isGuestUser, setIsGuestUser] = useState(false);
+  const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+  const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
+
+  // Check for existing guest info on component mount
+  useEffect(() => {
+    const storedGuestInfo = localStorage.getItem("guestInfo");
+    if (storedGuestInfo) {
+      try {
+        const parsedInfo = JSON.parse(storedGuestInfo);
+        setGuestInfo(parsedInfo);
+        setIsGuestUser(true);
+      } catch (e) {
+        console.error("Error parsing stored guest info:", e);
+        localStorage.removeItem("guestInfo");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -71,6 +93,22 @@ export default function Posts() {
     loadPosts();
   }, []);
 
+  const handleGuestAuth = (info: GuestInfo) => {
+    setGuestInfo(info);
+    setIsGuestUser(true);
+    setShowGuestAuthModal(false);
+
+    // Store in localStorage for persistent guest session
+    localStorage.setItem("guestInfo", JSON.stringify(info));
+  };
+
+  // Clear guest session
+  const handleClearGuestSession = () => {
+    localStorage.removeItem("guestInfo");
+    setGuestInfo(null);
+    setIsGuestUser(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background">
       <div className="container mx-auto px-4 py-12">
@@ -78,13 +116,36 @@ export default function Posts() {
           <h1 className="text-3xl md:text-4xl font-bold text-primary-dark text-gradient mb-2">
             Forum Posts
           </h1>
-          {user && (
-            <Link href="/forums/posts/new">
-              <span className="inline-block bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                Create New Post
-              </span>
-            </Link>
-          )}
+          <div className="flex items-center space-x-4">
+            {!user && !isGuestUser && (
+              <button
+                onClick={() => setShowGuestAuthModal(true)}
+                className="text-primary hover:text-primary-dark underline"
+              >
+                Continue as Guest
+              </button>
+            )}
+
+            {isGuestUser && guestInfo && (
+              <>
+                <span className="text-gray-600">Hello, {guestInfo.name}!</span>
+                <button
+                  onClick={handleClearGuestSession}
+                  className="text-sm text-red-600 hover:text-red-800 underline"
+                >
+                  Exit Guest Mode
+                </button>
+              </>
+            )}
+
+            {(user || isGuestUser) && (
+              <Link href="/forums/posts/new">
+                <span className="inline-block bg-gradient-to-r from-primary to-primary-dark text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                  Create New Post
+                </span>
+              </Link>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
@@ -103,7 +164,7 @@ export default function Posts() {
             <p className="text-gray-600 text-lg mb-4">
               No posts available yet.
             </p>
-            {user && (
+            {(user || isGuestUser) && (
               <p className="mt-4">
                 <Link
                   href="/forums/posts/new"
@@ -112,6 +173,32 @@ export default function Posts() {
                   Create the first post!
                 </Link>
               </p>
+            )}
+            {!user && !isGuestUser && (
+              <div className="mt-6 space-y-4">
+                <p className="text-gray-600">
+                  <Link
+                    href="/login"
+                    className="text-primary hover:text-primary-dark font-medium"
+                  >
+                    Log in
+                  </Link>{" "}
+                  or{" "}
+                  <Link
+                    href="/register"
+                    className="text-primary hover:text-primary-dark font-medium"
+                  >
+                    Create an account
+                  </Link>{" "}
+                  to start posting, or{" "}
+                  <button
+                    onClick={() => setShowGuestAuthModal(true)}
+                    className="text-primary hover:text-primary-dark font-medium underline"
+                  >
+                    continue as guest
+                  </button>
+                </p>
+              </div>
             )}
           </div>
         ) : (
@@ -122,15 +209,24 @@ export default function Posts() {
                 id={post.id}
                 title={post.title}
                 content={post.content}
-                author={post.author}
+                author={post.author_name || post.guest_name || "Anonymous"}
                 createdAt={post.created_at}
-                commentCount={post.comment_count}
+                commentCount={post.comments_count || 0}
                 tags={post.tags}
+                isGuest={!!post.guest_name}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Guest authentication modal */}
+      <GuestAuthModal
+        isOpen={showGuestAuthModal}
+        onClose={() => setShowGuestAuthModal(false)}
+        onSubmit={handleGuestAuth}
+        mode="post"
+      />
     </div>
   );
 }

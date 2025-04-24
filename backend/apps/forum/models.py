@@ -28,16 +28,28 @@ class ForumPost(SafeQueryMixin, models.Model):
         validators=[validate_post_content]
     )
     author = models.ForeignKey(
-        User, 
+        settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='forum_posts'
+        related_name='forum_posts',
+        null=True,  # Allow null for guest posts
+        blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes_count = models.IntegerField(default=0)
+    
+    # Guest user fields
+    guest_name = models.CharField(max_length=100, null=True, blank=True)
+    guest_affiliation = models.CharField(max_length=100, null=True, blank=True)
+    guest_email = models.EmailField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.title} by {self.author.username}"
+        if self.author:
+            return f"{self.title} by {self.author.username}"
+        elif self.guest_name:
+            return f"{self.title} by {self.guest_name} (Guest)"
+        else:
+            return self.title
 
     class Meta:
         db_table = 'forum_post'
@@ -55,13 +67,21 @@ class Comment(SafeQueryMixin, models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='forum_comments'
+        related_name='forum_comments',
+        null=True,  # Allow null for guest comments
+        blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Guest user fields
+    guest_name = models.CharField(max_length=100, null=True, blank=True)
+    guest_affiliation = models.CharField(max_length=100, null=True, blank=True)
+    guest_email = models.EmailField(null=True, blank=True)
+    
     def __str__(self):
-        return f'Comment by {self.author.username} on {self.created_at.strftime("%Y-%m-%d")}'
+        author_name = self.author.username if self.author else (self.guest_name or "Anonymous")
+        return f"Comment by {author_name} on {self.post.title}"
 
     class Meta:
         db_table = 'forum_comment'
