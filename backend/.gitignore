@@ -1,0 +1,52 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Environment
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+
+# SSL/TLS Certificates
+*.crt
+*.key
+*.pem
+*.cer
+*.der
+*.p12
+*.pfx
+cert.*
+
+# Static files collected
+/static/
+/staticfiles/
+
+# Sensitive configuration
+*.conf
+uwsgi.ini
+gunicorn.conf.py
+secrets.json
+credentials.json
+
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+.cache/
+
+# Local development
+.python-version
+.pytest_cache/
