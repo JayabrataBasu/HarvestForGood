@@ -36,7 +36,7 @@ Harvest For Good is a platform designed to connect local farmers with food banks
 
 - Django
 - Django REST Framework
-- MySQL database
+- PostgreSQL database
 - uWSGI and Nginx for production deployment
 
 ### System Architecture
