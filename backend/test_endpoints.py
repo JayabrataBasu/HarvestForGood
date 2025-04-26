@@ -34,31 +34,39 @@ def test_token_endpoint():
 
 def test_forum_posts_endpoint():
     """Test the forum posts endpoint for anonymous access."""
-    url = f'{BASE_URL}/forum/posts/'
-    print(f"\nTesting GET {url} (without auth)")
+    # Try both URLs (forum singular and forums plural)
+    endpoints = ['/forum/posts/', '/forums/posts/']
     
-    try:
-        response = requests.get(url)
-        print(f"Status: {response.status_code}")
+    for endpoint in endpoints:
+        url = f'{BASE_URL}{endpoint}'
+        print(f"\nTesting GET {url} (without auth)")
         
-        # Fix the JSON handling here
-        if response.status_code < 400:
-            json_data = response.json()
-            # Check if it's an array and get the first few items
-            if isinstance(json_data, list):
-                # Only show first 3 items if there are many
-                preview_data = json_data[:3] if len(json_data) > 3 else json_data
-                print(f"Response: First {len(preview_data)} of {len(json_data)} posts")
-                print(json.dumps(preview_data, indent=2))
-            else:
-                print(f"Response: {json.dumps(json_data, indent=2)}")
-        else:
-            print(f"Response: {response.text}")
+        try:
+            response = requests.get(url)
+            print(f"Status: {response.status_code}")
             
-        return response.status_code
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return None
+            # Fix the JSON handling here
+            if response.status_code < 400:
+                json_data = response.json()
+                # Check if it's an array and get the first few items
+                if isinstance(json_data, list):
+                    # Only show first 3 items if there are many
+                    preview_data = json_data[:3] if len(json_data) > 3 else json_data
+                    print(f"Response: First {len(preview_data)} of {len(json_data)} posts")
+                    print(json.dumps(preview_data, indent=2))
+                else:
+                    print(f"Response: {json.dumps(json_data, indent=2)}")
+                
+                # If this endpoint works, return its status
+                return response.status_code
+            else:
+                print(f"Response: {response.text}")
+                
+        except Exception as e:
+            print(f"Error: {str(e)}")
+    
+    # If we get here, neither endpoint worked
+    return None
 
 def test_me_endpoint(token=None):
     """Test the me endpoint with authentication."""

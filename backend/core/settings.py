@@ -73,10 +73,13 @@ INSTALLED_APPS = [
     'django_extensions',
     
     # Local apps
+    'apps.utils',  # Add this line
     'apps.users',
     'apps.academic',
     'apps.forum',
     'apps.security',
+    'apps.research',
+    'apps.forums',
 ]
 
 MIDDLEWARE = [
@@ -279,10 +282,18 @@ API_EXCLUDED_PATHS = [
     '/api/users/verify-email/',
     '/api/users/profile/',
     '/api/auth/logout/',
-    '/api/forum/posts/',  # Allow anonymous users to view posts
-    '/api/forum/posts',   # Also include without trailing slash 
-    '/api/forum/comments/',  # Allow anonymous users to view comments
-    '/api/forum/comments',   # Also include without trailing slash
+    '/api/forum/posts/',  # Singular version - already included
+    '/api/forum/posts',   # Without trailing slash
+    '/api/forums/posts/', # Plural version - add this  
+    '/api/forums/posts',  # Without trailing slash
+    '/api/forum/comments/',
+    '/api/forum/comments',
+    '/api/forums/comments/',
+    '/api/forums/comments',
+    '/api/research/papers/',  # Allow anonymous users to view research papers
+    '/api/research/papers',   # Also include without trailing slash
+    '/api/research/keywords/',  # Allow anonymous users to view keywords
+    '/api/research/keywords',   # Also include without trailing slash
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'

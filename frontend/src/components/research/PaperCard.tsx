@@ -112,6 +112,15 @@ const PaperCard: React.FC<PaperCardProps> = ({
     }
   };
 
+  // Format methodology type with proper capitalization, handling undefined case
+  const formatMethodologyType = () => {
+    if (!paper.methodologyType) return "Unknown";
+    return (
+      paper.methodologyType.charAt(0).toUpperCase() +
+      paper.methodologyType.slice(1)
+    );
+  };
+
   return (
     <div
       className={`bg-white border rounded-xl shadow-sm hover-card-rise cursor-pointer transition-all duration-300 overflow-hidden ${
@@ -167,8 +176,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
           <span
             className={`px-2 py-0.5 text-xs font-medium rounded-md border ${getMethodologyColor()}`}
           >
-            {paper.methodologyType.charAt(0).toUpperCase() +
-              paper.methodologyType.slice(1)}
+            {formatMethodologyType()}
           </span>
           <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md border border-gray-200">
             {new Date(paper.publicationDate).getFullYear()}

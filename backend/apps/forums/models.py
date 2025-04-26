@@ -7,13 +7,16 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        app_label = 'forums'
+
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
-        related_name='forum_posts'
+        related_name='forums_app_posts'  # Changed from forum_posts
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -33,7 +36,7 @@ class Comment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
-        related_name='forum_comments'
+        related_name='forums_app_comments'  # Changed from forum_comments
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -2,10 +2,11 @@
  * Error handling utility for API requests
  */
 
-interface ErrorResponse {
+export interface ErrorResponse {
   status: number;
   message: string;
   details?: string;
+  fieldErrors?: Record<string, string[]>;
 }
 
 /**
@@ -16,6 +17,7 @@ interface ErrorResponse {
 export const handleApiError = (error: unknown): ErrorResponse => {
   console.error('API Error:', error);
   
+  // Handle Response objects (fetch API throws these)
   if (error instanceof Response) {
     return {
       status: error.status,
@@ -23,7 +25,43 @@ export const handleApiError = (error: unknown): ErrorResponse => {
     };
   }
   
+  // Handle Error objects (including custom errors)
   if (error instanceof Error) {
+    // Try to parse the error message as JSON for DRF validation errors
+    try {
+      const parsedError = JSON.parse(error.message);
+      
+      // Check if it's a Django Rest Framework validation error
+      if (typeof parsedError === 'object' && parsedError !== null) {
+        // Handle field-specific validation errors
+        if (Object.keys(parsedError).some(key => Array.isArray(parsedError[key]))) {
+          return {
+            status: 400,
+            message: 'Validation error',
+            fieldErrors: parsedError as Record<string, string[]>,
+          };
+        }
+        
+        // Handle non-field errors
+        if (parsedError.detail) {
+          return {
+            status: 400,
+            message: parsedError.detail,
+          };
+        }
+        
+        // Handle other JSON error formats
+        if (parsedError.message) {
+          return {
+            status: 400,
+            message: parsedError.message,
+          };
+        }
+      }
+    } catch {
+      // Not a JSON error, just use the error message
+    }
+    
     return {
       status: 500,
       message: 'An error occurred',
@@ -31,6 +69,7 @@ export const handleApiError = (error: unknown): ErrorResponse => {
     };
   }
   
+  // Handle unknown error types
   return {
     status: 500,
     message: 'An unknown error occurred',
@@ -68,4 +107,21 @@ export const retryWithBackoff = async <T>(
   }
   
   throw new Error('Maximum retries exceeded');
+};
+
+/**
+ * Extract field error messages from API response
+ * @param error The processed error response
+ * @param fieldName The field name to get errors for
+ * @returns Array of error messages or empty array
+ */
+export const getFieldErrors = (
+  error: ErrorResponse | undefined,
+  fieldName: string
+): string[] => {
+  if (!error || !error.fieldErrors || !error.fieldErrors[fieldName]) {
+    return [];
+  }
+  
+  return error.fieldErrors[fieldName];
 };

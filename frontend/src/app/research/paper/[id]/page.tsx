@@ -67,6 +67,12 @@ export default function PaperDetailPage() {
     return new Date(date).getFullYear();
   };
 
+  // Helper to format methodology type safely
+  const formatMethodologyType = (type?: string) => {
+    if (!type) return "Unknown";
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -210,7 +216,10 @@ export default function PaperDetailPage() {
               {paper.title}
             </h1>
             <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
-              QUALITATIVE DATA | SECONDARY/ARCHIVAL DATA | RESEARCH PAPER
+              {paper.methodologyType
+                ? formatMethodologyType(paper.methodologyType)
+                : "UNKNOWN"}{" "}
+              DATA | SECONDARY/ARCHIVAL DATA | RESEARCH PAPER
             </div>
           </div>
 
