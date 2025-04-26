@@ -1,0 +1,252 @@
+from rest_framework import viewsets, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db import transaction
+from django.db.models import Count, Q
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from .models import ResearchPaper, Author, Keyword, KeywordCategory
+from .serializers import (
+    ResearchPaperSerializer, 
+    AuthorSerializer, 
+    KeywordSerializer,
+    KeywordCategorySerializer
+)
+
+class AuthorViewSet(viewsets.ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    
+    def get_queryset(self):
+        queryset = Author.objects.all()
+        name = self.request.query_params.get('name', None)
+        
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+            
+        return queryset
+
+class KeywordViewSet(viewsets.ModelViewSet):
+    queryset = Keyword.objects.all()
+    serializer_class = KeywordSerializer
+    
+    def get_queryset(self):
+        queryset = Keyword.objects.all()
+        name = self.request.query_params.get('name', None)
+        
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+            
+        return queryset
+
+class KeywordCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows keyword categories to be viewed.
+    """
+    queryset = KeywordCategory.objects.all()
+    serializer_class = KeywordCategorySerializer
+    filterset_fields = ['name']
+    search_fields = ['name', 'description']
+
+class ResearchPaperViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for research papers
+    """
+    # Update to use publication_year instead of publication_date
+    queryset = ResearchPaper.objects.all().order_by('-publication_year')
+    serializer_class = ResearchPaperSerializer
+    permission_classes = [AllowAny]  # Allow anyone to view papers
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'abstract', 'authors__name', 'keywords__name']
+    filterset_fields = {
+        'publication_year': ['exact', 'gt', 'lt', 'gte', 'lte'],  # Changed from publication_date
+        'keywords__name': ['exact', 'in'],
+        'authors__name': ['exact', 'in'],
+    }
+    ordering_fields = ['publication_year', 'title', 'created_at']  # Changed from publication_date
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        queryset = ResearchPaper.objects.all()
+        
+        # Get query parameters
+        q = self.request.query_params.get('q', None)
+        keywords = self.request.query_params.getlist('keyword', [])
+        authors = self.request.query_params.getlist('author', [])
+        methodology_types = self.request.query_params.getlist('methodology_type', [])
+        min_citations = self.request.query_params.get('min_citations', None)
+        max_citations = self.request.query_params.get('max_citations', None)
+        year_from = self.request.query_params.get('year_from', None)
+        year_to = self.request.query_params.get('year_to', None)
+        journal = self.request.query_params.get('journal', None)
+        sort = self.request.query_params.get('sort', None)
+        
+        # Full-text search
+        if q:
+            # Create search vectors for various fields
+            search_vector = (
+                SearchVector('title', weight='A') +
+                SearchVector('abstract', weight='B') +
+                SearchVector('authors__name', weight='C') +
+                SearchVector('keywords__name', weight='C') +
+                SearchVector('journal', weight='D')
+            )
+            search_query = SearchQuery(q)
+            
+            # Apply search vector, query and rank
+            queryset = queryset.annotate(
+                search=search_vector,
+                rank=SearchRank(search_vector, search_query)
+            ).filter(search=search_query)
+            
+            # If sort parameter is not provided or is 'relevance', order by search rank
+            if not sort or sort == 'relevance':
+                queryset = queryset.order_by('-rank')
+        
+        # Apply filters
+        if keywords:
+            queryset = queryset.filter(keywords__name__in=keywords)
+
+        if authors:
+            queryset = queryset.filter(authors__name__in=authors)
+
+        if methodology_types:
+            queryset = queryset.filter(methodology_type__in=methodology_types)
+
+        if min_citations is not None:
+            queryset = queryset.filter(citation_count__gte=int(min_citations))
+
+        if max_citations is not None:
+            queryset = queryset.filter(citation_count__lte=int(max_citations))
+
+        # Handle year filtering with better error handling
+        if year_from:
+            try:
+                year_from_int = int(year_from)
+                queryset = queryset.filter(publication_year__gte=year_from_int)
+            except (FieldError, ValueError) as e:
+                # Log the error properly
+                print(f"Error filtering by year_from: {e}")
+                # Don't apply filter if field doesn't exist or value is invalid
+
+        if year_to:
+            try:
+                year_to_int = int(year_to)
+                queryset = queryset.filter(publication_year__lte=year_to_int)
+            except (FieldError, ValueError) as e:
+                # Log the error properly
+                print(f"Error filtering by year_to: {e}")
+                # Don't apply filter if field doesn't exist or value is invalid
+
+        if journal:
+            queryset = queryset.filter(journal__icontains=journal)
+        
+        # Apply sorting if specified (and not already sorted by relevance)
+        if sort and sort != 'relevance':
+            if sort == 'date_newest':
+                queryset = queryset.order_by('-publication_year')
+            elif sort == 'date_oldest':
+                queryset = queryset.order_by('publication_year')
+            elif sort == 'citations_high':
+                queryset = queryset.order_by('-citation_count')
+            elif sort == 'citations_low':
+                queryset = queryset.order_by('citation_count')
+            elif sort == 'title_asc':
+                queryset = queryset.order_by('title')
+            elif sort == 'title_desc':
+                queryset = queryset.order_by('-title')
+        
+        # Ensure distinct results
+        return queryset.distinct()
+    
+    @action(detail=True, methods=['get'])
+    def related(self, request, slug=None):
+        """
+        Returns papers related to the current paper based on shared keywords
+        """
+        # Get the current paper
+        paper = self.get_object()
+        
+        # Get the paper's keywords
+        paper_keywords = paper.keywords.all()
+        
+        if not paper_keywords:
+            return Response([])
+        
+        # Find papers with the same keywords, excluding the current paper
+        related_papers = ResearchPaper.objects.filter(
+            keywords__in=paper_keywords
+        ).exclude(
+            id=paper.id
+        ).annotate(
+            # Count the number of matching keywords
+            matching_keywords=Count('keywords', filter=Q(keywords__in=paper_keywords))
+        ).filter(
+            # Ensure at least one keyword matches
+            matching_keywords__gt=0
+        ).order_by(
+            # Order by number of matching keywords (descending) and publication date (descending)
+            '-matching_keywords', '-publication_year'
+        ).distinct()[:5]  # Limit to 5 related papers
+        
+        serializer = self.get_serializer(related_papers, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def popular_keywords(self, request):
+        """
+        Returns the most popular keywords based on frequency of use in papers
+        """
+        limit = int(request.query_params.get('limit', 20))
+        
+        popular_keywords = Keyword.objects.annotate(
+            paper_count=Count('papers')
+        ).order_by('-paper_count')[:limit]
+        
+        serializer = KeywordSerializer(popular_keywords, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def trending(self, request):
+        """
+        Returns trending papers based on citation trend and recency
+        """
+        limit = int(request.query_params.get('limit', 10))
+        
+        # Get papers with increasing citation trends, sorted by citation count and date
+        trending_papers = ResearchPaper.objects.filter(
+            citation_trend='increasing'
+        ).order_by(
+            '-citation_count', '-publication_year'
+        )[:limit]
+        
+        serializer = self.get_serializer(trending_papers, many=True)
+        return Response(serializer.data)
+    
+    @transaction.atomic
+    @action(detail=False, methods=['post'])
+    def bulk_import(self, request):
+        papers_data = request.data
+        
+        # Check if the input is a list
+        if not isinstance(papers_data, list):
+            return Response(
+                {"error": "Expected a list of papers"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Process each paper data
+        for paper_data in papers_data:
+            serializer = self.get_serializer(data=paper_data)
+            try:
+                # Validate and save the paper
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+            except Exception as e:
+                return Response({
+                    'error': str(e),
+                    'data': paper_data
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"status": "success"}, status=status.HTTP_201_CREATED)

@@ -30,8 +30,8 @@ class ForumPost(SafeQueryMixin, models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='forum_posts',
-        null=True,  # Allow null for guest posts
+        related_name='forum_app_posts',  # Changed from forum_posts 
+        null=True,
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -67,8 +67,8 @@ class Comment(SafeQueryMixin, models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='forum_comments',
-        null=True,  # Allow null for guest comments
+        related_name='forum_app_comments',  # Changed from forum_comments
+        null=True,
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

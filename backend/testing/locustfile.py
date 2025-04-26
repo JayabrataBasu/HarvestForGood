@@ -5,10 +5,13 @@ class ForumUser(HttpUser):
 
     @task
     def view_posts(self):
-        self.client.get("/api/forum/posts/")
+        # Test both endpoints
+        self.client.get("/api/forum/posts/")  # Singular version
+        self.client.get("/api/forums/posts/") # Plural version
 
     @task
     def create_post(self):
+        # Use the singular version as in the frontend
         self.client.post("/api/forum/posts/", json={
             "title": "Test Post",
             "content": "Load testing content"

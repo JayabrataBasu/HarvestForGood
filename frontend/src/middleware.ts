@@ -1,38 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  // Example: Redirect /forum to /forums
-  if (request.nextUrl.pathname === '/forum') {
-    return NextResponse.redirect(new URL('/forums', request.url));
-  }
-
-  // Handle API requests
-  if (request.nextUrl.pathname.startsWith('/api')) {
-    // For /api requests that don't exist in Next.js routes,
-    // proxy them to the backend
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    const apiPath = request.nextUrl.pathname.replace(/^\/api/, '');
+  // Check if the path starts with /admin
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    // Get token from cookies (JWT would typically be stored in a cookie in a production app)
+    const token = request.cookies.get('access_token')?.value || 
+                  request.cookies.get('next-auth.session-token')?.value;
     
-    // Create URL to the backend API with the same path
-    const url = new URL(apiPath, backendUrl);
+    // Get token from Authorization header as fallback (for API routes)
+    const authHeader = request.headers.get('authorization');
+    const headerToken = authHeader ? authHeader.split(' ')[1] : null;
     
-    // Add any query parameters
-    url.search = request.nextUrl.search;
-    
-    return NextResponse.rewrite(url);
+    // If no token is found, redirect to login
+    if (!token && !headerToken) {
+      const url = new URL('/login', request.url);
+      url.searchParams.set('next', request.nextUrl.pathname);
+      return NextResponse.redirect(url);
+    }
   }
   
-  // IMPORTANT: Don't use NextResponse.next()
-  // Simply return undefined to continue the request without modification
-  return undefined;
+  return NextResponse.next();
 }
 
-// Configure which paths should be processed by this middleware
+// See "Matching Paths" below to learn more
 export const config = {
-  matcher: [
-    // Add paths that need middleware processing
-    '/forum',
-    '/api/:path*',
-  ],
+  matcher: ['/admin/:path*'],
 };
