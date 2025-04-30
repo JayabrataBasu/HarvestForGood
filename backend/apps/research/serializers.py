@@ -9,7 +9,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 class KeywordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Keyword
-        fields = ['id', 'name', 'category']
+        fields = ['id', 'name']
 
 class KeywordCategorySerializer(serializers.ModelSerializer):
     keywords = KeywordSerializer(many=True, read_only=True)
@@ -21,21 +21,43 @@ class KeywordCategorySerializer(serializers.ModelSerializer):
 class ResearchPaperSerializer(serializers.ModelSerializer):
     authors = AuthorSerializer(many=True, read_only=False)
     keywords = KeywordSerializer(many=True, read_only=False)
-    # Add this for backward compatibility with frontend
-    publication_date = serializers.IntegerField(source='publication_year', read_only=True)
+    # Fix the publication_date field to handle date objects properly
+    publication_date = serializers.SerializerMethodField()
     
     class Meta:
         model = ResearchPaper
         fields = [
             'id', 'title', 'abstract', 'authors', 'publication_year',
-            'publication_date',  # Include for backward compatibility 
-            'journal', 'keywords', 'download_url', 'doi', 'volume',
-            'issue', 'pages', 'created_at', 'updated_at', 'slug',
+            'publication_date', 'journal', 'keywords', 'download_url', 'doi', 'volume',
+            'issue', 'pages', 'created_at', 'updated_at', 'slug', 'methodology_type',
+            'citation_count', 'citation_trend'
         ]
         lookup_field = 'slug'
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}
         }
+    
+    def get_publication_date(self, obj):
+        """
+        Convert publication_year to an integer, handling date objects.
+        This solves the TypeError when converting datetime.date to int.
+        """
+        if obj.publication_year is None:
+            return None
+            
+        # If it's already an integer, return it
+        if isinstance(obj.publication_year, int):
+            return obj.publication_year
+            
+        # If it's a date object, extract the year
+        if hasattr(obj.publication_year, 'year'):
+            return obj.publication_year.year
+            
+        # Try to convert to int as a last resort
+        try:
+            return int(obj.publication_year)
+        except (ValueError, TypeError):
+            return None
     
     def create(self, validated_data):
         # Extract nested data
