@@ -2,7 +2,7 @@ from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django.db import transaction
 from django.db.models import Count, Q
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
@@ -13,6 +13,12 @@ from .serializers import (
     KeywordSerializer,
     KeywordCategorySerializer
 )
+import django_filters
+from apps.utils.fields import YearField
+
+# Custom filter for YearField
+class YearFieldFilter(django_filters.NumberFilter):
+    pass
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
@@ -49,6 +55,23 @@ class KeywordCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['name']
     search_fields = ['name', 'description']
 
+# Custom FilterSet for ResearchPaper that handles YearField
+class ResearchPaperFilterSet(FilterSet):
+    # Define year filters explicitly
+    year = django_filters.NumberFilter(field_name='publication_year')
+    year_gt = django_filters.NumberFilter(field_name='publication_year', lookup_expr='gt')
+    year_lt = django_filters.NumberFilter(field_name='publication_year', lookup_expr='lt')
+    year_gte = django_filters.NumberFilter(field_name='publication_year', lookup_expr='gte')
+    year_lte = django_filters.NumberFilter(field_name='publication_year', lookup_expr='lte')
+    
+    class Meta:
+        model = ResearchPaper
+        fields = {
+            'keywords__name': ['exact', 'in'],
+            'authors__name': ['exact', 'in'],
+            # publication_year is handled by our custom filters above
+        }
+
 class ResearchPaperViewSet(viewsets.ModelViewSet):
     """
     API endpoint for research papers
@@ -58,12 +81,8 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
     serializer_class = ResearchPaperSerializer
     permission_classes = [AllowAny]  # Allow anyone to view papers
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = ResearchPaperFilterSet  # Use our custom filterset
     search_fields = ['title', 'abstract', 'authors__name', 'keywords__name']
-    filterset_fields = {
-        'publication_year': ['exact', 'gt', 'lt', 'gte', 'lte'],  # Changed from publication_date
-        'keywords__name': ['exact', 'in'],
-        'authors__name': ['exact', 'in'],
-    }
     ordering_fields = ['publication_year', 'title', 'created_at']  # Changed from publication_date
     lookup_field = 'slug'
 

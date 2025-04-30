@@ -1,24 +1,46 @@
 from django import forms
 from django.db import models
 from django.core.exceptions import ValidationError
+import datetime
 
-class YearField(models.PositiveIntegerField):
+class YearField(models.Field):
     """
-    A model field that stores a year in the database as an integer,
-    but displays it as a year.
+    A custom field to store year values
     """
-    description = "Year"
-    
     def __init__(self, *args, **kwargs):
-        # Override default form field
-        kwargs['verbose_name'] = kwargs.get('verbose_name', 'Year')
+        kwargs['max_length'] = 4
         super().__init__(*args, **kwargs)
+
+    def db_type(self, connection):
+        return 'integer'
     
-    def formfield(self, **kwargs):
-        # Use a custom form field
-        defaults = {'form_class': YearFormField}
-        defaults.update(kwargs)
-        return super().formfield(**defaults)
+    def to_python(self, value):
+        if value is None:
+            return None
+            
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            if isinstance(value, datetime.date):
+                return value.year
+            raise
+    
+    def from_db_value(self, value, expression, connection):
+        return self.to_python(value)
+    
+    def get_prep_value(self, value):
+        if value is None:
+            return None
+            
+        # Handle datetime.date objects
+        if isinstance(value, datetime.date):
+            return value.year
+            
+        return int(value)
+    
+    def value_to_string(self, obj):
+        value = self.value_from_object(obj)
+        return str(value) if value is not None else None
 
 class YearFormField(forms.IntegerField):
     """
