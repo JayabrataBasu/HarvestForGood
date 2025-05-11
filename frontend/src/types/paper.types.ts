@@ -29,6 +29,7 @@ export interface ResearchPaper {
   abstract: string;
   authors: Author[];
   publicationDate: Date | string | number; // Make more flexible to handle year-only values
+  publicationYear?: number; // Add explicit year field
   journal: string;
   methodologyType?: MethodologyType; // Make optional to prevent errors
   citationCount: number;
@@ -84,6 +85,7 @@ export interface PaperFormData {
     email?: string;
   }[];
   publication_date: string;
+  publication_year?: number; // Add publication_year field
   methodology_type: MethodologyType;
   citation_count: number;
   citation_trend: CitationTrend;

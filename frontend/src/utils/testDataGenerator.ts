@@ -299,6 +299,11 @@ const generateKeywordsForPaper = (count: number): Keyword[] => {
   }));
 };
 
+// Add a function to generate a random year within a reasonable range
+const getRandomYear = (minYear = 1990, maxYear = new Date().getFullYear()) => {
+  return Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
+};
+
 // Generate a single research paper
 const generateResearchPaper = (id: string): ResearchPaper => {
   // Generate base paper data
@@ -333,13 +338,17 @@ const generateResearchPaper = (id: string): ResearchPaper => {
   const doiPrefix = "10.1234";
   const doiSuffix = Math.random().toString(36).substring(2, 10);
   const doi = `${doiPrefix}/${doiSuffix}`;
+
+  const publicationYear = getRandomYear();
+  const publicationDateWithYear = new Date(publicationYear, 0, 1); // January 1st of the year
   
   return {
     id,
     slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''),
     title,
     abstract,
-    publicationDate: publicationDate.toISOString(),
+    publicationDate: publicationDateWithYear.toISOString(),
+    publicationYear: publicationYear,
     authors,
     journal: getRandomItem(journals),
     keywords,
