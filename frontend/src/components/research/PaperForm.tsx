@@ -536,18 +536,49 @@ export default function PaperForm({
                 >
                   Publication Date <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  name="publication_date"
-                  id="publication_date"
-                  value={formData.publication_date}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border ${
-                    formErrors.publication_date
-                      ? "border-red-300"
-                      : "border-gray-300"
-                  } rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary`}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="date"
+                    name="publication_date"
+                    id="publication_date"
+                    value={formData.publication_date}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border ${
+                      formErrors.publication_date
+                        ? "border-red-300"
+                        : "border-gray-300"
+                    } rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary`}
+                  />
+                  <div>
+                    <label
+                      htmlFor="publication_year"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Publication Year
+                    </label>
+                    <input
+                      type="number"
+                      name="publication_year"
+                      id="publication_year"
+                      placeholder="e.g., 2023"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      value={formData.publication_year || ""}
+                      onChange={(e) => {
+                        const year = parseInt(e.target.value);
+                        // Set both year and date for compatibility
+                        setFormData({
+                          ...formData,
+                          publication_year: year,
+                          publication_date: year
+                            ? `${year}-01-01`
+                            : formData.publication_date,
+                        });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
                 {formErrors.publication_date && (
                   <p className="mt-1 text-sm text-red-600">
                     {formErrors.publication_date[0]}

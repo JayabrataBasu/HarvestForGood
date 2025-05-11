@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from apps.utils.fields import YearField
+import datetime
 
 class KeywordCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -65,6 +66,19 @@ class ResearchPaper(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+            
+        # Ensure publication_year is a date object before saving
+        if hasattr(self, 'publication_year') and self.publication_year and not isinstance(self.publication_year, datetime.date):
+            if isinstance(self.publication_year, int):
+                self.publication_year = datetime.date(self.publication_year, 1, 1)
+            else:
+                try:
+                    year = int(self.publication_year)
+                    self.publication_year = datetime.date(year, 1, 1)
+                except (ValueError, TypeError):
+                    # Default to current year if conversion fails
+                    self.publication_year = datetime.date.today().replace(month=1, day=1)
+                    
         super().save(*args, **kwargs)
     
     def __str__(self):

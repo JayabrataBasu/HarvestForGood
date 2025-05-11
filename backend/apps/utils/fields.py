@@ -12,18 +12,23 @@ class YearField(models.Field):
         super().__init__(*args, **kwargs)
 
     def db_type(self, connection):
-        return 'integer'
+        # Change to use date type in the database
+        return 'date'
     
     def to_python(self, value):
         if value is None:
             return None
             
+        # If it's already a date, return it
+        if isinstance(value, datetime.date):
+            return value
+            
+        # Try to convert to date if it's an integer
         try:
-            return int(value)
+            year = int(value)
+            return datetime.date(year, 1, 1)
         except (ValueError, TypeError):
-            if isinstance(value, datetime.date):
-                return value.year
-            raise
+            raise ValidationError(f"Invalid year value: {value}")
     
     def from_db_value(self, value, expression, connection):
         return self.to_python(value)
@@ -32,14 +37,23 @@ class YearField(models.Field):
         if value is None:
             return None
             
-        # Handle datetime.date objects
+        # Convert to date for database storage
         if isinstance(value, datetime.date):
-            return value.year
+            return value
             
-        return int(value)
+        if isinstance(value, int):
+            return datetime.date(value, 1, 1)
+            
+        try:
+            year = int(value)
+            return datetime.date(year, 1, 1)
+        except (ValueError, TypeError):
+            raise ValidationError(f"Invalid year value for database: {value}")
     
     def value_to_string(self, obj):
         value = self.value_from_object(obj)
+        if isinstance(value, datetime.date):
+            return str(value.year)
         return str(value) if value is not None else None
 
 class YearFormField(forms.IntegerField):
