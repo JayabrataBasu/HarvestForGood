@@ -175,6 +175,14 @@ export default function PaperForm({
         return newErrors;
       });
     }
+
+    // Special handling for methodology_type to ensure it's never empty
+    if (name === "methodology_type" && !value) {
+      setFormData((prev) => ({
+        ...prev,
+        methodology_type: "mixed", // Default value
+      }));
+    }
   };
 
   // Author field change handler
@@ -565,13 +573,14 @@ export default function PaperForm({
                       max={new Date().getFullYear()}
                       value={formData.publication_year || ""}
                       onChange={(e) => {
-                        const year = parseInt(e.target.value);
+                        const yearStr = e.target.value;
                         // Set both year and date for compatibility
                         setFormData({
                           ...formData,
-                          publication_year: year,
-                          publication_date: year
-                            ? `${year}-01-01`
+                          publication_year: yearStr,
+                          // Only set the date if we have a valid year
+                          publication_date: yearStr
+                            ? `${yearStr}-01-01`
                             : formData.publication_date,
                         });
                       }}
@@ -597,7 +606,7 @@ export default function PaperForm({
                 <select
                   name="methodology_type"
                   id="methodology_type"
-                  value={formData.methodology_type}
+                  value={formData.methodology_type || "mixed"}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
                 >

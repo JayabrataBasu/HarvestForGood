@@ -203,6 +203,16 @@ export const researchAPI = {
    */
   createPaper: async (data: any) => {
     try {
+      // Ensure methodology_type is never empty
+      if (!data.methodology_type) {
+        data.methodology_type = 'mixed'; // Default value
+      }
+      
+      // Format authors correctly
+      if (data.authors && Array.isArray(data.authors)) {
+        data.authors = data.authors.filter(author => author.name && author.name.trim() !== '');
+      }
+      
       const response = await fetchAPI('/research/papers/', {
         method: 'POST',
         body: JSON.stringify(data)
@@ -227,6 +237,16 @@ export const researchAPI = {
    */
   updatePaper: async (idOrSlug: string, data: any) => {
     try {
+      // Ensure methodology_type is never empty
+      if (!data.methodology_type) {
+        data.methodology_type = 'mixed'; // Default value
+      }
+      
+      // Format authors correctly
+      if (data.authors && Array.isArray(data.authors)) {
+        data.authors = data.authors.filter(author => author.name && author.name.trim() !== '');
+      }
+      
       const response = await fetchAPI(`/research/papers/${idOrSlug}/`, {
         method: 'PUT',
         body: JSON.stringify(data)

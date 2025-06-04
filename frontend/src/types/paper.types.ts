@@ -28,20 +28,24 @@ export interface ResearchPaper {
   title: string;
   abstract: string;
   authors: Author[];
-  publicationDate: Date | string | number; // Make more flexible to handle year-only values
-  publicationYear?: number; // Add explicit year field
+  // Add both field names to handle API responses
+  publication_year?: string;  // Backend field
+  publicationYear?: string;   // Frontend camelCase
+  publication_date?: string;  // Serializer method field
+  publicationDate?: string;   // Alternative frontend field
   journal: string;
-  methodologyType?: MethodologyType; // Make optional to prevent errors
-  citationCount: number;
-  citationTrend: CitationTrend;
   keywords: Keyword[];
   downloadUrl?: string;
-  url?: string;
   doi?: string;
   volume?: string;
   issue?: string;
   pages?: string;
   slug?: string;
+  methodologyType?: MethodologyType;
+  citationCount: number;
+  citationTrend: CitationTrend;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // API request types
@@ -55,6 +59,16 @@ export interface PaperFilterParams {
   year_to?: number;
   journal?: string;
   [key: string]: any; // Allow additional filter parameters
+}
+
+export interface PaperFilterOptions {
+  dateRange: {
+    startDate: Date | null;
+    endDate: Date | null;
+  };
+  methodologyTypes: MethodologyType[];
+  keywords: string[];
+  minCitations: number;
 }
 
 // API response types
@@ -85,7 +99,7 @@ export interface PaperFormData {
     email?: string;
   }[];
   publication_date: string;
-  publication_year?: number; // Add publication_year field
+  publication_year: string; // Ensure this is string type to match backend
   methodology_type: MethodologyType;
   citation_count: number;
   citation_trend: CitationTrend;

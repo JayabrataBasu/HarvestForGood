@@ -17,7 +17,22 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
 }) => {
   // Helper to format date - safely handle various date formats or just a year
   const formatDate = (date: Date | string | number | undefined) => {
-    if (!date) return "Unknown";
+    if (!date) return "";
+
+    // Check all possible year field names from your Django model
+    // First check the main publication_year field (CharField)
+    if (paper.publication_year) {
+      return paper.publication_year.toString();
+    }
+
+    // Legacy field names for backwards compatibility
+    if (paper.publication_date) {
+      return paper.publication_date.toString();
+    }
+
+    if (paper.publicationYear) {
+      return paper.publicationYear.toString();
+    }
 
     // If it's just a year as a number
     if (typeof date === "number") {
@@ -33,30 +48,30 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
       const dateObj = new Date(date);
       // Check if the date is valid
       if (isNaN(dateObj.getTime())) {
-        return "Unknown";
+        return "";
       }
       return dateObj.getFullYear().toString();
     } catch (e) {
       console.error("Error formatting date:", e);
-      return "Unknown";
+      return "";
     }
   };
 
   // Helper to format methodology type safely
   const formatMethodologyType = (type?: string) => {
-    if (!type) return "Unknown";
+    if (!type || type.toLowerCase() === "unknown") return "";
     return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   // Safely display authors with fallback
   const displayAuthors = () => {
     if (!paper.authors || paper.authors.length === 0) {
-      return "Unknown Author";
+      return "Not specified";
     }
 
     return paper.authors
       .map((author) => author.name)
-      .filter((name) => name) // Filter out undefined or empty names
+      .filter(Boolean) // Filter out undefined or empty names
       .join(", ");
   };
 
@@ -144,11 +159,17 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 leading-tight">
             {paper.title}
           </h1>
-          <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
-            {formatMethodologyType(paper.methodologyType)} DATA | RESEARCH PAPER
-          </div>
+          {formatMethodologyType(paper.methodologyType) && (
+            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+              {formatMethodologyType(paper.methodologyType)} | RESEARCH PAPER
+            </div>
+          )}
+          {!formatMethodologyType(paper.methodologyType) && (
+            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+              RESEARCH PAPER
+            </div>
+          )}
         </div>
-
         {/* Save button (if function provided) */}
         {onSave && (
           <div className="flex justify-center">
@@ -195,7 +216,6 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
           </div>
         )}
       </div>
-
       {/* Author info */}
       <div className="rounded-2xl overflow-hidden mb-10 shadow-lg">
         <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
@@ -218,12 +238,15 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
                 <td className="py-4 px-4 font-medium">{displayAuthors()}</td>
                 <td className="py-4 px-4">
                   <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                    {paper.journal || "Unknown Journal"}
+                    {paper.journal || "Not specified"}
                   </span>
                 </td>
                 <td className="py-4 px-4">
                   <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                    {formatDate(paper.publicationDate)}
+                    {/* Use the updated formatDate function or direct field access */}
+                    {paper.publication_year ||
+                      formatDate(paper.publicationDate) ||
+                      "Not specified"}
                   </span>
                 </td>
               </tr>
