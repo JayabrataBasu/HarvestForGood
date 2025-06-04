@@ -57,7 +57,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
         );
       case "decreasing":
         return (
-          <span className="inline-flex items-center text-rose-600">
+          <span className="inline-flex items-center text-red-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-3.5 w-3.5 mr-1"
@@ -69,15 +69,15 @@ const PaperCard: React.FC<PaperCardProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"
+                d="M13 17H21L13 7V17Z"
               />
             </svg>
-            Declining
+            Falling
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center text-amber-600">
+          <span className="inline-flex items-center text-gray-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-3.5 w-3.5 mr-1"
@@ -92,10 +92,44 @@ const PaperCard: React.FC<PaperCardProps> = ({
                 d="M5 12h14"
               />
             </svg>
-            Steady
+            Stable
           </span>
         );
     }
+  };
+
+  // Helper function to format publication date/year
+  const formatPublicationDate = () => {
+    // Try different field names that might contain the publication date/year
+    const year =
+      paper.publication_date ||
+      paper.publicationYear ||
+      paper.publication_year ||
+      paper.publicationDate;
+
+    if (!year) return "Not specified";
+
+    // If it's already a year string, return it
+    if (typeof year === "string" && /^\d{4}$/.test(year)) {
+      return year;
+    }
+
+    // If it's a number, convert to string
+    if (typeof year === "number") {
+      return year.toString();
+    }
+
+    // If it's a date, extract the year
+    try {
+      const date = new Date(year);
+      if (!isNaN(date.getTime())) {
+        return date.getFullYear().toString();
+      }
+    } catch (e) {
+      console.error("Error parsing date:", e);
+    }
+
+    return "Not specified";
   };
 
   // Get methodology badge color
@@ -179,7 +213,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
             {formatMethodologyType()}
           </span>
           <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md border border-gray-200">
-            {new Date(paper.publicationDate).getFullYear()}
+            {formatPublicationDate()}
           </span>
         </div>
 

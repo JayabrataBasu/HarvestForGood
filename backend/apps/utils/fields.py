@@ -3,58 +3,48 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import datetime
 
-class YearField(models.Field):
+class YearField(models.CharField):
     """
-    A custom field to store year values
+    A CharField that validates and converts year data - can handle int, string, or date objects.
     """
+    description = "Year field that can handle various formats"
+
     def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 4
+        kwargs.setdefault('max_length', 10)
         super().__init__(*args, **kwargs)
 
-    def db_type(self, connection):
-        # Change to use date type in the database
-        return 'date'
-    
     def to_python(self, value):
         if value is None:
-            return None
-            
-        # If it's already a date, return it
-        if isinstance(value, datetime.date):
             return value
             
-        # Try to convert to date if it's an integer
-        try:
-            year = int(value)
-            return datetime.date(year, 1, 1)
-        except (ValueError, TypeError):
-            raise ValidationError(f"Invalid year value: {value}")
-    
-    def from_db_value(self, value, expression, connection):
-        return self.to_python(value)
-    
-    def get_prep_value(self, value):
-        if value is None:
-            return None
-            
-        # Convert to date for database storage
-        if isinstance(value, datetime.date):
+        # If already a string, return it
+        if isinstance(value, str):
             return value
             
+        # If it's an integer, convert to string
         if isinstance(value, int):
-            return datetime.date(value, 1, 1)
+            return str(value)
             
-        try:
-            year = int(value)
-            return datetime.date(year, 1, 1)
-        except (ValueError, TypeError):
-            raise ValidationError(f"Invalid year value for database: {value}")
-    
-    def value_to_string(self, obj):
-        value = self.value_from_object(obj)
+        # If it's a date, extract the year
         if isinstance(value, datetime.date):
             return str(value.year)
-        return str(value) if value is not None else None
+            
+        # Try to convert other values to string
+        try:
+            return str(value)
+        except Exception:
+            raise ValidationError("Invalid year format")
+            
+    def from_db_value(self, value, expression, connection):
+        return self.to_python(value)
+        
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        if value is None:
+            return value
+            
+        # Ensure we store it as a string
+        return str(value)
 
 class YearFormField(forms.IntegerField):
     """

@@ -4,17 +4,24 @@ from django.core.exceptions import ValidationError
 import datetime
 from django.db.models import DateField
 from .models import ResearchPaper, Author, Keyword
+from django.core.validators import RegexValidator
+from django.utils import timezone
 
 class ResearchPaperAdminForm(forms.ModelForm):
     """
-    Custom form for ResearchPaper admin to handle publication_year as integer input
-    that gets converted to a date object.
+    Custom form for ResearchPaper admin to handle publication_year as a string
     """
-    # Use an integer field in the form 
-    publication_year = forms.IntegerField(
-        min_value=1900,
-        max_value=datetime.date.today().year,
-        help_text="Enter the publication year (e.g., 2023)"
+    # Use a CharField with numeric validation instead of IntegerField
+    publication_year = forms.CharField(
+        max_length=10,
+        help_text="Enter the publication year (e.g., 2023)",
+        validators=[
+            RegexValidator(
+                regex=r'^\d{4}$',
+                message='Enter a valid 4-digit year',
+                code='invalid_year'
+            )
+        ]
     )
     
     # Add a simple text field for comma-separated author names
@@ -38,10 +45,14 @@ class ResearchPaperAdminForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # If we're editing an existing instance, convert date to year integer
+        # If we're editing an existing instance, ensure year is a string
         if self.instance and self.instance.pk:
-            if hasattr(self.instance, 'publication_year') and isinstance(self.instance.publication_year, datetime.date):
-                self.initial['publication_year'] = self.instance.publication_year.year
+            if hasattr(self.instance, 'publication_year'):
+                if isinstance(self.instance.publication_year, (int, datetime.date)):
+                    year = self.instance.publication_year.year if hasattr(self.instance.publication_year, 'year') else self.instance.publication_year
+                    self.initial['publication_year'] = str(year)
+                else:
+                    self.initial['publication_year'] = str(self.instance.publication_year)
             
             # Pre-populate author_names field
             if self.instance.authors.exists():
@@ -52,29 +63,27 @@ class ResearchPaperAdminForm(forms.ModelForm):
                 self.initial['keyword_names'] = ', '.join([keyword.name for keyword in self.instance.keywords.all()])
     
     def clean_publication_year(self):
-        """Convert the integer year to a date object (January 1st of the year)"""
+        """Keep the year as a string"""
         year = self.cleaned_data.get('publication_year')
         if year:
-            return datetime.date(year, 1, 1)  # January 1st of the provided year
+            # Simple validation to ensure it's a valid year
+            try:
+                year_int = int(year)
+                if year_int < 1000 or year_int > 9999:
+                    raise forms.ValidationError("Please enter a valid 4-digit year")
+            except ValueError:
+                raise forms.ValidationError("Please enter a valid year")
+            return year
         return None
     
     def save(self, commit=True):
         """
-        Override the save method to ensure proper date conversion before saving
-        and handle authors and keywords.
+        Override the save method to handle publication_year as a string
         """
-        # Get the year value but don't remove it from cleaned_data
-        publication_year_value = self.cleaned_data.get('publication_year')
-        
         # Don't save M2M relationships yet
         model = super().save(commit=False)
         
-        # Set publication_year as a proper date object
-        if publication_year_value:
-            if isinstance(publication_year_value, int):
-                model.publication_year = datetime.date(publication_year_value, 1, 1)
-            elif isinstance(publication_year_value, datetime.date):
-                model.publication_year = publication_year_value
+        # Publication year is already a string from clean_publication_year
         
         # Save the main model first
         if commit:
@@ -87,16 +96,13 @@ class ResearchPaperAdminForm(forms.ModelForm):
                 # Clear existing authors first
                 model.authors.clear()
                 
-                # Process each author name
+                # Process each author
                 for name in [n.strip() for n in author_names.split(',') if n.strip()]:
-                    # Get or create author with current timestamp
                     try:
+                        # Get or create author with current timestamp
                         author, created = Author.objects.get_or_create(
                             name=name,
-                            defaults={
-                                'created_at': datetime.datetime.now(),
-                                'updated_at': datetime.datetime.now()
-                            }
+                            defaults={}
                         )
                         model.authors.add(author)
                     except Exception as e:
@@ -116,14 +122,11 @@ class ResearchPaperAdminForm(forms.ModelForm):
                 
                 # Process each keyword
                 for name in [n.strip() for n in keyword_names.split(',') if n.strip()]:
-                    # Get or create keyword with current timestamp
                     try:
+                        # Get or create keyword with current timestamp
                         keyword, created = Keyword.objects.get_or_create(
                             name=name.lower(),
-                            defaults={
-                                'created_at': datetime.datetime.now(),
-                                'updated_at': datetime.datetime.now()
-                            }
+                            defaults={}
                         )
                         model.keywords.add(keyword)
                     except Exception as e:
@@ -137,7 +140,6 @@ class ResearchPaperAdminForm(forms.ModelForm):
             
             # Save many-to-many relationships
             self.save_m2m()
-        
         return model
 
 # Optional: Register these models if you still want separate admin interfaces for them
@@ -145,62 +147,60 @@ class ResearchPaperAdminForm(forms.ModelForm):
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ['name', 'affiliation', 'email']
     search_fields = ['name', 'affiliation']
-    
+        
     def save_model(self, request, obj, form, change):
-        # Set created_at and updated_at fields if they exist and are not set
-        if hasattr(obj, 'created_at') and not obj.created_at:
-            obj.created_at = datetime.datetime.now()
-        if hasattr(obj, 'updated_at'):
-            obj.updated_at = datetime.datetime.now()
+        if not change:  # Only for new objects
+            obj.created_at = timezone.now()
+        obj.updated_at = timezone.now()
         super().save_model(request, obj, form, change)
-
+    
 @admin.register(Keyword)
 class KeywordAdmin(admin.ModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'category', 'year_created', 'year_updated']
     search_fields = ['name']
+    list_filter = ['category']
     
     def save_model(self, request, obj, form, change):
-        # Set created_at and updated_at fields if they exist and are not set
-        if hasattr(obj, 'created_at') and not obj.created_at:
-            obj.created_at = datetime.datetime.now()
-        if hasattr(obj, 'updated_at'):
-            obj.updated_at = datetime.datetime.now()
+        # Set the created_at field to keep the database happy
+        if not obj.created_at:
+            obj.created_at = timezone.now()
+        
+        # Remove this line since updated_at field doesn't exist
+        # obj.updated_at = timezone.now()
+        
+        # If year fields are provided, use them
+        current_year = str(timezone.now().year)
+        if not obj.year_created:
+            obj.year_created = current_year
+        if not obj.year_updated:
+            obj.year_updated = current_year
+            
         super().save_model(request, obj, form, change)
+
+# Add a custom AuthorInline to properly handle author relationships
+class AuthorInline(admin.TabularInline):
+    model = ResearchPaper.authors.through
+    extra = 1
+    autocomplete_fields = ['author'] # If you have many authors
 
 @admin.register(ResearchPaper)
 class ResearchPaperAdmin(admin.ModelAdmin):
     form = ResearchPaperAdminForm
-    list_display = ['title', 'get_authors', 'display_publication_year', 'journal']
+    list_display = ['title', 'get_authors', 'publication_year', 'journal']
     search_fields = ['title', 'abstract', 'authors__name', 'journal']
-    list_filter = ['publication_year', 'journal']
+    list_filter = ['journal']
+    
+    # Add the authors inline and exclude the main field to avoid duplication
+    inlines = [AuthorInline]
+    exclude = ('authors',)  # This prevents duplicate author fields
     
     def get_authors(self, obj):
         return ", ".join([author.name for author in obj.authors.all()])
     get_authors.short_description = 'Authors'
     
-    def display_publication_year(self, obj):
-        """Display the year portion of the publication_year date field"""
-        if obj.publication_year:
-            if isinstance(obj.publication_year, datetime.date):
-                return obj.publication_year.year
-            return obj.publication_year
-        return None
-    display_publication_year.short_description = 'Publication Year'
-    
     def save_model(self, request, obj, form, change):
         """
-        Additional safety check before saving the model
+        Just save the model with publication_year as a string
         """
-        # Ensure publication_year is a date object before saving
-        if hasattr(obj, 'publication_year'):
-            if isinstance(obj.publication_year, int):
-                obj.publication_year = datetime.date(obj.publication_year, 1, 1)
-            elif not isinstance(obj.publication_year, datetime.date) and obj.publication_year is not None:
-                try:
-                    year = int(obj.publication_year)
-                    obj.publication_year = datetime.date(year, 1, 1)
-                except (ValueError, TypeError):
-                    # Default to current year if conversion fails
-                    obj.publication_year = datetime.date.today().replace(month=1, day=1)
-        
+        # publication_year should already be a string from the form
         super().save_model(request, obj, form, change)

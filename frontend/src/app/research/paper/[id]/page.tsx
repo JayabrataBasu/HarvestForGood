@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPaperById } from "../../../../lib/api";
 import { ResearchPaper, Author, Keyword } from "../../../../types/paper.types";
+import DebugData from "../../../../components/DebugData";
 
 export default function PaperDetailPage() {
   const params = useParams();
@@ -24,6 +25,7 @@ export default function PaperDetailPage() {
       try {
         // In a real app, this would call an API
         const paperData = await getPaperById(params!.id as string);
+        console.log("Paper data received:", paperData); // Debug log
         setPaper(paperData);
 
         // Check if paper is saved in localStorage
@@ -62,15 +64,74 @@ export default function PaperDetailPage() {
     router.back();
   };
 
-  // Helper to format date
-  const formatDate = (date: Date) => {
-    return new Date(date).getFullYear();
+  // Helper to format date - completely simplified to handle all cases
+  const formatDate = (dateOrYear: Date | string | number | undefined) => {
+    if (!paper) return "";
+
+    // Check for both camelCase and snake_case versions of publication year
+    if (paper.publication_year) return paper.publication_year;
+    if (paper.publicationYear) return paper.publicationYear;
+    // Add check for publication_date which is what the serializer returns
+    if (paper.publication_date) return paper.publication_date;
+
+    // Handle standard date formats
+    if (dateOrYear) {
+      // If it's a string year
+      if (typeof dateOrYear === "string" && /^\d{4}$/.test(dateOrYear)) {
+        return dateOrYear;
+      }
+
+      // Try to extract year from any date format
+      try {
+        const date = new Date(dateOrYear);
+        if (!isNaN(date.getTime())) {
+          return date.getFullYear().toString();
+        }
+      } catch (e) {}
+    }
+
+    return "Not specified";
   };
 
   // Helper to format methodology type safely
   const formatMethodologyType = (type?: string) => {
-    if (!type) return "Unknown";
+    if (!type || type.toLowerCase() === "unknown") return "";
     return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
+  // Completely simplified author display function that handles all possible formats
+  const displayAuthors = () => {
+    if (!paper) return "Not specified";
+
+    // Method 1: Check for both camelCase and snake_case versions of direct author names
+    if (paper.author_names) return paper.author_names;
+
+    // Method 2: Handle authors array with name properties
+    if (
+      paper.authors &&
+      Array.isArray(paper.authors) &&
+      paper.authors.length > 0
+    ) {
+      // Parse author objects
+      return paper.authors
+        .map((author) => {
+          if (typeof author === "string") return author;
+          if (author && typeof author === "object") {
+            // Try all possible name properties
+            return (
+              author.name ||
+              author.author_name ||
+              author.fullName ||
+              author.full_name ||
+              "Unknown"
+            );
+          }
+          return "Unknown";
+        })
+        .join(", ");
+    }
+
+    return "Not specified";
   };
 
   if (isLoading) {
@@ -215,12 +276,16 @@ export default function PaperDetailPage() {
             <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 leading-tight">
               {paper.title}
             </h1>
-            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
-              {paper.methodologyType
-                ? formatMethodologyType(paper.methodologyType)
-                : "UNKNOWN"}{" "}
-              DATA | SECONDARY/ARCHIVAL DATA | RESEARCH PAPER
-            </div>
+            {formatMethodologyType(paper.methodologyType) && (
+              <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+                {formatMethodologyType(paper.methodologyType)} | RESEARCH PAPER
+              </div>
+            )}
+            {!formatMethodologyType(paper.methodologyType) && (
+              <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+                RESEARCH PAPER
+              </div>
+            )}
           </div>
 
           {/* Save button */}
@@ -287,17 +352,20 @@ export default function PaperDetailPage() {
               </thead>
               <tbody>
                 <tr>
-                  <td className="py-4 px-4 font-medium">
-                    {paper.authors.map((author) => author.name).join(", ")}
-                  </td>
+                  <td className="py-4 px-4 font-medium">{displayAuthors()}</td>
                   <td className="py-4 px-4">
                     <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                      {paper.journal}
+                      {paper.journal || "Not specified"}
                     </span>
                   </td>
                   <td className="py-4 px-4">
                     <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                      {formatDate(paper.publicationDate)}
+                      {formatDate(
+                        paper.publication_date ||
+                          paper.publicationYear ||
+                          paper.publication_year ||
+                          paper.publicationDate
+                      )}
                     </span>
                   </td>
                 </tr>
@@ -306,8 +374,29 @@ export default function PaperDetailPage() {
           </div>
         </div>
 
+        {/* Debug data specifically for authors and publication year */}
+        <DebugData
+          data={{
+            rawAuthors: paper.authors,
+            authorDetails: paper.authors
+              ? Array.isArray(paper.authors)
+                ? paper.authors.map((a) => ({
+                    type: typeof a,
+                    value: a,
+                    hasName:
+                      typeof a === "object" && a !== null ? "name" in a : false,
+                  }))
+                : { type: typeof paper.authors, value: paper.authors }
+              : null,
+            rawPublicationYear: paper.publicationYear,
+            publicationDate: paper.publicationDate,
+          }}
+          title="Data Format Debug"
+          enabled={true}
+        />
+
         {/* Abstract card with animation */}
-        <div className="mb-10 animate-fade-up delay-200">
+        <div className="bg-white shadow-lg rounded-2xl p-8 card-hover-effect border border-blue-100 animate-fade-up delay-200">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -426,6 +515,20 @@ export default function PaperDetailPage() {
             </a>
           </div>
         </div>
+
+        {/* Debugging component - set enabled to false in production */}
+        <DebugData
+          data={{
+            id: paper.id,
+            title: paper.title,
+            authors: paper.authors,
+            publicationYear: paper.publicationYear,
+            publicationDate: paper.publicationDate,
+            paperData: paper,
+          }}
+          enabled={process.env.NODE_ENV === "development"}
+          title="Paper Debug Data"
+        />
       </div>
     </div>
   );
