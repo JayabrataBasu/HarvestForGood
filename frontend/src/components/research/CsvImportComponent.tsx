@@ -243,8 +243,10 @@ export default function CsvImportComponent() {
         abstract: row.abstract.trim(),
         journal: row.journal.trim(),
         publication_date: row.publication_date.trim(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         methodology_type: (row.methodology_type?.trim() || "mixed") as any,
         citation_count: parseInt(row.citation_count || "0", 10),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         citation_trend: (row.citation_trend?.trim() || "stable") as any,
         authors,
         keywords,
