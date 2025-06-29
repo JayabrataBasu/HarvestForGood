@@ -57,7 +57,7 @@ export default function NewPost() {
       let response;
 
       if (user) {
-        // Logged-in user post creation
+        // Logged-in user post creation - use consistent singular form
         const token = localStorage.getItem("access_token");
         response = await fetch(`${API_BASE_URL}/forum/posts/`, {
           method: "POST",

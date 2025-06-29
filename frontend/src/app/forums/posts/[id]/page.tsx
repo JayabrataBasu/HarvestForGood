@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isAuthenticated, API_BASE_URL, forumAPI } from "@/lib/api";
-import { use } from "react"; // Remove eslint-disable comment since we're using it now
+import { isAuthenticated, API_BASE_URL } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import GuestAuthModal, { GuestInfo, AuthMode } from "../../GuestAuthModal";
 
 interface Author {
   id: number;
@@ -33,25 +34,50 @@ interface Post {
   comments: Comment[];
 }
 
-export default function PostPage({ params }: { params: { id: string } }) {
-  // Fix the typechecking for params unwrapping
-  const unwrappedParams =
-    typeof params === "object" &&
-    params !== null &&
-    "then" in params &&
-    typeof params.then === "function"
-      ? use(params as unknown as Promise<{ id: string }>)
-      : params;
-  const postId = unwrappedParams.id;
-
+export default function PostPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const [postId, setPostId] = useState<string>("");
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const { user } = useAuth();
+  const [isGuestUser, setIsGuestUser] = useState(false);
+  const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
+  const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
   const router = useRouter();
 
+  // Await params and set postId
   useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setPostId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  // Check for existing guest info on component mount
+  useEffect(() => {
+    const storedGuestInfo = localStorage.getItem("guestInfo");
+    if (storedGuestInfo) {
+      try {
+        const parsedInfo = JSON.parse(storedGuestInfo);
+        setGuestInfo(parsedInfo);
+        setIsGuestUser(true);
+      } catch (e) {
+        console.error("Error parsing stored guest info:", e);
+        localStorage.removeItem("guestInfo");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!postId) return; // Wait for postId to be set
+
     // Check if user is authenticated
     if (!isAuthenticated() && typeof window !== "undefined") {
       router.push(`/login?redirect=/forums/posts/${postId}`);
@@ -101,10 +127,19 @@ export default function PostPage({ params }: { params: { id: string } }) {
     if (!post) return;
 
     try {
-      const result = await forumAPI.likePost(postId);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(
+        `${API_BASE_URL}/forum/posts/${postId}/like/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      if (result.success) {
-        // Update the post with new like count
+      if (response.ok) {
         setPost((prev) => {
           if (!prev) return null;
           return {
@@ -113,7 +148,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
           };
         });
       } else {
-        console.error("Failed to like post:", result.message);
+        console.error("Failed to like post");
       }
     } catch (err) {
       console.error("Error liking post:", err);
@@ -122,37 +157,146 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !postId) return;
 
     setSubmittingComment(true);
 
     try {
-      const result = await forumAPI.createComment(postId, newComment);
+      const token = localStorage.getItem("access_token");
 
-      if (result.success) {
-        // Update our post state with the new comment
-        if (post && result.data) {
-          const newCommentData = result.data;
+      console.log("Attempting to submit comment:", {
+        postId,
+        content: newComment.trim(),
+        token: token ? "present" : "missing",
+        API_BASE_URL,
+      });
 
+      // Simplified approach - try the most common patterns first
+      const response = await fetch(`${API_BASE_URL}/forum/comments/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          post: parseInt(postId),
+          content: newComment.trim(),
+        }),
+      });
+
+      console.log("Response status:", response.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      if (response.ok) {
+        const newCommentData = await response.json();
+        console.log("Comment created successfully:", newCommentData);
+
+        if (post) {
           setPost({
             ...post,
             comments: [...post.comments, newCommentData],
           });
-
-          // Clear the comment input
           setNewComment("");
         }
       } else {
-        throw new Error("Failed to submit comment");
+        // Get the actual error response
+        const errorText = await response.text();
+        console.log("Raw error response:", errorText);
+
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+          console.log("Parsed error data:", errorData);
+        } catch (parseError) {
+          console.log("Could not parse error as JSON:", parseError);
+          errorData = { message: errorText };
+        }
+
+        // Show detailed error information
+        let userMessage = "Failed to submit comment:\n";
+
+        if (response.status === 400) {
+          if (errorData.post) {
+            userMessage += `Post field error: ${
+              Array.isArray(errorData.post)
+                ? errorData.post.join(", ")
+                : errorData.post
+            }\n`;
+          }
+          if (errorData.content) {
+            userMessage += `Content field error: ${
+              Array.isArray(errorData.content)
+                ? errorData.content.join(", ")
+                : errorData.content
+            }\n`;
+          }
+          if (errorData.non_field_errors) {
+            userMessage += `General errors: ${
+              Array.isArray(errorData.non_field_errors)
+                ? errorData.non_field_errors.join(", ")
+                : errorData.non_field_errors
+            }\n`;
+          }
+          if (errorData.detail) {
+            userMessage += `Detail: ${errorData.detail}\n`;
+          }
+
+          // If no specific field errors, show the raw response
+          if (
+            !errorData.post &&
+            !errorData.content &&
+            !errorData.non_field_errors &&
+            !errorData.detail
+          ) {
+            userMessage += `Server response: ${errorText}\n`;
+          }
+        } else if (response.status === 401) {
+          userMessage += "Authentication required. Please log in again.";
+        } else if (response.status === 403) {
+          userMessage +=
+            "Permission denied. You may not have access to comment on this post.";
+        } else if (response.status === 404) {
+          userMessage +=
+            "Comment endpoint not found. The API may have changed.";
+        } else {
+          userMessage += `Server error (${response.status}): ${response.statusText}\nResponse: ${errorText}`;
+        }
+
+        alert(userMessage);
+
+        // Log comprehensive error information for debugging
+        console.error("Comment submission failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          errorText,
+          errorData,
+          requestBody: {
+            post: parseInt(postId),
+            content: newComment.trim(),
+          },
+        });
       }
     } catch (err) {
-      console.error("Error submitting comment:", err);
+      console.error("Network error submitting comment:", err);
+      alert(
+        "Network error occurred while submitting comment. Please check your connection and try again."
+      );
     } finally {
       setSubmittingComment(false);
     }
   };
 
-  // Loading state
+  const handleGuestAuth = (info: GuestInfo) => {
+    setGuestInfo(info);
+    setIsGuestUser(true);
+    setShowGuestAuthModal(false);
+    localStorage.setItem("guestInfo", JSON.stringify(info));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
@@ -174,7 +318,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Error state
   if (error || !post) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
@@ -193,11 +336,9 @@ export default function PostPage({ params }: { params: { id: string } }) {
     );
   }
 
-  // Main content with post
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background py-12">
       <div className="container mx-auto px-4">
-        {/* Navigation */}
         <nav className="mb-6">
           <Link
             href="/forums/posts"
@@ -221,7 +362,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </Link>
         </nav>
 
-        {/* Post */}
         <article className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card mb-6">
           <div className="p-8">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -234,7 +374,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
               </span>
             </div>
 
-            {/* Post content */}
             <div className="prose max-w-none mb-6">
               {post.content.split("\n").map((paragraph, idx) => (
                 <p key={idx} className="mb-4 text-gray-700">
@@ -243,7 +382,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
               ))}
             </div>
 
-            {/* Post actions */}
             <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
               <button
                 onClick={handleLike}
@@ -286,13 +424,12 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </div>
         </article>
 
-        {/* Authentication banner for non-authenticated users */}
-        {!user && !isGuestUser && !isLoading && (
+        {!user && !isGuestUser && (
           <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
             <h3 className="font-semibold text-lg mb-2">Join the Discussion</h3>
             <p className="mb-3">
-              You're currently in view-only mode. Sign in or continue as a guest
-              to interact with this post.
+              You&apos;re currently in view-only mode. Sign in or continue as a
+              guest to interact with this post.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -302,7 +439,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
                 Continue as Guest
               </button>
               <Link
-                href={`/login?redirect=/forums/posts/${params.id}`}
+                href={`/login?redirect=/forums/posts/${postId}`}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300"
               >
                 Login for Full Access
@@ -311,11 +448,9 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </div>
         )}
 
-        {/* Comments section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold mb-6">Comments</h2>
 
-          {/* Only show comment form for authenticated users */}
           {(user || isGuestUser) && (
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-3">Leave a Comment</h3>
@@ -347,7 +482,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          {/* Comments list */}
           <div className="space-y-6">
             {post.comments.length === 0 ? (
               <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
@@ -381,18 +515,13 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Guest auth modal */}
         {showGuestAuthModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Continue as Guest</h2>
-              <p className="mb-4 text-gray-600">
-                Provide your information to participate in the discussion. Note
-                that registered users have additional features.
-              </p>
-              {/* ...existing guest auth form code... */}
-            </div>
-          </div>
+          <GuestAuthModal
+            isOpen={showGuestAuthModal}
+            onClose={() => setShowGuestAuthModal(false)}
+            onSubmit={handleGuestAuth}
+            mode={"comment" as AuthMode}
+          />
         )}
       </div>
     </div>

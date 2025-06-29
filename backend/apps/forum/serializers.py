@@ -5,7 +5,15 @@ from .validators import validate_post_content, validate_title
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(read_only=True)
-    author_name = serializers.CharField(source='author.username', read_only=True)
+    author_name = serializers.SerializerMethodField()
+    
+    def get_author_name(self, obj):
+        """Get the author name, handling both registered users and guests"""
+        if obj.author:
+            return f"{obj.author.first_name} {obj.author.last_name}".strip() or obj.author.username
+        elif obj.guest_name:
+            return obj.guest_name
+        return "Anonymous"
     
     def validate_post(self, value):
         if not ForumPost.objects.filter(id=value.id).exists():
@@ -14,7 +22,8 @@ class CommentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Comment
-        fields = ('id', 'post', 'content', 'author', 'author_name', 'created_at', 'updated_at')
+        fields = ('id', 'post', 'content', 'author', 'author_name', 'created_at', 'updated_at', 
+                 'guest_name', 'guest_affiliation')
         extra_kwargs = {
             'content': {'required': True, 'allow_blank': False}
         }
