@@ -39,6 +39,7 @@ class Author(models.Model):
     # Replace datetime fields with simple year-only fields
     year_created = models.CharField(max_length=4, null=True, blank=True, help_text="Year when the author was added")
     year_updated = models.CharField(max_length=4, null=True, blank=True, help_text="Year when the author was last updated")
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
     def __str__(self):
         return self.name
