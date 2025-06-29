@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ResearchPapersPage } from "../pages/ResearchPapers";
+import { HomeResearchSection } from "../components/home/HomeResearchSection";
 
 const slides = [
   {
@@ -124,10 +124,7 @@ export default function Home() {
       {/* Research Papers Section */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-green-800">
-            Research Papers
-          </h2>
-          <ResearchPapersPage />
+          <HomeResearchSection />
         </div>
       </section>
     </div>

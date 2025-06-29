@@ -14,38 +14,24 @@ export interface Keyword {
   name: string;
 }
 
-export interface KeywordCategory {
-  id: string;
-  name: string;
-  keywords: Keyword[];
-}
-
-export type MethodologyType = 'qualitative' | 'quantitative' | 'mixed';
-export type CitationTrend = 'increasing' | 'stable' | 'decreasing';
-
 export interface ResearchPaper {
   id: string;
   title: string;
   abstract: string;
   authors: Author[];
-  // Add both field names to handle API responses
-  publication_year?: string;  // Backend field
-  publicationYear?: string;   // Frontend camelCase
-  publication_date?: string;  // Serializer method field
-  publicationDate?: string;   // Alternative frontend field
   journal: string;
+  publication_date?: string;
+  publication_year?: string;
+  publicationDate?: string;
+  publicationYear?: string | number;
   keywords: Keyword[];
-  downloadUrl?: string;
-  doi?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
-  slug?: string;
-  methodologyType?: MethodologyType;
   citationCount: number;
-  citationTrend: CitationTrend;
-  createdAt?: string;
-  updatedAt?: string;
+  citationTrend: 'increasing' | 'decreasing' | 'stable';
+  methodologyType: 'quantitative' | 'qualitative' | 'mixed' | 'Unknown';
+  downloadUrl: string;
+  created_at?: string;
+  updated_at?: string;
+  slug?: string;
 }
 
 // API request types
@@ -99,6 +85,20 @@ export interface PaperFormData {
     email?: string;
   }[];
   publication_date: string;
+  publication_year: string; // Ensure this is string type to match backend
+  methodology_type: MethodologyType;
+  citation_count: number;
+  citation_trend: CitationTrend;
+  journal: string;
+  keywords: {
+    name: string;
+  }[];
+  download_url?: string;
+  doi?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+}
   publication_year: string; // Ensure this is string type to match backend
   methodology_type: MethodologyType;
   citation_count: number;

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PaperGrid } from "../components/research/PaperGrid";
 import { Paper, Keyword } from "../types/paper.types";
+import { researchAPI } from "../utils/api";
 
 export const ResearchPapersPage: React.FC = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -34,101 +35,31 @@ export const ResearchPapersPage: React.FC = () => {
       setError(null);
 
       try {
-        // In a real app, you'd fetch from your API
-        // const response = await fetch('/api/research-papers');
-        // const data = await response.json();
+        // Fetch papers from your Django API
+        const papersResponse = await researchAPI.fetchPapers();
+        if (!papersResponse.success) {
+          throw new Error(papersResponse.message || "Failed to fetch papers");
+        }
 
-        // Sample data for demonstration purposes
-        const sampleKeywords: Keyword[] = [
-          { id: "k1", name: "Food Security" },
-          { id: "k2", name: "Agriculture" },
-          { id: "k3", name: "Sustainability" },
-          { id: "k4", name: "Urban Farming" },
-          { id: "k5", name: "Food Waste" },
-          { id: "k6", name: "Community Gardens" },
-          { id: "k7", name: "Nutrition" },
-          { id: "k8", name: "Food Policy" },
-        ];
+        // Fetch keywords from your Django API
+        const keywordsResponse = await researchAPI.fetchKeywords();
+        if (!keywordsResponse.success) {
+          throw new Error(
+            keywordsResponse.message || "Failed to fetch keywords"
+          );
+        }
 
-        const samplePapers: Paper[] = Array(20)
-          .fill(null)
-          .map((_, idx) => ({
-            id: `paper-${idx + 1}`,
-            title: `Research Paper ${idx + 1}: ${
-              ["Impact of", "Analysis of", "Study on", "Evaluation of"][idx % 4]
-            } ${sampleKeywords[idx % sampleKeywords.length].name}`,
-            abstract: `This research examines the relationship between ${sampleKeywords[
-              idx % sampleKeywords.length
-            ].name.toLowerCase()} and sustainable development goals. Our findings indicate significant correlations between implementation strategies and community outcomes across various demographic groups.`,
-            authors: [
-              {
-                id: `author-${idx}-1`,
-                name: `Dr. ${
-                  ["John Smith", "Sarah Johnson", "David Lee", "Maria Garcia"][
-                    idx % 4
-                  ]
-                }`,
-                affiliation: `${
-                  [
-                    "University of California",
-                    "MIT",
-                    "Stanford University",
-                    "Oxford University",
-                  ][idx % 4]
-                }`,
-              },
-              {
-                id: `author-${idx}-2`,
-                name: `Prof. ${
-                  ["Robert Brown", "Emily Chen", "Michael Wilson", "Lisa Wong"][
-                    idx % 4
-                  ]
-                }`,
-                affiliation: `${
-                  [
-                    "Harvard University",
-                    "Yale University",
-                    "Princeton University",
-                    "Cambridge University",
-                  ][idx % 4]
-                }`,
-              },
-            ],
-            publicationDate: new Date(2020 + (idx % 4), idx % 12, 1),
-            journal: `Journal of ${
-              [
-                "Sustainable Agriculture",
-                "Food Studies",
-                "Environmental Science",
-                "Community Development",
-              ][idx % 4]
-            }`,
-            methodologyType: ["qualitative", "quantitative", "mixed"][
-              idx % 3
-            ] as "qualitative" | "quantitative" | "mixed",
-            citationCount: 10 + idx * 5,
-            citationTrend: ["increasing", "stable", "decreasing"][idx % 3] as
-              | "increasing"
-              | "stable"
-              | "decreasing",
-            keywords: [
-              sampleKeywords[idx % sampleKeywords.length],
-              sampleKeywords[(idx + 1) % sampleKeywords.length],
-              sampleKeywords[(idx + 2) % sampleKeywords.length],
-            ],
-            downloadUrl: `https://example.com/papers/sustainable-agriculture-${
-              idx + 1
-            }.pdf`,
-          }));
-
-        setPapers(samplePapers);
-        setKeywords(sampleKeywords);
+        setPapers(papersResponse.data.results || papersResponse.data || []);
+        setKeywords(
+          keywordsResponse.data.results || keywordsResponse.data || []
+        );
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error
             ? err.message
             : "Failed to load research papers. Please try again later.";
         setError(errorMessage);
+        console.error("Error fetching research data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -171,7 +102,10 @@ export const ResearchPapersPage: React.FC = () => {
       )}
 
       {isLoading ? (
-        <div>Loading...</div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <span className="ml-3 text-gray-600">Loading research papers...</span>
+        </div>
       ) : (
         <PaperGrid
           papers={papers}

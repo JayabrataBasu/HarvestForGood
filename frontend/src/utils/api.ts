@@ -81,5 +81,17 @@ export const researchAPI = {
     } catch (error) {
       return { success: false, message: (error as Error).message };
     }
+  },
+
+  /**
+   * Fetch keywords for filtering
+   */
+  fetchKeywords: async () => {
+    try {
+      const data = await fetchFromAPI<any>('/api/research/keywords/');
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
   }
 };
