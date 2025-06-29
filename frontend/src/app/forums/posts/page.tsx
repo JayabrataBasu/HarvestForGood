@@ -23,7 +23,7 @@ interface Post {
 // Improved fetch function with better error handling
 const fetchPosts = async (): Promise<Post[]> => {
   try {
-    // Remove the duplicate /api prefix since API_BASE_URL already includes it
+    // Use consistent singular form
     const response = await fetch(`${API_BASE_URL}/forum/posts/`);
 
     if (!response.ok) {
