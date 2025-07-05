@@ -32,7 +32,14 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
 
         if (result.success) {
           const responseData = result.data as PaginatedResponse<ResearchPaper>;
-          setPapers(responseData.results);
+
+          // Remove potential duplicates based on paper ID
+          const uniquePapers = responseData.results.filter(
+            (paper, index, self) =>
+              index === self.findIndex((p) => p.id === paper.id)
+          );
+
+          setPapers(uniquePapers);
           setTotalCount(responseData.count);
 
           // Calculate total pages (assuming default pageSize of 10)
@@ -210,9 +217,9 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
         </div>
       ) : (
         <div className="space-y-6">
-          {papers.map((paper) => (
+          {papers.map((paper, index) => (
             <div
-              key={paper.id}
+              key={`${paper.id}-${index}`}
               className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
             >
               <Link href={`/research/papers/${paper.slug || paper.id}`}>

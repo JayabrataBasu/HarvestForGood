@@ -78,6 +78,11 @@ class ResearchPaper(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    class Meta:
+        ordering = ['-publication_year', '-created_at', 'id']  # Order by publication year desc, then created date desc, then id for consistency
+        verbose_name = "Research Paper"
+        verbose_name_plural = "Research Papers"
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
