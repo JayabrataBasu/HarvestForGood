@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django.db import transaction
 from django.db.models import Count, Q
+from django.core.exceptions import FieldError
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from .models import ResearchPaper, Author, Keyword, KeywordCategory
 from .serializers import (
@@ -23,6 +24,7 @@ class YearFieldFilter(django_filters.NumberFilter):
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    permission_classes = [AllowAny]  # Allow anyone to view authors
     
     def get_queryset(self):
         queryset = Author.objects.all()
@@ -36,6 +38,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class KeywordViewSet(viewsets.ModelViewSet):
     queryset = Keyword.objects.all()
     serializer_class = KeywordSerializer
+    permission_classes = [AllowAny]  # Allow anyone to view keywords
     
     def get_queryset(self):
         queryset = Keyword.objects.all()
@@ -52,6 +55,7 @@ class KeywordCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = KeywordCategory.objects.all()
     serializer_class = KeywordCategorySerializer
+    permission_classes = [AllowAny]  # Allow anyone to view categories
     filterset_fields = ['name']
     search_fields = ['name', 'description']
 
@@ -83,11 +87,12 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ResearchPaperFilterSet  # Use our custom filterset
     search_fields = ['title', 'abstract', 'authors__name', 'keywords__name']
-    ordering_fields = ['publication_year', 'title', 'created_at']  # Changed from publication_date
+    ordering_fields = ['publication_year', 'title', 'created_at', 'citation_count']  # Changed from publication_date
+    ordering = ['-publication_year', '-created_at', 'id']
     lookup_field = 'slug'
 
     def get_queryset(self):
-        queryset = ResearchPaper.objects.all()
+        queryset = ResearchPaper.objects.all().order_by('-publication_year', '-created_at', 'id')
         
         # Get query parameters
         q = self.request.query_params.get('q', None)

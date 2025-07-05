@@ -19,18 +19,32 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     throttle_scope = 'forum_posts'
     queryset = ForumPost.objects.all()
     serializer_class = ForumPostSerializer
-    # Use IsAuthenticatedOrReadOnly to allow anonymous users to read posts
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # Use AllowAny for read operations, require auth for write operations
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'title']
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'updated_at', 'title']
     ordering = ['-created_at']
     
+    def get_permissions(self):
+        """
+        Allow anyone to view posts, but require authentication for creating/editing
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
     def perform_create(self, serializer):
         try:
-            serializer.save(author=self.request.user)
-            logger.info(f"Forum post created by user {self.request.user.username}")
+            # Only set author if user is authenticated
+            if self.request.user and self.request.user.is_authenticated:
+                serializer.save(author=self.request.user)
+            else:
+                serializer.save(author=None)
+            logger.info(f"Forum post created")
         except Exception as e:
             logger.error(f"Error creating forum post: {str(e)}")
             return Response(
@@ -68,18 +82,32 @@ class ForumPostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    # Also update this to IsAuthenticatedOrReadOnly if you want to allow viewing comments without authentication
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # Use AllowAny for read operations, require auth for write operations
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'post']
     search_fields = ['content']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
     
+    def get_permissions(self):
+        """
+        Allow anyone to view comments, but require authentication for creating/editing
+        """
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
     def perform_create(self, serializer):
         try:
-            serializer.save(author=self.request.user)
-            logger.info(f"Comment created by user {self.request.user.username}")
+            # Only set author if user is authenticated
+            if self.request.user and self.request.user.is_authenticated:
+                serializer.save(author=self.request.user)
+            else:
+                serializer.save(author=None)
+            logger.info(f"Comment created")
         except Exception as e:
             logger.error(f"Error creating comment: {str(e)}")
             raise
