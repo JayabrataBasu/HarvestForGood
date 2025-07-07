@@ -10,4 +10,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('guest/posts/', create_guest_post, name='guest-post'),
     path('guest/comments/', create_guest_comment, name='guest-comment'),
+    # Like endpoints are automatically included via the router:
+    # /api/forum/posts/{id}/like_post/
+    # /api/forum/comments/{id}/like_comment/
 ]
