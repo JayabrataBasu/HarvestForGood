@@ -1,16 +1,23 @@
 # apps/forum/serializers.py
 from rest_framework import serializers
-from .models import ForumPost, Comment
+from .models import ForumPost, Comment, Like
 from .validators import validate_post_content, validate_title
 import logging
 
 logger = logging.getLogger(__name__)
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ('id', 'user', 'guest_name', 'created_at')
 
 class CommentSerializer(serializers.ModelSerializer):
     # Provide a safe author field for backward compatibility
     author = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     author_details = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     
     def get_author(self, obj):
         """Provide safe author object for backward compatibility"""
@@ -97,10 +104,28 @@ class CommentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid post ID")
         return value
     
+    def get_likes_count(self, obj):
+        """Get total likes count for this comment"""
+        return obj.get_likes_count()
+    
+    def get_is_liked(self, obj):
+        """Check if current user/guest has liked this comment"""
+        request = self.context.get('request')
+        if not request:
+            return False
+            
+        if request.user and request.user.is_authenticated:
+            return obj.is_liked_by_user(request.user)
+        else:
+            # For guest users, use session key or IP as identifier
+            guest_identifier = request.session.session_key or request.META.get('REMOTE_ADDR')
+            return obj.is_liked_by_guest(guest_identifier)
+    
     class Meta:
         model = Comment
         fields = ('id', 'post', 'content', 'author', 'author_name', 'author_details',
-                 'created_at', 'updated_at', 'guest_name', 'guest_affiliation')
+                 'created_at', 'updated_at', 'guest_name', 'guest_affiliation',
+                 'likes_count', 'is_liked')
         extra_kwargs = {
             'content': {'required': True, 'allow_blank': False}
         }
@@ -112,6 +137,8 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
     author_name = serializers.SerializerMethodField()
     author_details = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
     guest_name = serializers.CharField(read_only=True, required=False, allow_null=True)
     guest_affiliation = serializers.CharField(read_only=True, required=False, allow_null=True)
     
@@ -207,11 +234,28 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
                 'guest_affiliation': ''
             }
     
+    def get_likes_count(self, obj):
+        """Get total likes count for this post"""
+        return obj.get_likes_count()
+    
+    def get_is_liked(self, obj):
+        """Check if current user/guest has liked this post"""
+        request = self.context.get('request')
+        if not request:
+            return False
+            
+        if request.user and request.user.is_authenticated:
+            return obj.is_liked_by_user(request.user)
+        else:
+            # For guest users, use session key or IP as identifier
+            guest_identifier = request.session.session_key or request.META.get('REMOTE_ADDR')
+            return obj.is_liked_by_guest(guest_identifier)
+    
     class Meta:
         model = ForumPost
         fields = ('id', 'title', 'content', 'author', 'author_name', 'author_details',
                  'created_at', 'updated_at', 'comments', 'comments_count', 
-                 'likes_count', 'guest_name', 'guest_affiliation')
+                 'likes_count', 'is_liked', 'guest_name', 'guest_affiliation')
         extra_kwargs = {
             'title': {'validators': [validate_title]},
             'content': {'validators': [validate_post_content]},
