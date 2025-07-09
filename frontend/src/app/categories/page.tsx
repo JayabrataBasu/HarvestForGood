@@ -1,6 +1,6 @@
 // src/app/categories/page.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 interface SubTopic {
@@ -211,6 +211,122 @@ const topics: Topic[] = [
   },
 ];
 
+// Custom hook for intersection observer
+const useInView = (threshold = 0.1) => {
+  const [isInView, setIsInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // Only animate once
+        }
+      },
+      { threshold }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, isInView] as const;
+};
+
+// Custom hook for animated counter
+const useAnimatedCounter = (
+  targetValue: number,
+  isActive: boolean,
+  duration = 2000
+) => {
+  const [currentValue, setCurrentValue] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCurrentValue(Math.round(targetValue * easeOutQuart));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [targetValue, isActive, duration]);
+
+  return currentValue;
+};
+
+// Animated Progress Circle Component
+const AnimatedProgressCircle = ({
+  percentage,
+  isActive,
+}: {
+  percentage: number;
+  isActive: boolean;
+}) => {
+  const animatedPercentage = useAnimatedCounter(percentage, isActive, 2000);
+  const [strokeDasharray, setStrokeDasharray] = useState("0, 100");
+
+  useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => {
+        setStrokeDasharray(`${animatedPercentage}, 100`);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [animatedPercentage, isActive]);
+
+  return (
+    <div className="relative w-20 h-20 mb-4">
+      <svg viewBox="0 0 36 36" className="w-20 h-20 transform -rotate-90">
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#E5E7EB"
+          strokeWidth="3"
+        />
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#4D7C0F"
+          strokeWidth="3"
+          strokeDasharray={strokeDasharray}
+          className="transition-all duration-1000 ease-out group-hover:stroke-green-600"
+          style={{
+            strokeDashoffset: 0,
+            transition: "stroke-dasharray 2s ease-out",
+          }}
+        />
+      </svg>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <span className="text-lg font-bold text-green-700 group-hover:text-green-800 transition-colors duration-300">
+          {animatedPercentage}%
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export default function CategoriesPage() {
   const [selectedResourceType, setSelectedResourceType] =
     useState<string>("All");
@@ -223,118 +339,107 @@ export default function CategoriesPage() {
     "Research Paper",
   ];
 
+  // Define agro-themed gradient colors for each topic
+  const topicGradients = [
+    // Environment - Forest canopy to grassland
+    "linear-gradient(135deg, #d1fae5 0%, #86efac 50%, #4ade80 100%)",
+
+    // Technology - Dew-sky to field sky (natural blues)
+    "linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 50%, #38bdf8 100%)",
+
+    // Agriculture - Wheat to harvest gold
+    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #facc15 100%)",
+
+    // Institution - Soil brown to muted root earth
+    "linear-gradient(135deg, #f5f5f4 0%, #d6d3d1 50%, #a8a29e 100%)",
+
+    // Society - Ripe tomato to clay (red but softened)
+    "linear-gradient(135deg, #fee2e2 0%, #fca5a5 50%, #ef4444 100%)",
+
+    // Business - Sprout to mature leaf
+    "linear-gradient(135deg, #dcfce7 0%, #86efac 50%, #22c55e 100%)",
+  ];
+
+  // Define contrasting text colors for each topic
+  const textColors = [
+    // Environment - Dark green for light green gradient
+    { primary: "#0f3f1c", secondary: "#1a4a26", accent: "#0a2612" },
+
+    // Technology - Dark blue for light blue gradient
+    { primary: "#0c2d48", secondary: "#1e3a8a", accent: "#082543" },
+
+    // Agriculture - Dark brown for yellow gradient
+    { primary: "#451a03", secondary: "#92400e", accent: "#7c2d12" },
+
+    // Institution - Dark charcoal for gray gradient
+    { primary: "#1c1917", secondary: "#292524", accent: "#0c0a09" },
+
+    // Society - Dark red for light red gradient
+    { primary: "#450a0a", secondary: "#7f1d1d", accent: "#350808" },
+
+    // Business - Dark green for light green gradient
+    { primary: "#052e16", secondary: "#14532d", accent: "#021b0a" },
+  ];
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#f7fafc] via-[#f0f9f0] to-[#edf2f7]">
-      {/* Background Pattern Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Organic Background Shapes */}
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        background: "linear-gradient(to bottom, #fef3c7 0%, #ecfccb 100%)",
+      }}
+    >
+      {/* Farm-inspired blur orbs */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Top Left Blob */}
-        <div className="absolute -top-20 -left-20 w-96 h-96 opacity-10">
-          <svg viewBox="0 0 200 200" className="w-full h-full">
-            <defs>
-              <linearGradient id="blob1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#22c55e" />
-                <stop offset="100%" stopColor="#16a34a" />
-              </linearGradient>
-              <filter id="blur1">
-                <feGaussianBlur stdDeviation="3" />
-              </filter>
-            </defs>
-            <path
-              d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90,-16.3,89.1,-0.5C88.2,15.3,83.8,30.6,76.1,44.2C68.4,57.8,57.4,69.7,44.2,76.8C31,83.9,15.5,86.2,-0.1,86.4C-15.7,86.6,-31.4,84.7,-45.3,78.2C-59.2,71.7,-71.3,60.6,-78.8,46.8C-86.3,33,-89.2,16.5,-88.7,0.2C-88.2,-16.1,-84.3,-32.2,-76.8,-46.4C-69.3,-60.6,-58.2,-73,-44.7,-76.4Z"
-              transform="translate(100 100)"
-              fill="url(#blob1)"
-              filter="url(#blur1)"
-            />
-          </svg>
-        </div>
-
-        {/* Top Right Leaf Shape */}
-        <div className="absolute -top-10 -right-10 w-80 h-80 opacity-8">
-          <svg viewBox="0 0 200 200" className="w-full h-full">
-            <defs>
-              <linearGradient id="leaf1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#84cc16" />
-                <stop offset="100%" stopColor="#65a30d" />
-              </linearGradient>
-              <filter id="blur2">
-                <feGaussianBlur stdDeviation="4" />
-              </filter>
-            </defs>
-            <path
-              d="M100,20 C140,30 170,60 170,100 C170,140 140,170 100,180 C60,170 30,140 30,100 C30,60 60,30 100,20Z"
-              fill="url(#leaf1)"
-              filter="url(#blur2)"
-            />
-          </svg>
-        </div>
-
-        {/* Bottom Left Wave */}
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 opacity-6">
-          <svg viewBox="0 0 200 200" className="w-full h-full">
-            <defs>
-              <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#d97706" />
-              </linearGradient>
-              <filter id="blur3">
-                <feGaussianBlur stdDeviation="5" />
-              </filter>
-            </defs>
-            <path
-              d="M0,120 C40,100 60,80 100,90 C140,100 160,120 200,110 L200,200 L0,200 Z"
-              fill="url(#wave1)"
-              filter="url(#blur3)"
-            />
-          </svg>
-        </div>
-
-        {/* Bottom Right Organic Shape */}
-        <div className="absolute -bottom-10 -right-10 w-72 h-72 opacity-12">
-          <svg viewBox="0 0 200 200" className="w-full h-full">
-            <defs>
-              <radialGradient id="organic1" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#059669" />
-              </radialGradient>
-              <filter id="blur4">
-                <feGaussianBlur stdDeviation="3" />
-              </filter>
-            </defs>
-            <path
-              d="M60,10 C90,15 120,30 140,50 C160,70 170,95 165,120 C160,145 145,165 125,175 C105,185 80,185 60,175 C40,165 25,145 20,120 C15,95 25,70 45,50 C65,30 60,10 60,10Z"
-              fill="url(#organic1)"
-              filter="url(#blur4)"
-            />
-          </svg>
-        </div>
-
-        {/* Floating Particles */}
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-green-400 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-yellow-400 rounded-full opacity-15 animate-bounce"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-green-300 rounded-full opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-amber-400 rounded-full opacity-20 animate-bounce"></div>
+        <div
+          className="bg-orb orb-top-left hidden sm:block"
+          style={{
+            position: "absolute",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            filter: "blur(100px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            top: "-120px",
+            left: "-120px",
+            backgroundColor: "#fcd34d" /* darker golden wheat */,
+            opacity: 0.18,
+          }}
+        />
+        <div
+          className="bg-orb orb-bottom-right hidden sm:block"
+          style={{
+            position: "absolute",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            filter: "blur(100px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            bottom: "-100px",
+            right: "-100px",
+            backgroundColor: "#a3e635" /* richer green */,
+            opacity: 0.15,
+          }}
+        />
       </div>
 
+      {/* Content container with higher z-index */}
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header Section */}
         <section className="mb-16">
-          <div className="bg-gradient-to-br from-white/80 to-green-50/60 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-white/30 relative overflow-hidden">
-            {/* Subtle inner glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-green-400/5 to-yellow-400/5 rounded-3xl"></div>
-
+          <div
+            className="p-8 rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] relative overflow-hidden"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.85)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
             <div className="max-w-4xl relative z-10">
               <p className="text-sm text-green-700 font-semibold mb-2 tracking-wider uppercase">
                 INFORMATION & CONSERVATION
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 drop-shadow-sm">
+              <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
                 Sustainable Agriculture Focus Areas
               </h1>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -349,7 +454,7 @@ export default function CategoriesPage() {
 
         {/* Resource Types Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 drop-shadow-sm">
+          <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
             Available Resources
           </h2>
           <p className="text-center text-gray-600 mb-8 text-lg">
@@ -361,11 +466,12 @@ export default function CategoriesPage() {
               <button
                 key={type}
                 onClick={() => setSelectedResourceType(type)}
-                className={`px-8 py-3 border-2 rounded-full transition-all duration-300 font-medium backdrop-blur-sm ${
+                className={`px-8 py-3 border-2 rounded-full transition-all duration-300 font-medium ${
                   type === selectedResourceType
                     ? "bg-green-700 text-white border-green-700 shadow-xl transform scale-105 shadow-green-700/25"
                     : "bg-white/70 border-green-300 text-green-700 hover:bg-green-50 hover:border-green-500 hover:shadow-lg hover:scale-102"
                 }`}
+                style={{ backdropFilter: "blur(8px)" }}
               >
                 {type}
               </button>
@@ -375,7 +481,7 @@ export default function CategoriesPage() {
 
         {/* Topics Section */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center text-gray-800 drop-shadow-sm">
+          <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">
             Focus Areas In Current Research
           </h2>
           <p className="text-center text-gray-600 mb-12 text-lg max-w-4xl mx-auto leading-relaxed">
@@ -385,121 +491,134 @@ export default function CategoriesPage() {
           </p>
 
           <div className="space-y-16">
-            {topics.map((topic, index) => (
-              <div
-                key={topic.id}
-                className="bg-gradient-to-br from-white/90 to-green-50/50 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/40 overflow-hidden hover:shadow-3xl transition-all duration-500 hover:scale-[1.01] relative"
-              >
-                {/* Subtle inner highlight */}
-                <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 via-transparent to-yellow-400/5 rounded-3xl"></div>
+            {topics.map((topic, index) => {
+              const [topicRef, isTopicInView] = useInView(0.1);
+              const colors = textColors[index];
 
-                <div className="p-8 relative z-10">
-                  <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    {/* Topic Header */}
-                    <div className="lg:w-1/3 mb-8 lg:mb-0">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-white font-bold text-sm">
-                            {index + 1}
-                          </span>
-                        </div>
-                        <p className="text-sm text-green-700 font-semibold tracking-wider uppercase">
-                          TOPIC {index + 1}
-                        </p>
-                      </div>
-                      <h3 className="text-3xl font-bold mb-4 text-gray-800 drop-shadow-sm">
-                        {topic.name}
-                      </h3>
-                      <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-                        {topic.description}
-                      </p>
-                      <Link
-                        href={`/categories/${topic.id}`}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:shadow-green-700/30"
-                      >
-                        Explore
-                        <svg
-                          className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </Link>
-                    </div>
-
-                    {/* Subtopics Grid */}
-                    <div className="lg:w-2/3">
-                      <div
-                        className={`grid grid-cols-1 sm:grid-cols-2 ${
-                          topic.subtopics.length > 4
-                            ? "lg:grid-cols-3"
-                            : "lg:grid-cols-2"
-                        } gap-6`}
-                      >
-                        {topic.subtopics.map((subtopic) => (
+              return (
+                <div
+                  key={topic.id}
+                  ref={topicRef}
+                  className="rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] overflow-hidden hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-500 hover:scale-[1.01] relative"
+                  style={{
+                    background: topicGradients[index],
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  <div className="p-8 relative z-10">
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
+                      {/* Topic Header */}
+                      <div className="lg:w-1/3 mb-8 lg:mb-0">
+                        <div className="flex items-center gap-3 mb-4">
                           <div
-                            key={subtopic.name}
-                            className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/90 group relative overflow-hidden"
+                            className="w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg"
+                            style={{ backgroundColor: `${colors.primary}20` }}
                           >
-                            {/* Subtle card glow effect */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 to-yellow-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <span
+                              className="font-bold text-sm"
+                              style={{ color: colors.primary }}
+                            >
+                              {index + 1}
+                            </span>
+                          </div>
+                          <p
+                            className="text-sm font-semibold tracking-wider uppercase"
+                            style={{ color: colors.secondary }}
+                          >
+                            TOPIC {index + 1}
+                          </p>
+                        </div>
+                        <h3
+                          className="text-3xl font-bold mb-4"
+                          style={{ color: colors.primary }}
+                        >
+                          {topic.name}
+                        </h3>
+                        <p
+                          className="mb-6 text-lg leading-relaxed"
+                          style={{ color: colors.secondary }}
+                        >
+                          {topic.description}
+                        </p>
+                        <Link
+                          href={`/categories/${topic.id}`}
+                          className="inline-flex items-center gap-2 backdrop-blur-sm px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
+                          style={{
+                            backgroundColor: `${colors.primary}20`,
+                            color: colors.primary,
+                            border: `1px solid ${colors.primary}30`,
+                          }}
+                        >
+                          Explore
+                          <svg
+                            className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </Link>
+                      </div>
 
-                            <div className="flex flex-col items-center text-center relative z-10">
-                              {/* Circular Progress */}
-                              <div className="relative w-20 h-20 mb-4">
-                                <svg
-                                  viewBox="0 0 36 36"
-                                  className="w-20 h-20 transform -rotate-90"
-                                >
-                                  <path
-                                    d="M18 2.0845
-                                      a 15.9155 15.9155 0 0 1 0 31.831
-                                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="#E5E7EB"
-                                    strokeWidth="3"
+                      {/* Subtopics Grid */}
+                      <div className="lg:w-2/3">
+                        <div
+                          className={`grid grid-cols-1 sm:grid-cols-2 ${
+                            topic.subtopics.length > 4
+                              ? "lg:grid-cols-3"
+                              : "lg:grid-cols-2"
+                          } gap-6`}
+                        >
+                          {topic.subtopics.map((subtopic, subtopicIndex) => {
+                            const [subtopicRef, isSubtopicInView] =
+                              useInView(0.1);
+
+                            return (
+                              <div
+                                key={subtopic.name}
+                                ref={subtopicRef}
+                                className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden"
+                                style={{
+                                  backgroundColor: `${colors.primary}08`,
+                                  backdropFilter: "blur(8px)",
+                                  border: `1px solid ${colors.primary}20`,
+                                  animationDelay: `${subtopicIndex * 200}ms`,
+                                }}
+                              >
+                                <div className="flex flex-col items-center text-center relative z-10">
+                                  <AnimatedProgressCircle
+                                    percentage={subtopic.percentage}
+                                    isActive={isSubtopicInView || isTopicInView}
                                   />
-                                  <path
-                                    d="M18 2.0845
-                                      a 15.9155 15.9155 0 0 1 0 31.831
-                                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="#4D7C0F"
-                                    strokeWidth="3"
-                                    strokeDasharray={`${subtopic.percentage}, 100`}
-                                    className="transition-all duration-1000 group-hover:stroke-green-600"
-                                  />
-                                </svg>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                  <span className="text-lg font-bold text-green-700 group-hover:text-green-800 transition-colors duration-300">
-                                    {subtopic.percentage}%
-                                  </span>
+                                  <h4
+                                    className="font-bold mb-3 text-lg leading-tight group-hover:opacity-90 transition-opacity duration-300"
+                                    style={{ color: colors.primary }}
+                                  >
+                                    {subtopic.name}
+                                  </h4>
+                                  <p
+                                    className="text-sm leading-relaxed group-hover:opacity-90 transition-opacity duration-300"
+                                    style={{ color: colors.secondary }}
+                                  >
+                                    {subtopic.description}
+                                  </p>
                                 </div>
                               </div>
-
-                              {/* Content */}
-                              <h4 className="font-bold text-gray-800 mb-3 text-lg leading-tight group-hover:text-green-800 transition-colors duration-300">
-                                {subtopic.name}
-                              </h4>
-                              <p className="text-sm text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
-                                {subtopic.description}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
