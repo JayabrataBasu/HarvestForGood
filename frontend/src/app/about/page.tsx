@@ -32,7 +32,13 @@ const teamMembers = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-leaf-pattern min-h-screen">
+    <div
+      className="min-h-screen"
+      style={{
+        background:
+          "linear-gradient(to bottom, #F8F9F1, #E2F0CB, #B5D99C, #A3C4A8, #93B48B, #AC8F6F, #816953)",
+      }}
+    >
       <div className="container mx-auto px-4 py-8">
         {/* Hero section with enhanced styling */}
         <section className="relative h-[400px] mb-16 rounded-2xl overflow-hidden">
