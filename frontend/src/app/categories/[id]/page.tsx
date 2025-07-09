@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 interface Subtopic {
@@ -16,10 +16,12 @@ interface Topic {
 }
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: {
+    id: string;
+  };
 }
 
-// Topics data - same as main page
+// Complete topics data from main page
 const topics: Topic[] = [
   {
     id: "environment",
@@ -76,42 +78,342 @@ const topics: Topic[] = [
       },
     ],
   },
-  // ...other topics...
+  {
+    id: "agriculture",
+    name: "Agriculture",
+    description:
+      "Core agricultural practices and farming methodologies for sustainability.",
+    subtopics: [
+      {
+        name: "Productivity",
+        percentage: 53,
+        description: "Yields and crop intensification.",
+      },
+      {
+        name: "Food Quality",
+        percentage: 51,
+        description: "Food security and nutrient.",
+      },
+      {
+        name: "Organic Farming",
+        percentage: 14,
+        description:
+          "Integrated farming, natural farming, non-chemical farming practices.",
+      },
+      {
+        name: "Agroecology",
+        percentage: 6,
+        description: "Horticulture, agroforestry, and permaculture.",
+      },
+    ],
+  },
+  {
+    id: "institution",
+    name: "Institution",
+    description:
+      "Institutional frameworks and policy structures supporting sustainable agriculture.",
+    subtopics: [
+      {
+        name: "Policymaking",
+        percentage: 52,
+        description: "Legitimacy, institutions, and policy congruence.",
+      },
+      {
+        name: "Incentives",
+        percentage: 20,
+        description: "Subsidies, contract farming, and ownership issues.",
+      },
+      {
+        name: "Organizing",
+        percentage: 10,
+        description: "Group vs. individual farms, and farmer participation.",
+      },
+      {
+        name: "Standards",
+        percentage: 4,
+        description: "Sustainability standards and promoted index.",
+      },
+      {
+        name: "Cross-Regional Cooperation",
+        percentage: 12,
+        description: "International funding, and international partnership.",
+      },
+      {
+        name: "Cross-Sector Partnership",
+        percentage: 31,
+        description:
+          "PPP (public-private partnership), NGOs, government, social groups collaboration.",
+      },
+    ],
+  },
+  {
+    id: "society",
+    name: "Society",
+    description:
+      "Social and economic aspects affecting sustainable agricultural practices.",
+    subtopics: [
+      {
+        name: "Smallholder",
+        percentage: 69,
+        description: "Farmer household income and smallholder's welfare.",
+      },
+      {
+        name: "Economic Growth",
+        percentage: 17,
+        description:
+          "Rural development, economic growth, global south, and inequality and poverty alleviation.",
+      },
+      {
+        name: "Access To Markets",
+        percentage: 9,
+        description: "Farmer's access to market and marketing practices.",
+      },
+      {
+        name: "Other",
+        percentage: 29,
+        description: "Access to market; Ethics; Covid; Social networks.",
+      },
+    ],
+  },
+  {
+    id: "business",
+    name: "Business",
+    description:
+      "Business models and economic frameworks in sustainable agriculture.",
+    subtopics: [
+      {
+        name: "Farmers' Behavior",
+        percentage: 33,
+        description:
+          "Decision-making, risk aversion, personality, and motivation.",
+      },
+      {
+        name: "Finance",
+        percentage: 30,
+        description:
+          "Microfinance, debt, loan, insurance, partnership, credit service, and liability.",
+      },
+      {
+        name: "Supply Chain",
+        percentage: 19,
+        description: "Logistics, value chain, and traders.",
+      },
+      {
+        name: "Marketing",
+        percentage: 9,
+        description: "Farmers access to market and marketing practices.",
+      },
+      {
+        name: "Investment",
+        percentage: 18,
+        description: "Suggestions for investors.",
+      },
+      {
+        name: "Entrepreneurship",
+        percentage: 7,
+        description: "Social entrepreneurship and agri-business.",
+      },
+    ],
+  },
 ];
+
+// Custom hook for intersection observer
+const useInView = (threshold = 0.1) => {
+  const [isInView, setIsInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // Only animate once
+        }
+      },
+      { threshold }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, isInView] as const;
+};
+
+// Custom hook for animated counter
+const useAnimatedCounter = (
+  targetValue: number,
+  isActive: boolean,
+  duration = 2500
+) => {
+  const [currentValue, setCurrentValue] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    let startTime: number;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCurrentValue(Math.round(targetValue * easeOutQuart));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [targetValue, isActive, duration]);
+
+  return currentValue;
+};
+
+// Animated Progress Circle Component
+const AnimatedProgressCircle = ({
+  percentage,
+  isActive,
+}: {
+  percentage: number;
+  isActive: boolean;
+}) => {
+  const animatedPercentage = useAnimatedCounter(percentage, isActive, 2500);
+  const [strokeDasharray, setStrokeDasharray] = useState("0, 100");
+
+  useEffect(() => {
+    if (isActive) {
+      const timer = setTimeout(() => {
+        setStrokeDasharray(`${animatedPercentage}, 100`);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [animatedPercentage, isActive]);
+
+  return (
+    <div className="relative w-20 h-20 mb-6">
+      <svg viewBox="0 0 36 36" className="w-20 h-20 transform -rotate-90">
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#E5E7EB"
+          strokeWidth="3"
+        />
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#4D7C0F"
+          strokeWidth="3"
+          strokeDasharray={strokeDasharray}
+          className="transition-all duration-1000 group-hover:stroke-green-600"
+          style={{
+            strokeDashoffset: 0,
+            transition: "stroke-dasharray 2.5s ease-out",
+          }}
+        />
+      </svg>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <span className="text-lg font-bold text-green-700 group-hover:text-green-800 transition-colors duration-300">
+          {animatedPercentage}%
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export default function CategoryPage({ params }: Props) {
   const [category, setCategory] = useState<Topic | null>(null);
-  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(
-    null
-  );
+  const [topicIndex, setTopicIndex] = useState(0);
 
   useEffect(() => {
-    const getParams = async () => {
-      const p = await params;
-      setResolvedParams(p);
-    };
-    getParams();
-  }, [params]);
+    const foundIndex = topics.findIndex((topic) => topic.id === params.id);
+    const foundCategory = topics.find((topic) => topic.id === params.id);
+    setTopicIndex(foundIndex);
+    setCategory(foundCategory || null);
+  }, [params.id]);
 
-  useEffect(() => {
-    if (resolvedParams) {
-      const foundCategory = topics.find(
-        (topic) => topic.id === resolvedParams.id
-      );
-      setCategory(foundCategory || null);
-    }
-  }, [resolvedParams]);
+  // Define the same gradients and text colors
+  const topicGradients = [
+    "linear-gradient(135deg, #d1fae5 0%, #86efac 50%, #4ade80 100%)",
+    "linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 50%, #38bdf8 100%)",
+    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #facc15 100%)",
+    "linear-gradient(135deg, #f5f5f4 0%, #d6d3d1 50%, #a8a29e 100%)",
+    "linear-gradient(135deg, #fee2e2 0%, #fca5a5 50%, #ef4444 100%)",
+    "linear-gradient(135deg, #dcfce7 0%, #86efac 50%, #22c55e 100%)",
+  ];
 
-  if (!resolvedParams || !category) {
+  const textColors = [
+    { primary: "#0f3f1c", secondary: "#1a4a26", accent: "#0a2612" },
+    { primary: "#0c2d48", secondary: "#1e3a8a", accent: "#082543" },
+    { primary: "#451a03", secondary: "#92400e", accent: "#7c2d12" },
+    { primary: "#1c1917", secondary: "#292524", accent: "#0c0a09" },
+    { primary: "#450a0a", secondary: "#7f1d1d", accent: "#350808" },
+    { primary: "#052e16", secondary: "#14532d", accent: "#021b0a" },
+  ];
+
+  if (!category) {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#f7fafc] via-[#f0f9f0] to-[#edf2f7] flex items-center justify-center">
-        {/* Background elements */}
+      <div
+        className="min-h-screen relative overflow-hidden flex items-center justify-center"
+        style={{
+          background: "linear-gradient(to bottom, #fef3c7 0%, #ecfccb 100%)",
+        }}
+      >
+        {/* Farm-inspired blur orbs */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-green-400 rounded-full opacity-5 blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-64 h-64 bg-yellow-400 rounded-full opacity-5 blur-3xl"></div>
+          <div
+            className="bg-orb orb-top-left hidden sm:block"
+            style={{
+              position: "absolute",
+              width: "320px",
+              height: "320px",
+              borderRadius: "50%",
+              filter: "blur(100px)",
+              zIndex: 0,
+              pointerEvents: "none",
+              top: "-120px",
+              left: "-120px",
+              backgroundColor: "#fcd34d" /* darker golden wheat */,
+              opacity: 0.18,
+            }}
+          />
+          <div
+            className="bg-orb orb-bottom-right hidden sm:block"
+            style={{
+              position: "absolute",
+              width: "320px",
+              height: "320px",
+              borderRadius: "50%",
+              filter: "blur(100px)",
+              zIndex: 0,
+              pointerEvents: "none",
+              bottom: "-100px",
+              right: "-100px",
+              backgroundColor: "#a3e635" /* richer green */,
+              opacity: 0.15,
+            }}
+          />
         </div>
 
-        <div className="text-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-white/30 relative z-10">
+        <div
+          className="text-center p-8 rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] relative z-10"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.85)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
           <h1 className="text-2xl font-bold mb-4 text-gray-800">
             Category not found
           </h1>
@@ -139,21 +441,49 @@ export default function CategoryPage({ params }: Props) {
     );
   }
 
-  return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#f7fafc] via-[#f0f9f0] to-[#edf2f7]">
-      {/* Background Pattern Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
+  const colors = textColors[topicIndex] || textColors[0];
 
-      {/* Organic Background Shapes */}
+  return (
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        background: "linear-gradient(to bottom, #fef3c7 0%, #ecfccb 100%)",
+      }}
+    >
+      {/* Farm-inspired blur orbs */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-green-400 rounded-full opacity-8 blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-yellow-400 rounded-full opacity-6 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-400 rounded-full opacity-4 blur-3xl"></div>
+        <div
+          className="bg-orb orb-top-left hidden sm:block"
+          style={{
+            position: "absolute",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            filter: "blur(100px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            top: "-120px",
+            left: "-120px",
+            backgroundColor: "#fcd34d" /* darker golden wheat */,
+            opacity: 0.18,
+          }}
+        />
+        <div
+          className="bg-orb orb-bottom-right hidden sm:block"
+          style={{
+            position: "absolute",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            filter: "blur(100px)",
+            zIndex: 0,
+            pointerEvents: "none",
+            bottom: "-100px",
+            right: "-100px",
+            backgroundColor: "#a3e635" /* richer green */,
+            opacity: 0.15,
+          }}
+        />
       </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -197,14 +527,24 @@ export default function CategoryPage({ params }: Props) {
         </div>
 
         {/* Category header */}
-        <div className="bg-gradient-to-br from-white/90 to-green-50/60 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-white/40 mb-12 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-400/5 to-yellow-400/5 rounded-3xl"></div>
-
+        <div
+          className="p-8 rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] mb-12 relative overflow-hidden"
+          style={{
+            background: topicGradients[topicIndex],
+            backdropFilter: "blur(8px)",
+          }}
+        >
           <div className="relative z-10">
-            <h1 className="text-4xl font-bold mb-4 text-gray-800 drop-shadow-sm">
+            <h1
+              className="text-4xl font-bold mb-4"
+              style={{ color: colors.primary }}
+            >
               {category.name}
             </h1>
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p
+              className="text-lg leading-relaxed"
+              style={{ color: colors.secondary }}
+            >
               {category.description}
             </p>
           </div>
@@ -212,57 +552,41 @@ export default function CategoryPage({ params }: Props) {
 
         {/* Subtopics grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {category.subtopics.map((subtopic) => (
-            <div
-              key={subtopic.name}
-              className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/90 group relative overflow-hidden"
-            >
-              {/* Subtle card glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-green-400/5 to-yellow-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          {category.subtopics.map((subtopic, index) => {
+            const [subtopicRef, isSubtopicInView] = useInView(0.1);
 
-              <div className="flex flex-col items-center text-center relative z-10">
-                {/* Circular Progress */}
-                <div className="relative w-24 h-24 mb-6">
-                  <svg
-                    viewBox="0 0 36 36"
-                    className="w-24 h-24 transform -rotate-90"
+            return (
+              <div
+                key={subtopic.name}
+                ref={subtopicRef}
+                className="p-8 rounded-[20px] shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:scale-105 group relative overflow-hidden"
+                style={{
+                  background: topicGradients[topicIndex],
+                  backdropFilter: "blur(8px)",
+                  animationDelay: `${index * 150}ms`,
+                }}
+              >
+                <div className="flex flex-col items-center text-center relative z-10">
+                  <AnimatedProgressCircle
+                    percentage={subtopic.percentage}
+                    isActive={isSubtopicInView}
+                  />
+                  <h3
+                    className="font-bold text-xl mb-4 leading-tight group-hover:opacity-90 transition-opacity duration-300"
+                    style={{ color: colors.primary }}
                   >
-                    <path
-                      d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#E5E7EB"
-                      strokeWidth="3"
-                    />
-                    <path
-                      d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                      fill="none"
-                      stroke="#4D7C0F"
-                      strokeWidth="3"
-                      strokeDasharray={`${subtopic.percentage}, 100`}
-                      className="transition-all duration-1000 group-hover:stroke-green-600"
-                    />
-                  </svg>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <span className="text-xl font-bold text-green-700 group-hover:text-green-800 transition-colors duration-300">
-                      {subtopic.percentage}%
-                    </span>
-                  </div>
+                    {subtopic.name}
+                  </h3>
+                  <p
+                    className="leading-relaxed group-hover:opacity-90 transition-opacity duration-300"
+                    style={{ color: colors.secondary }}
+                  >
+                    {subtopic.description}
+                  </p>
                 </div>
-
-                {/* Content */}
-                <h3 className="font-bold text-xl mb-4 text-gray-800 leading-tight group-hover:text-green-800 transition-colors duration-300">
-                  {subtopic.name}
-                </h3>
-                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
-                  {subtopic.description}
-                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
