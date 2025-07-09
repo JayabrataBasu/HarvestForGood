@@ -340,27 +340,27 @@ export default function CategoryPage({ params }: Props) {
   useEffect(() => {
     const foundIndex = topics.findIndex((topic) => topic.id === params.id);
     const foundCategory = topics.find((topic) => topic.id === params.id);
-    setTopicIndex(foundIndex);
+    setTopicIndex(foundIndex >= 0 ? foundIndex : 0);
     setCategory(foundCategory || null);
   }, [params.id]);
 
-  // Define the same gradients and text colors
+  // Define the same soft, organic earth-inspired gradients
   const topicGradients = [
-    "linear-gradient(135deg, #d1fae5 0%, #86efac 50%, #4ade80 100%)",
-    "linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 50%, #38bdf8 100%)",
-    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #facc15 100%)",
-    "linear-gradient(135deg, #f5f5f4 0%, #d6d3d1 50%, #a8a29e 100%)",
-    "linear-gradient(135deg, #fee2e2 0%, #fca5a5 50%, #ef4444 100%)",
-    "linear-gradient(135deg, #dcfce7 0%, #86efac 50%, #22c55e 100%)",
+    "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #4ade80 100%)",
+    "linear-gradient(135deg, #a7f3d0 0%, #4ade80 50%, #22c55e 100%)",
+    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #fcd34d 100%)",
+    "linear-gradient(135deg, #fde68a 0%, #fcd34d 50%, #eab308 100%)",
+    "linear-gradient(135deg, #fcd34d 0%, #eab308 50%, #ca8a04 100%)",
+    "linear-gradient(135deg, #d1fae5 0%, #22c55e 50%, #4ade80 100%)",
   ];
 
   const textColors = [
-    { primary: "#0f3f1c", secondary: "#1a4a26", accent: "#0a2612" },
-    { primary: "#0c2d48", secondary: "#1e3a8a", accent: "#082543" },
-    { primary: "#451a03", secondary: "#92400e", accent: "#7c2d12" },
-    { primary: "#1c1917", secondary: "#292524", accent: "#0c0a09" },
-    { primary: "#450a0a", secondary: "#7f1d1d", accent: "#350808" },
-    { primary: "#052e16", secondary: "#14532d", accent: "#021b0a" },
+    { primary: "#064e3b", secondary: "#065f46", accent: "#047857" },
+    { primary: "#052e16", secondary: "#064e3b", accent: "#065f46" },
+    { primary: "#451a03", secondary: "#78350f", accent: "#92400e" },
+    { primary: "#451a03", secondary: "#78350f", accent: "#a16207" },
+    { primary: "#365314", secondary: "#4d7c0f", accent: "#65a30d" },
+    { primary: "#052e16", secondary: "#064e3b", accent: "#047857" },
   ];
 
   if (!category) {
@@ -441,7 +441,7 @@ export default function CategoryPage({ params }: Props) {
     );
   }
 
-  const colors = textColors[topicIndex] || textColors[0];
+  const colors = textColors[topicIndex];
 
   return (
     <div
