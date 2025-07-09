@@ -153,23 +153,26 @@ export default function AboutPage() {
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="team-card paper-texture rounded-xl overflow-hidden"
+                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col max-w-sm mx-auto"
               >
-                <div className="team-image-container">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-                <div className="team-info">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  width={400}
+                  height={0}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                  className="w-full h-auto"
+                />
+                <div className="p-6 flex-grow">
                   <h3 className="text-xl font-bold mb-1">{member.name}</h3>
                   <p className="text-sm text-primary/80 mb-4">{member.role}</p>
                   <p className="text-gray-700 mb-4">{member.bio}</p>
                   <Link
                     href="#"
-                    className="inline-flex items-center text-primary hover:text-primary-dark transition-colors font-medium"
+                    className="inline-flex items-center text-primary hover:text-primary-dark transition-colors font-medium mt-3"
                   >
                     Read more
                     <svg
