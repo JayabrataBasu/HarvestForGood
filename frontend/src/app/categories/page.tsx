@@ -339,46 +339,46 @@ export default function CategoriesPage() {
     "Research Paper",
   ];
 
-  // Define agro-themed gradient colors for each topic
+  // Define soft, organic earth-inspired gradient colors for each topic
   const topicGradients = [
-    // Environment - Forest canopy to grassland
-    "linear-gradient(135deg, #d1fae5 0%, #86efac 50%, #4ade80 100%)",
+    // Environment - Soft green canopy gradient
+    "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%, #4ade80 100%)",
 
-    // Technology - Dew-sky to field sky (natural blues)
-    "linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 50%, #38bdf8 100%)",
+    // Technology - Gentle green to deeper green
+    "linear-gradient(135deg, #a7f3d0 0%, #4ade80 50%, #22c55e 100%)",
 
-    // Agriculture - Wheat to harvest gold
-    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #facc15 100%)",
+    // Agriculture - Warm yellow harvest gradient
+    "linear-gradient(135deg, #fef9c3 0%, #fde68a 50%, #fcd34d 100%)",
 
-    // Institution - Soil brown to muted root earth
-    "linear-gradient(135deg, #f5f5f4 0%, #d6d3d1 50%, #a8a29e 100%)",
+    // Institution - Rich ochre earth tones
+    "linear-gradient(135deg, #fde68a 0%, #fcd34d 50%, #eab308 100%)",
 
-    // Society - Ripe tomato to clay (red but softened)
-    "linear-gradient(135deg, #fee2e2 0%, #fca5a5 50%, #ef4444 100%)",
+    // Society - Deep earth yellow gradient
+    "linear-gradient(135deg, #fcd34d 0%, #eab308 50%, #ca8a04 100%)",
 
-    // Business - Sprout to mature leaf
-    "linear-gradient(135deg, #dcfce7 0%, #86efac 50%, #22c55e 100%)",
+    // Business - Fresh green growth gradient
+    "linear-gradient(135deg, #d1fae5 0%, #22c55e 50%, #4ade80 100%)",
   ];
 
   // Define contrasting text colors for each topic
   const textColors = [
-    // Environment - Dark green for light green gradient
-    { primary: "#0f3f1c", secondary: "#1a4a26", accent: "#0a2612" },
+    // Environment - Dark forest green for light green gradient
+    { primary: "#064e3b", secondary: "#065f46", accent: "#047857" },
 
-    // Technology - Dark blue for light blue gradient
-    { primary: "#0c2d48", secondary: "#1e3a8a", accent: "#082543" },
+    // Technology - Deep green for medium green gradient
+    { primary: "#052e16", secondary: "#064e3b", accent: "#065f46" },
 
     // Agriculture - Dark brown for yellow gradient
-    { primary: "#451a03", secondary: "#92400e", accent: "#7c2d12" },
+    { primary: "#451a03", secondary: "#78350f", accent: "#92400e" },
 
-    // Institution - Dark charcoal for gray gradient
-    { primary: "#1c1917", secondary: "#292524", accent: "#0c0a09" },
+    // Institution - Deep brown for ochre gradient
+    { primary: "#451a03", secondary: "#78350f", accent: "#a16207" },
 
-    // Society - Dark red for light red gradient
-    { primary: "#450a0a", secondary: "#7f1d1d", accent: "#350808" },
+    // Society - Very dark brown for deep yellow gradient
+    { primary: "#365314", secondary: "#4d7c0f", accent: "#65a30d" },
 
-    // Business - Dark green for light green gradient
-    { primary: "#052e16", secondary: "#14532d", accent: "#021b0a" },
+    // Business - Dark green for fresh green gradient
+    { primary: "#052e16", secondary: "#064e3b", accent: "#047857" },
   ];
 
   return (
@@ -512,7 +512,7 @@ export default function CategoriesPage() {
                         <div className="flex items-center gap-3 mb-4">
                           <div
                             className="w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg"
-                            style={{ backgroundColor: `${colors.primary}20` }}
+                            style={{ backgroundColor: `${colors.primary}15` }}
                           >
                             <span
                               className="font-bold text-sm"
@@ -544,9 +544,9 @@ export default function CategoriesPage() {
                           href={`/categories/${topic.id}`}
                           className="inline-flex items-center gap-2 backdrop-blur-sm px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
                           style={{
-                            backgroundColor: `${colors.primary}20`,
+                            backgroundColor: `${colors.primary}15`,
                             color: colors.primary,
-                            border: `1px solid ${colors.primary}30`,
+                            border: `1px solid ${colors.primary}25`,
                           }}
                         >
                           Explore
@@ -585,9 +585,9 @@ export default function CategoriesPage() {
                                 ref={subtopicRef}
                                 className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden"
                                 style={{
-                                  backgroundColor: `${colors.primary}08`,
+                                  backgroundColor: `${colors.primary}06`,
                                   backdropFilter: "blur(8px)",
-                                  border: `1px solid ${colors.primary}20`,
+                                  border: `1px solid ${colors.primary}15`,
                                   animationDelay: `${subtopicIndex * 200}ms`,
                                 }}
                               >
