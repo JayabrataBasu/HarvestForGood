@@ -205,7 +205,7 @@ export default function AboutPage() {
           <div className="mt-20 text-center">
             <div className="bg-gradient p-10 rounded-xl mx-auto max-w-4xl text-white">
               <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                Join Our Research Community
+                Join Our Research Community!
               </h3>
               <p className="mb-8 text-white/90 max-w-2xl mx-auto">
                 Contribute to our growing community of researchers,
