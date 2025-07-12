@@ -28,7 +28,7 @@ export interface ResearchPaper {
   citationCount: number;
   citationTrend: CitationTrend;
   methodologyType: MethodologyType;
-  downloadUrl: string;
+  download_url: string;
   created_at?: string;
   updated_at?: string;
   slug?: string;

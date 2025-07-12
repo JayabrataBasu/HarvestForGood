@@ -76,80 +76,6 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
   };
 
   // Safely display citation count
-  const displayCitationCount = () => {
-    // Ensure citation count is a valid number
-    const count = paper.citationCount;
-    if (count === undefined || count === null || isNaN(Number(count))) {
-      return "0";
-    }
-    return count.toString();
-  };
-
-  // Determine citation trend icon and color
-  const getCitationTrendIcon = () => {
-    switch (paper.citationTrend) {
-      case "increasing":
-        return (
-          <span className="inline-flex items-center text-emerald-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
-            Rising
-          </span>
-        );
-      case "decreasing":
-        return (
-          <span className="inline-flex items-center text-rose-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"
-              />
-            </svg>
-            Declining
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center text-amber-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 12h14"
-              />
-            </svg>
-            Steady
-          </span>
-        );
-    }
-  };
 
   return (
     <div className="paper-section">
@@ -316,18 +242,35 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
       )}
 
       {/* Publisher Link Section - replaces citation info */}
-      {paper.downloadUrl && (
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg p-6 mb-10 text-center">
-          <p className="text-white text-lg mb-4">
-            Access the full research paper
+      {paper.download_url && (
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl shadow-lg p-6 mb-10 text-center">
+          <div className="flex items-center justify-center mb-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 mr-2 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+            <h3 className="text-white text-xl font-bold">Link to Publisher</h3>
+          </div>
+          <p className="text-white/90 text-base mb-4">
+            Access the original publication from the publisher
           </p>
           <a
-            href={paper.downloadUrl}
+            href={paper.download_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-6 py-3 text-base font-medium bg-white text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors shadow-md hover:shadow-lg pulse-border"
+            className="inline-block px-6 py-3 text-base font-medium bg-white text-emerald-600 rounded-full hover:bg-emerald-50 transition-colors shadow-md hover:shadow-lg transform hover:scale-105 cursor-pointer"
           >
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 mr-2"
@@ -342,7 +285,7 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                 />
               </svg>
-              View Full Paper
+              Visit Publisher
             </div>
           </a>
         </div>
