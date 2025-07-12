@@ -26,13 +26,16 @@ export interface ResearchPaper {
   publicationYear?: string | number;
   keywords: Keyword[];
   citationCount: number;
-  citationTrend: 'increasing' | 'decreasing' | 'stable';
-  methodologyType: 'quantitative' | 'qualitative' | 'mixed' | 'Unknown';
+  citationTrend: CitationTrend;
+  methodologyType: MethodologyType;
   downloadUrl: string;
   created_at?: string;
   updated_at?: string;
   slug?: string;
 }
+
+export type MethodologyType = 'quantitative' | 'qualitative' | 'mixed' | 'Unknown';
+export type CitationTrend = 'increasing' | 'decreasing' | 'stable';
 
 // API request types
 export interface PaperFilterParams {
@@ -93,23 +96,13 @@ export interface PaperFormData {
   keywords: {
     name: string;
   }[];
-  download_url?: string;
-  doi?: string;
-  volume?: string;
   issue?: string;
   pages?: string;
 }
-  publication_year: string; // Ensure this is string type to match backend
-  methodology_type: MethodologyType;
-  citation_count: number;
-  citation_trend: CitationTrend;
-  journal: string;
-  keywords: {
-    name: string;
-  }[];
-  download_url?: string;
-  doi?: string;
-  volume?: string;
-  issue?: string;
-  pages?: string;
+export interface PaperSearchParams {
+  search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
+  [key: string]: any; // Allow additional parameters
 }

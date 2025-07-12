@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PaperGrid } from "../components/research/PaperGrid";
 import { Paper, Keyword } from "../types/paper.types";
-import { researchAPI } from "../utils/api";
+import { researchAPI } from "../lib/api";
 
 export const ResearchPapersPage: React.FC = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
