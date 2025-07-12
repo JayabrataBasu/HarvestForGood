@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  Paper,
+  ResearchPaper,
   PaperFilterOptions,
   Keyword,
   MethodologyType,
@@ -8,7 +8,7 @@ import {
 import PaperCard from "./PaperCard";
 
 interface PaperGridProps {
-  papers: Paper[];
+  papers: ResearchPaper[];
   availableKeywords: Keyword[];
   isLoading?: boolean;
   pageSize?: number;

@@ -315,38 +315,7 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
         </div>
       )}
 
-      {/* Citation info */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl shadow-md p-6 mb-10 card-hover-effect border border-blue-100">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="bg-indigo-100 p-3 rounded-full mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-indigo-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Total Citations</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {displayCitationCount()}
-              </p>
-            </div>
-          </div>
-          {getCitationTrendIcon()}
-        </div>
-      </div>
-
-      {/* Link to paper */}
+      {/* Publisher Link Section - replaces citation info */}
       {paper.downloadUrl && (
         <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg p-6 mb-10 text-center">
           <p className="text-white text-lg mb-4">

@@ -95,3 +95,6 @@ export const researchAPI = {
     }
   }
 };
+
+// Re-export everything from lib/api for backward compatibility
+export * from '../lib/api';

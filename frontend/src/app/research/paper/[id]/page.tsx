@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPaperById } from "../../../../lib/api";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ResearchPaper, Author, Keyword } from "../../../../types/paper.types";
 import DebugData from "../../../../components/DebugData";
 
@@ -445,7 +446,7 @@ export default function PaperDetailPage() {
                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                 />
               </svg>
-              Link to publisher
+              Visit Publisher
             </div>
           </a>
         </div>
@@ -483,37 +484,35 @@ export default function PaperDetailPage() {
           </div>
         )}
 
-        {/* Citation count card */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl shadow-md p-6 mb-10 card-hover-effect border border-blue-100 animate-scale-in">
-          <div className="flex justify-between items-center">
+        {/* Publisher Link Section - replaces citation count card */}
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl shadow-lg p-6 mb-10 text-center animate-scale-in">
+          <p className="text-white text-lg mb-4">
+            Access the full research paper through the publisher&apos;s website
+          </p>
+          <a
+            href={paper.downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-6 py-3 text-base font-medium bg-white text-indigo-600 rounded-full hover:bg-indigo-50 transition-colors shadow-md hover:shadow-lg pulse-border"
+          >
             <div className="flex items-center">
-              <div className="bg-indigo-100 p-3 rounded-full mr-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-indigo-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-gray-500 text-sm">Total Citations</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {paper.citationCount}
-                </p>
-              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              Visit Publisher
             </div>
-            <a href="#" className="text-indigo-600 text-sm hover:underline">
-              View metrics
-            </a>
-          </div>
+          </a>
         </div>
 
         {/* Debugging component - set enabled to false in production */}
