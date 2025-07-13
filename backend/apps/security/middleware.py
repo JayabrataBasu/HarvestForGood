@@ -44,7 +44,7 @@ class APISecurityMiddleware:
     def __call__(self, request):
         if request.path.startswith('/api/'):
             # Skip signature check for authentication endpoints
-            if request.path.startswith(('/api/token/', '/api/users/register/')):
+            if request.path.startswith(('/api/token/', '/api/users/register/', '/api/research/papers/')):
                 return self.get_response(request)
 
             # Verify timestamp and signature for other API endpoints

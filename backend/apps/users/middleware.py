@@ -25,6 +25,15 @@ class APISecurityMiddleware:
 
     def __call__(self, request):
         if request.path.startswith('/api/'):
+            
+            # Skip signature check for authentication and public research endpoints
+            if request.path.startswith((
+                '/api/token/', 
+                '/api/users/register/', 
+                '/api/research/papers/'
+            )):
+                return self.get_response(request)
+            
             timestamp = request.headers.get('X-Timestamp')
             if not self._validate_timestamp(timestamp):
                 return HttpResponse('Request expired', status=403)
