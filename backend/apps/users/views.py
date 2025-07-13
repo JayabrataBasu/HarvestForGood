@@ -15,6 +15,13 @@ from .tokens import email_verification_token
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 import os
+from django.core.mail import send_mail
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from django.conf import settings
+import resend
+
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -60,6 +67,38 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
+
+
+#this is for contact us functionality
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def contact_message(request):
+    name = request.data.get('name')
+    email = request.data.get('email')
+    subject = request.data.get('subject')
+    message = request.data.get('message')
+    if not all([name, email, subject, message]):
+        return Response({'message': 'All fields are required.'}, status=400)
+    try:
+        resend.api_key = os.environ.get("resend.api_key")
+        response = resend.Emails.send({
+            "from": "Your Name <noreply@yourdomain.com>",  # Use your verified Resend domain
+            "to": ["jayabratabasu@gmail.com"],  # Or your official email
+            "subject": f"[Contact] {subject}",
+            "html": f"<p><b>From:</b> {name} ({email})</p><p>{message}</p>",
+        })
+        if response.get("id"):
+            return Response({'message': 'Message sent successfully!'})
+        else:
+            return Response({'message': 'Failed to send message.'}, status=500)
+    except Exception as e:
+        return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
+# ...existing code...
+
+
+
+#this is for password reset functionality
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):

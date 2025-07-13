@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, RegisterView, MeView
 from . import views
 from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView
+from .views import contact_message
 
 router = DefaultRouter()
 router.register(r'', UserViewSet)  # Changed from 'users' to '' since we're already in the users namespace
@@ -11,6 +12,7 @@ router.register(r'', UserViewSet)  # Changed from 'users' to '' since we're alre
 urlpatterns = [
     # Add the "me" endpoint before the router includes
     path('me/', MeView.as_view(), name='me'),
+    path('contact/', contact_message, name='contact-message'), #contact us page url
     
     path('register/', RegisterView.as_view(), name='register'),
     path('password/reset/', PasswordResetView.as_view(), name='password_reset'),
