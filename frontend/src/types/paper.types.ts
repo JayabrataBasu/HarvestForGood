@@ -47,6 +47,7 @@ export interface PaperFilterParams {
   year_from?: number;
   year_to?: number;
   journal?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; // Allow additional filter parameters
 }
 
