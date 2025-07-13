@@ -23,40 +23,39 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ...existing code...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        }/users/contact/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+      const data = await response.json();
       setSubmitStatus({
-        success: true,
-        message: "Thank you for your message. We'll get back to you soon!",
+        success: response.ok,
+        message: data.message || "Message sent successfully!",
       });
-      // Reset form after successful submission
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 1500);
-
-    // For actual implementation:
-    // try {
-    //   const response = await fetch('/api/contact', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(formData)
-    //   });
-    //   const data = await response.json();
-    //   setSubmitStatus({ success: true, message: data.message });
-    //   setFormData({ name: "", email: "", subject: "", message: "" });
-    // } catch (error) {
-    //   setSubmitStatus({
-    //     success: false,
-    //     message: "There was an error sending your message. Please try again."
-    //   });
-    // } finally {
-    //   setIsSubmitting(false);
-    // }
+      if (response.ok)
+        setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch {
+      setSubmitStatus({
+        success: false,
+        message: "There was an error sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+  // ...existing code...
 
   return (
     <div className="container mx-auto px-4 py-8">
