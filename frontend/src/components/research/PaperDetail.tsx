@@ -79,19 +79,49 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
 
   return (
     <div className="paper-section">
+      {/* Enhanced styles for warm farm gradients and animations */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-delay-100 {
+          animation-delay: 0.1s;
+        }
+
+        .animate-delay-200 {
+          animation-delay: 0.2s;
+        }
+
+        .animate-delay-300 {
+          animation-delay: 0.3s;
+        }
+      `}</style>
+
       {/* Paper header */}
-      <div className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8 mb-8 animate-fade-up">
+      <div className="bg-gradient-to-br from-[#FDF6ED] to-[#FFF4D2] rounded-2xl shadow-md border border-orange-100/60 p-8 mb-8 animate-fade-in-up hover:shadow-lg transition-all duration-300">
         <div className="text-center mb-4">
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 leading-tight">
             {paper.title}
           </h1>
           {formatMethodologyType(paper.methodologyType) && (
-            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+            <div className="text-md text-indigo-700 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-100/80 px-4 py-1 rounded-full shadow-sm">
               {formatMethodologyType(paper.methodologyType)} | RESEARCH PAPER
             </div>
           )}
           {!formatMethodologyType(paper.methodologyType) && (
-            <div className="text-md text-indigo-600 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-50 px-4 py-1 rounded-full">
+            <div className="text-md text-indigo-700 uppercase tracking-wider font-medium mb-2 inline-block bg-indigo-100/80 px-4 py-1 rounded-full shadow-sm">
               RESEARCH PAPER
             </div>
           )}
@@ -103,8 +133,8 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
               onClick={() => onSave(paper.id)}
               className={`mt-4 inline-flex items-center px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-all ${
                 isSaved
-                  ? "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
-                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-amber-100/90 text-amber-800 border border-amber-200 hover:bg-amber-200/90"
+                  : "bg-white/90 text-gray-800 border border-gray-200 hover:bg-gray-50/90"
               }`}
             >
               {isSaved ? (
@@ -142,47 +172,49 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
           </div>
         )}
       </div>
-      {/* Author info */}
-      <div className="rounded-2xl overflow-hidden mb-10 shadow-lg">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/10">
-                <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
-                  Author
-                </th>
-                <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
-                  Source
-                </th>
-                <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-4 px-4 font-medium">{displayAuthors()}</td>
-                <td className="py-4 px-4">
-                  <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                    {paper.journal || "Not specified"}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
-                    {/* Use the updated formatDate function or direct field access */}
-                    {paper.publication_year ||
-                      formatDate(paper.publicationDate) ||
-                      "Not specified"}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+      {/* Enhanced Author info with warm linen gradient */}
+      <div className="rounded-2xl overflow-hidden mb-10 shadow-md animate-fade-in-up animate-delay-100 hover:shadow-lg transition-all duration-300">
+        <div className="bg-gradient-to-br from-[#FDF6ED] to-[#FFF4D2] p-2 rounded-2xl">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Author
+                  </th>
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Source
+                  </th>
+                  <th className="py-4 px-4 text-left uppercase tracking-wider font-medium">
+                    Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-4 px-4 font-medium">{displayAuthors()}</td>
+                  <td className="py-4 px-4">
+                    <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
+                      {paper.journal || "Not specified"}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-sm">
+                      {paper.publication_year ||
+                        formatDate(paper.publicationDate) ||
+                        "Not specified"}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Abstract */}
-      <div className="mb-10">
+      {/* Enhanced Abstract with cream to apricot mist gradient */}
+      <div className="mb-10 animate-fade-in-up animate-delay-200">
         <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -200,18 +232,20 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
           </svg>
           Abstract
         </h2>
-        <div className="bg-white shadow-lg rounded-2xl p-8 card-hover-effect border border-blue-100">
-          <p className="text-gray-700 leading-relaxed">{paper.abstract}</p>
+        <div className="bg-gradient-to-br from-[#FFF8E1] to-[#FFEFD4] shadow-md rounded-2xl p-8 border border-orange-100/40 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+          <p className="text-gray-800 leading-relaxed font-medium">
+            {paper.abstract}
+          </p>
         </div>
       </div>
 
-      {/* Keywords */}
+      {/* Enhanced Keywords with soft herb gradient */}
       {paper.keywords && paper.keywords.length > 0 && (
-        <div className="bg-white shadow-lg rounded-2xl p-6 mb-10 card-hover-effect border border-blue-100">
+        <div className="bg-gradient-to-br from-[#EBF7E3] to-[#F3FBF2] shadow-md rounded-2xl p-6 mb-10 border border-green-100/40 animate-fade-in-up animate-delay-300 hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
           <div className="flex items-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2 text-indigo-500"
+              className="h-5 w-5 mr-2 text-emerald-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -229,7 +263,7 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
             {paper.keywords.map((keyword: Keyword) => (
               <span
                 key={keyword.id}
-                className={`bg-gradient-to-r from-teal-50 to-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all hover:shadow hover:-translate-y-1 border border-emerald-100 ${
+                className={`bg-gradient-to-r from-emerald-100/90 to-teal-100/90 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all hover:shadow-md hover:-translate-y-1 border border-emerald-200/60 ${
                   onKeywordClick ? "cursor-pointer" : ""
                 }`}
                 onClick={() => onKeywordClick && onKeywordClick(keyword)}
@@ -241,9 +275,9 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
         </div>
       )}
 
-      {/* Publisher Link Section - replaces citation info */}
+      {/* Enhanced Publisher Link Section with warm gradient */}
       {paper.download_url && (
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl shadow-lg p-6 mb-10 text-center">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl shadow-md p-6 mb-10 text-center hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-center mb-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
