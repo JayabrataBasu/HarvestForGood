@@ -29,7 +29,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
       return;
     }
 
-    router.push(`/research/paper/${paper.id}`);
+    router.push(`/research/paper/${paper.slug}`);
   };
 
   // Determine citation trend icon and color
@@ -271,7 +271,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
           </div>
 
           <a
-            href={paper.downloadUrl}
+            href={paper.download_url}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
