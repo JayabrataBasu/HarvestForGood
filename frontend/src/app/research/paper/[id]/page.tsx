@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import { getPaperById } from "../../../../lib/api";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ResearchPaper, Author, Keyword } from "../../../../types/paper.types";
-import DebugData from "../../../../components/DebugData";
 
 export default function PaperDetailPage() {
   const params = useParams();
@@ -22,12 +21,12 @@ export default function PaperDetailPage() {
 
   useEffect(() => {
     async function loadPaper() {
-      if (!params.id) return;
+      if (!params || !params.id) return;
 
       setIsLoading(true);
       try {
         // In a real app, this would call an API
-        const paperData = await getPaperById(params!.id as string);
+        const paperData = await getPaperById(params.id as string);
         console.log("Paper data received:", paperData); // Debug log
         setPaper(paperData);
 
@@ -45,7 +44,7 @@ export default function PaperDetailPage() {
     }
 
     loadPaper();
-  }, [params.id]);
+  }, [params]);
 
   const toggleSaveStatus = () => {
     const savedPapers = JSON.parse(localStorage.getItem("savedPapers") || "[]");
@@ -90,7 +89,7 @@ export default function PaperDetailPage() {
         if (!isNaN(date.getTime())) {
           return date.getFullYear().toString();
         }
-      } catch (e) {}
+      } catch {}
     }
 
     return "Not specified";
@@ -107,7 +106,7 @@ export default function PaperDetailPage() {
     if (!paper) return "Not specified";
 
     // Method 1: Check for both camelCase and snake_case versions of direct author names
-    if (paper.author_names) return paper.author_names;
+    //if (paper.author_names) return paper.author_names;
 
     // Method 2: Handle authors array with name properties
     if (
@@ -123,9 +122,9 @@ export default function PaperDetailPage() {
             // Try all possible name properties
             return (
               author.name ||
-              author.author_name ||
-              author.fullName ||
-              author.full_name ||
+              //author.author_name ||
+              //author.fullName ||
+              //author.full_name ||
               "Unknown"
             );
           }
@@ -638,39 +637,6 @@ export default function PaperDetailPage() {
           </div>
         </div>
 
-        {/* Debug data with soft fern gradient */}
-        <div className="relative mb-12 group">
-          {/* Soft fern to meadow frost gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-fern-50/75 via-meadow-100/70 to-frost-50/75 rounded-2xl"></div>
-
-          {/* Enhanced border */}
-          <div className="absolute inset-0 rounded-2xl ring-1 ring-emerald-200/50 shadow-lg"></div>
-
-          <div className="relative backdrop-blur-sm rounded-2xl p-6 group-hover:scale-[1.01] transition-transform duration-300">
-            <DebugData
-              data={{
-                rawAuthors: paper.authors,
-                authorDetails: paper.authors
-                  ? Array.isArray(paper.authors)
-                    ? paper.authors.map((a) => ({
-                        type: typeof a,
-                        value: a,
-                        hasName:
-                          typeof a === "object" && a !== null
-                            ? "name" in a
-                            : false,
-                      }))
-                    : { type: typeof paper.authors, value: paper.authors }
-                  : null,
-                rawPublicationYear: paper.publicationYear,
-                publicationDate: paper.publicationDate,
-              }}
-              title="Data Format Debug"
-              enabled={true}
-            />
-          </div>
-        </div>
-
         {/* Enhanced abstract card with blush clay gradient */}
         <div className="relative backdrop-blur-lg shadow-2xl rounded-3xl p-8 lg:p-12 card-hover-effect border border-white/40 animate-fade-up delay-200 mb-12 group">
           {/* Blush clay to vanilla silk gradient */}
@@ -703,7 +669,7 @@ export default function PaperDetailPage() {
             </h2>
             {/* Enhanced abstract inner panel with warm gradient */}
             <div className="bg-gradient-to-br from-cream-50 via-apricot-50 to-cream-100 rounded-2xl p-8 border border-orange-100/40 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] animate-fade-in-view">
-              <p className="text-gray-800 leading-relaxed text-lg font-medium">
+              <p className="text-gray-800 leading-relaxed text-lg font-medium text-justify">
                 {paper.abstract}
               </p>
             </div>
@@ -816,31 +782,6 @@ export default function PaperDetailPage() {
         )}
 
         {/* Debugging component with morning mist gradient */}
-        <div className="relative backdrop-blur-lg rounded-3xl shadow-xl border border-white/30 p-6 group">
-          {/* Morning mist gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-morning-50/70 via-sky-100/65 to-mist-50/70 rounded-3xl"></div>
-
-          {/* Subtle border enhancement */}
-          <div className="absolute inset-0 rounded-3xl ring-1 ring-sky-200/40"></div>
-
-          <div className="relative group-hover:scale-[1.01] transition-transform duration-300">
-            {/* Enhanced debug inner panel with warm linen gradient */}
-            <div className="bg-gradient-to-br from-linen-50 via-pastel-gold to-linen-100 rounded-xl p-4 border border-yellow-100/40 shadow-sm hover:shadow-md transition-all duration-300 animate-fade-in-view">
-              <DebugData
-                data={{
-                  id: paper.id,
-                  title: paper.title,
-                  authors: paper.authors,
-                  publicationYear: paper.publicationYear,
-                  publicationDate: paper.publicationDate,
-                  paperData: paper,
-                }}
-                enabled={process.env.NODE_ENV === "development"}
-                title="Paper Debug Data"
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Enhanced floating decorative elements with better contrast */}
