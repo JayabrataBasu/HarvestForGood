@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ResearchPaperViewSet, AuthorViewSet, KeywordViewSet, KeywordCategoryViewSet
+from .views import ResearchPaperViewSet, AuthorViewSet, KeywordViewSet, KeywordCategoryViewSet, filter_options
 
 router = DefaultRouter()
 router.register(r'papers', ResearchPaperViewSet)
@@ -12,7 +12,7 @@ urlpatterns = [
     path('', include(router.urls)),
     # Special endpoint for bulk imports
     path('papers/bulk-import/', ResearchPaperViewSet.as_view({'post': 'bulk_import'}), name='paper-bulk-import'),
-    
+    path('filter-options/', filter_options, name='filter-options'),
     # Additional custom endpoints (these are also registered automatically by the router above)
     # path('papers/<slug:slug>/related/', ResearchPaperViewSet.as_view({'get': 'related'}), name='paper-related'),
     # path('papers/popular-keywords/', ResearchPaperViewSet.as_view({'get': 'popular_keywords'}), name='popular-keywords'),

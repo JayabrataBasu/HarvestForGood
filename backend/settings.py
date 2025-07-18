@@ -1,5 +1,5 @@
 from rest_framework import viewsets, filters, status
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
@@ -90,104 +90,6 @@ def parse_year_param(year_str):
     except (ValueError, TypeError):
         return None
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def filter_options(request):
-    """
-    Returns filter options with smart keyword categorization
-    """
-    # 1. Methodology types (cleaned)
-    methodology_types = (
-        ResearchPaper.objects
-        .exclude(methodology_type__isnull=True)
-        .exclude(methodology_type__exact="")
-        .exclude(methodology_type__exact="Unknown")
-        .values_list('methodology_type', flat=True)
-        .distinct()
-    )
-    methodology_types = sorted(set(methodology_types))
-
-    # 2. Publication years (1900-2025)
-    years_available = (
-        ResearchPaper.objects
-        .exclude(publication_year__isnull=True)
-        .exclude(publication_year__exact="")
-        .values_list('publication_year', flat=True)
-        .distinct()
-    )
-    valid_years = []
-    for year in years_available:
-        try:
-            year_int = int(year)
-            if 1900 <= year_int <= 2025:
-                valid_years.append(year_int)
-        except (ValueError, TypeError):
-            continue
-    valid_years.sort()
-
-    # 3. Smart keyword categorization
-    all_keywords = Keyword.objects.all().order_by('name')
-    
-    # Define region patterns for auto-detection
-    region_patterns = [
-        'AFRICA', 'ASIA', 'INDIA', 'EUROPE', 'AMERICA', 'AUSTRALIA', 
-        'BRAZIL', 'CHINA', 'USA', 'UK', 'CANADA', 'MEXICO',
-        'NORTH AMERICA', 'SOUTH AMERICA', 'LATIN AMERICA',
-        'MIDDLE EAST', 'SOUTHEAST ASIA', 'EAST ASIA'
-    ]
-    
-    region_keywords = []
-    general_keywords = []
-    
-    for keyword in all_keywords:
-        # Check if keyword matches region patterns
-        is_region = any(
-            region.lower() in keyword.name.lower() or 
-            keyword.name.upper() in region_patterns
-            for region in region_patterns
-        )
-        
-        if is_region:
-            region_keywords.append({
-                "id": keyword.id, 
-                "name": keyword.name
-            })
-        else:
-            general_keywords.append({
-                "id": keyword.id, 
-                "name": keyword.name
-            })
-
-    # 4. Get keyword categories (existing structure)
-    categories = KeywordCategory.objects.prefetch_related('keywords').all().order_by('name')
-    keyword_categories = []
-    for category in categories:
-        keyword_list = [
-            {"id": kw.id, "name": kw.name}
-            for kw in category.keywords.all().order_by('name')
-        ]
-        keyword_categories.append({
-            "id": category.id,
-            "name": category.name,
-            "description": category.description,
-            "keywords": keyword_list
-        })
-
-    return Response({
-        "methodology_types": methodology_types,
-        "year_range": {"min": 1900, "max": 2025},
-        "years_available": valid_years,
-        "keyword_categories": keyword_categories,
-        "region_keywords": region_keywords,
-        "general_keywords": general_keywords,
-        "stats": {
-            "total_papers": ResearchPaper.objects.count(),
-            "total_regions": len(region_keywords),
-            "total_general_keywords": len(general_keywords)
-        }
-    })
-    
-    
 class ResearchPaperViewSet(viewsets.ModelViewSet):
     """
     API endpoint for research papers
@@ -202,6 +104,8 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
     ordering_fields = ['publication_year', 'title', 'created_at', 'citation_count']  # Changed from publication_date
     ordering = ['-publication_year', '-created_at', 'id']
     lookup_field = 'slug'
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'research_papers'
 
     def get_queryset(self):
         queryset = ResearchPaper.objects.all().order_by('-publication_year', '-created_at', 'id')
@@ -375,6 +279,87 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         
         return Response({"status": "success"}, status=status.HTTP_201_CREATED)
     
+    @action(detail=False, methods=['get'])
+    def filter_options(self, request):
+        """
+        Returns all available filter options for the frontend
+        """
+        # Get unique methodologies
+        methodologies = ResearchPaper.objects.exclude(
+            methodology_type__isnull=True
+        ).exclude(
+            methodology_type__exact=''
+        ).values_list('methodology_type', flat=True).distinct()
+        
+        # Get publication years range
+        years = ResearchPaper.objects.exclude(
+            publication_year__isnull=True
+        ).exclude(
+            publication_year__exact=''
+        ).values_list('publication_year', flat=True).distinct()
+        
+        # Convert years to integers for sorting, filter out non-numeric values
+        valid_years = []
+        for year in years:
+            try:
+                year_int = int(year)
+                if 1900 <= year_int <= 2100:  # Reasonable year range
+                    valid_years.append(year_int)
+            except (ValueError, TypeError):
+                continue
+        
+        valid_years.sort()
+        
+        # Get unique journals
+        journals = ResearchPaper.objects.exclude(
+            journal__isnull=True
+        ).exclude(
+            journal__exact=''
+        ).values_list('journal', flat=True).distinct()
+        
+        # Get citation count range
+        citation_stats = ResearchPaper.objects.aggregate(
+            min_citations=models.Min('citation_count'),
+            max_citations=models.Max('citation_count')
+        )
+        
+        return Response({
+            'methodologies': list(methodologies),
+            'years': {
+                'min': min(valid_years) if valid_years else None,
+                'max': max(valid_years) if valid_years else None,
+                'available': valid_years
+            },
+            'journals': list(journals),
+            'citations': {
+                'min': citation_stats['min_citations'] or 0,
+                'max': citation_stats['max_citations'] or 0
+            }
+        })
+    
+    @action(detail=False, methods=['get'])
+    def search_suggestions(self, request):
+        """
+        Returns search suggestions based on query
+        """
+        query = request.query_params.get('q', '').strip()
+        limit = int(request.query_params.get('limit', 10))
+        
+        if not query:
+            return Response([])
+        
+        # Search in titles and keywords
+        title_matches = ResearchPaper.objects.filter(
+            title__icontains=query
+        ).values_list('title', flat=True)[:limit//2]
+        
+        keyword_matches = Keyword.objects.filter(
+            name__icontains=query
+        ).values_list('name', flat=True)[:limit//2]
+        
+        suggestions = list(title_matches) + list(keyword_matches)
+        return Response(suggestions[:limit])
+
 @api_view(['GET'])
 def paper_search(request):
     """Search papers by title, abstract, authors, or keywords"""
@@ -465,3 +450,15 @@ def paper_filter_options(request):
         })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+REST_FRAMEWORK = {
+    # ...existing config...
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'research_papers': '100/hour',
+        # ...other throttle scopes...
+    },
+    # ...existing config...
+}

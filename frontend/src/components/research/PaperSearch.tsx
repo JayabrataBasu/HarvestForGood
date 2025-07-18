@@ -7,6 +7,7 @@ import {
   PaperFilterParams,
 } from "@/types/paper.types";
 import Link from "next/link";
+import DynamicFilterPanel from "./DynamicFilterPanel";
 
 interface PaperSearchProps {
   initialFilters?: PaperFilterParams;
@@ -22,6 +23,32 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  // New state for filter options
+  const [filterOptions, setFilterOptions] = useState(null);
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(true);
+
+  // Load filter options once when component mounts
+  useEffect(() => {
+    const loadFilterOptions = async () => {
+      setFilterOptionsLoading(true);
+      try {
+        const result = await researchAPI.fetchFilterOptions();
+        if (result.success) {
+          setFilterOptions(result.data);
+        } else {
+          console.error("Failed to load filter options:", result.message);
+        }
+      } catch (error) {
+        console.error("Error loading filter options:", error);
+      } finally {
+        setFilterOptionsLoading(false);
+      }
+    };
+
+    loadFilterOptions();
+  }, []);
+
+  // Load papers when filters or page changes
   useEffect(() => {
     async function loadPapers() {
       setLoading(true);
@@ -62,21 +89,13 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setFilters({ ...filters, q: searchTerm });
-    setPage(1); // Reset to first page when searching
+    setPage(1);
   };
 
-  const handleFilterChange = (name: string, value: string | number | null) => {
-    const newFilters = { ...filters };
-
-    if (value === null || value === "") {
-      // Remove the filter if it's empty
-      delete newFilters[name];
-    } else {
-      newFilters[name] = value;
-    }
-
+  const handleFilterApply = (newFilters: any) => {
+    // Convert the filter UI state to API parameters
     setFilters(newFilters);
-    setPage(1); // Reset to first page when changing filters
+    setPage(1);
   };
 
   const changePage = (newPage: number) => {
@@ -94,229 +113,175 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Search form */}
-      <form onSubmit={handleSearch} className="flex space-x-2">
-        <input
-          type="text"
-          placeholder="Search for papers..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-light focus:border-transparent outline-none"
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-        >
-          Search
-        </button>
-      </form>
-
-      {/* Filter toolbar */}
-      <div className="flex flex-wrap gap-4">
-        {/* Methodology filter */}
-        <select
-          value={filters.methodology || ""}
-          onChange={(e) =>
-            handleFilterChange("methodology", e.target.value || null)
-          }
-          className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
-        >
-          <option value="">All Methodologies</option>
-          <option value="qualitative">Qualitative</option>
-          <option value="quantitative">Quantitative</option>
-          <option value="mixed">Mixed Methods</option>
-        </select>
-
-        {/* Year range filter */}
-        <div className="flex items-center space-x-2">
-          <input
-            type="number"
-            placeholder="From Year"
-            value={filters.year_from || ""}
-            onChange={(e) =>
-              handleFilterChange(
-                "year_from",
-                e.target.value ? parseInt(e.target.value) : null
-              )
-            }
-            className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
-          />
-          <span>-</span>
-          <input
-            type="number"
-            placeholder="To Year"
-            value={filters.year_to || ""}
-            onChange={(e) =>
-              handleFilterChange(
-                "year_to",
-                e.target.value ? parseInt(e.target.value) : null
-              )
-            }
-            className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-
-        {/* Min citations filter */}
-        <input
-          type="number"
-          placeholder="Min Citations"
-          value={filters.min_citations || ""}
-          onChange={(e) =>
-            handleFilterChange(
-              "min_citations",
-              e.target.value ? parseInt(e.target.value) : null
-            )
-          }
-          className="w-32 px-3 py-2 border border-gray-300 rounded-lg"
-        />
-
-        {/* Clear filters button */}
-        <button
-          onClick={() => {
-            setFilters({});
-            setSearchTerm("");
-            setPage(1);
-          }}
-          className="px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-100"
-        >
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Results info */}
-      <div className="text-gray-500">
-        {loading
-          ? "Loading results..."
-          : `Showing ${papers.length} of ${totalCount} results`}
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {/* Loading state */}
-      {loading && (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      )}
-
-      {/* Results list */}
-      {!loading && papers.length === 0 ? (
-        <div className="p-8 text-center bg-gray-50 rounded-lg">
-          <p className="text-lg text-gray-500">
-            No papers found matching your criteria.
-          </p>
-          <p className="mt-2 text-gray-400">
-            Try adjusting your filters or search term.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {papers.map((paper, index) => (
-            <div
-              key={`${paper.id}-${index}`}
-              className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <Link href={`/research/papers/${paper.slug || paper.id}`}>
-                <h3 className="text-xl font-bold text-primary-dark mb-2 hover:text-primary">
-                  {paper.title}
-                </h3>
-              </Link>
-
-              <div className="flex flex-wrap text-sm text-gray-500 mb-3 gap-x-4">
-                <span>{paper.authors.map((a) => a.name).join(", ")}</span>
-                <span>•</span>
-                <span>{paper.journal}</span>
-                <span>•</span>
-                <span>{formatDate(paper.publicationDate)}</span>
-              </div>
-
-              <p className="text-gray-600 mb-4 line-clamp-2">
-                {paper.abstract}
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                {paper.keywords.map((keyword) => (
-                  <span
-                    key={keyword.id}
-                    className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleFilterChange("keyword", keyword.name);
-                    }}
-                  >
-                    {keyword.name}
-                  </span>
-                ))}
-
-                <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                  {paper.methodologyType}
-                </span>
-
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                  {paper.citationCount} citations
-                </span>
-              </div>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Filter Panel - Left Side */}
+      <div className="lg:col-span-1">
+        {filterOptionsLoading ? (
+          <div className="bg-white p-6 rounded-lg shadow animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-8 bg-gray-200 rounded"></div>
             </div>
-          ))}
+          </div>
+        ) : filterOptions ? (
+          <DynamicFilterPanel
+            filterOptions={filterOptions}
+            onFilterApply={handleFilterApply}
+            currentFilters={filters}
+          />
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <p className="text-red-600">Failed to load filter options</p>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content - Right Side */}
+      <div className="lg:col-span-3 space-y-6">
+        {/* Search form */}
+        <form onSubmit={handleSearch} className="flex space-x-2">
+          <input
+            type="text"
+            placeholder="Search for papers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-light focus:border-transparent outline-none"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* Results info */}
+        <div className="text-gray-500">
+          {loading
+            ? "Loading results..."
+            : `Showing ${papers.length} of ${totalCount} results`}
         </div>
-      )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-8">
-          <nav className="inline-flex rounded-md shadow">
-            <button
-              onClick={() => changePage(page - 1)}
-              disabled={page === 1}
-              className="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
+        {/* Error message */}
+        {error && (
+          <div className="p-4 bg-red-50 text-red-600 border border-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
 
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              // Calculate page numbers to show (centered around current page)
-              let pageNum = page;
-              if (page <= 3) {
-                pageNum = i + 1;
-              } else if (page >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = page - 2 + i;
-              }
+        {/* Loading state */}
+        {loading && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        )}
 
-              if (pageNum <= 0 || pageNum > totalPages) return null;
+        {/* Results list */}
+        {!loading && papers.length === 0 ? (
+          <div className="p-8 text-center bg-gray-50 rounded-lg">
+            <p className="text-lg text-gray-500">
+              No papers found matching your criteria.
+            </p>
+            <p className="mt-2 text-gray-400">
+              Try adjusting your filters or search term.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {papers.map((paper, index) => (
+              <div
+                key={`${paper.id}-${index}`}
+                className="p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                <Link href={`/research/papers/${paper.slug || paper.id}`}>
+                  <h3 className="text-xl font-bold text-primary-dark mb-2 hover:text-primary">
+                    {paper.title}
+                  </h3>
+                </Link>
 
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => changePage(pageNum)}
-                  className={`px-4 py-2 border border-gray-300 ${
-                    page === pageNum
-                      ? "bg-primary text-white"
-                      : "bg-white text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+                <div className="flex flex-wrap text-sm text-gray-500 mb-3 gap-x-4">
+                  <span>{paper.authors.map((a) => a.name).join(", ")}</span>
+                  <span>•</span>
+                  <span>{paper.journal}</span>
+                  <span>•</span>
+                  <span>{formatDate(paper.publicationDate)}</span>
+                </div>
 
-            <button
-              onClick={() => changePage(page + 1)}
-              disabled={page === totalPages}
-              className="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </nav>
-        </div>
-      )}
+                <p className="text-gray-600 mb-4 line-clamp-2">
+                  {paper.abstract}
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {paper.keywords.map((keyword) => (
+                    <span
+                      key={keyword.id}
+                      className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full cursor-pointer hover:bg-green-100"
+                    >
+                      {keyword.name}
+                    </span>
+                  ))}
+
+                  <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                    {paper.methodologyType}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8">
+            <nav className="inline-flex rounded-md shadow">
+              <button
+                onClick={() => changePage(page - 1)}
+                disabled={page === 1}
+                className="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum = page;
+                if (page <= 3) {
+                  pageNum = i + 1;
+                } else if (page >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = page - 2 + i;
+                }
+
+                if (pageNum <= 0 || pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => changePage(pageNum)}
+                    className={`px-4 py-2 border border-gray-300 ${
+                      page === pageNum
+                        ? "bg-primary text-white"
+                        : "bg-white text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => changePage(page + 1)}
+                disabled={page === totalPages}
+                className="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </nav>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

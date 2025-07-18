@@ -376,7 +376,25 @@ export const researchAPI = {
         error: handleApiError(error)
       };
     }
-  }
+  },
+
+  /**
+   * Fetch dynamic filter options with smart keyword categorization
+   * @returns Promise with filter options data
+   */
+  fetchFilterOptions: async () => {
+    try {
+      const response = await fetchAPI('/research/filter-options/');
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Error fetching filter options:', error);
+      return { 
+        success: false, 
+        message: 'Failed to fetch filter options',
+        error: handleApiError(error)
+      };
+    }
+  },
 };
 
 /**
