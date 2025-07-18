@@ -44,6 +44,7 @@ export function HomeResearchSection() {
       const papersData = data.results || data;
 
       // Transform the data to match our frontend types
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const transformedPapers = papersData.map((paper: any) => ({
         id: paper.id,
         title: paper.title,
@@ -55,8 +56,7 @@ export function HomeResearchSection() {
         publicationYear: paper.publication_year,
         publicationDate: paper.publication_date,
         keywords: paper.keywords || [],
-        citationCount: paper.citation_count || 0,
-        citationTrend: paper.citation_trend || "stable",
+
         methodologyType: paper.methodology_type || "Unknown",
         downloadUrl: paper.download_url || "#",
         created_at: paper.created_at,

@@ -34,7 +34,7 @@ export interface ResearchPaper {
   slug?: string;
 }
 
-export type MethodologyType = 'quantitative' | 'qualitative' | 'mixed' | 'Unknown';
+export type MethodologyType = 'quantitative' | 'qualitative' | 'Literature_Review' | 'Unknown'| 'QUANTITATIVE';
 export type CitationTrend = 'increasing' | 'decreasing' | 'stable';
 
 // API request types

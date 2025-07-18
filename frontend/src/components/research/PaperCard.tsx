@@ -33,70 +33,6 @@ const PaperCard: React.FC<PaperCardProps> = ({
   };
 
   // Determine citation trend icon and color
-  const getCitationTrendIcon = () => {
-    switch (paper.citationTrend) {
-      case "increasing":
-        return (
-          <span className="inline-flex items-center text-emerald-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
-            Rising
-          </span>
-        );
-      case "decreasing":
-        return (
-          <span className="inline-flex items-center text-red-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 17H21L13 7V17Z"
-              />
-            </svg>
-            Falling
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center text-gray-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 12h14"
-              />
-            </svg>
-            Stable
-          </span>
-        );
-    }
-  };
 
   // Helper function to format publication date/year
   const formatPublicationDate = () => {
@@ -139,7 +75,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
         return "bg-blue-100 text-blue-800 border-blue-200";
       case "qualitative":
         return "bg-purple-100 text-purple-800 border-purple-200";
-      case "mixed":
+      case "Literature Review":
         return "bg-teal-100 text-teal-800 border-teal-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
@@ -263,11 +199,8 @@ const PaperCard: React.FC<PaperCardProps> = ({
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
               />
             </svg>
-            <span className="text-sm font-medium text-gray-700">
-              {paper.citationCount} citations
-            </span>
+
             <span className="mx-2 text-gray-300">|</span>
-            {getCitationTrendIcon()}
           </div>
 
           <a
