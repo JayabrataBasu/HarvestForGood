@@ -8,7 +8,7 @@ interface ImportResult {
   errors: {
     index: number;
     title: string;
-    errors: any;
+    errors: string | Record<string, string[] | string>;
   }[];
 }
 
@@ -61,7 +61,7 @@ export default function ImportPapers() {
         // Validate JSON
         JSON.parse(content);
         setError(null);
-      } catch (err) {
+      } catch {
         setError("Invalid JSON file. Please upload a valid JSON file.");
       }
     };
@@ -75,7 +75,7 @@ export default function ImportPapers() {
         JSON.parse(e.target.value);
         setError(null);
       }
-    } catch (err) {
+    } catch {
       setError("Invalid JSON format. Please check your input.");
     }
   };
@@ -111,7 +111,12 @@ export default function ImportPapers() {
           }
 
           // Ensure each author has at least a name property
-          paper.authors = paper.authors.map((author: any) => {
+          interface Author {
+            name: string;
+            affiliation?: string;
+            email?: string;
+          }
+          paper.authors = paper.authors.map((author: Author | string) => {
             if (typeof author === "string") {
               return { name: author };
             }
@@ -154,8 +159,12 @@ export default function ImportPapers() {
       }
 
       setResult(data);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred during import");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "An unexpected error occurred during import");
+      } else {
+        setError("An unexpected error occurred during import");
+      }
     } finally {
       setUploading(false);
     }

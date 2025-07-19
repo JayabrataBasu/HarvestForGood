@@ -17,8 +17,23 @@ interface FilterOptions {
 
 interface DynamicFilterPanelProps {
   filterOptions: FilterOptions;
-  onFilterApply: (filters: any) => void;
-  currentFilters: any;
+  onFilterApply: (
+    filters: Partial<{
+      year_from: number;
+      year_to: number;
+      methodology_type: string[];
+      keyword: string[];
+      regions: string[];
+    }>
+  ) => void;
+  currentFilters: Partial<{
+    year_from: number;
+    year_to: number;
+    methodology_type: string[];
+    keyword: string[];
+    regions: string[];
+    expandedSections: string[];
+  }>;
 }
 
 const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
@@ -76,7 +91,11 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
 
   // Replace handleYearChange to handle direct input
   const handleYearInputChange = (type: "start" | "end", value: string) => {
-    const year = parseInt(value) || filterOptions.year_range[type];
+    const year =
+      parseInt(value) ||
+      (type === "start"
+        ? filterOptions.year_range.min
+        : filterOptions.year_range.max);
     setFilters((prev) => ({
       ...prev,
       yearRange: {
@@ -117,7 +136,13 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
   };
 
   const applyFilters = () => {
-    const apiFilters: any = {};
+    const apiFilters: Partial<{
+      year_from: number;
+      year_to: number;
+      methodology_type: string[];
+      keyword: string[];
+      regions: string[];
+    }> = {};
 
     if (filters.yearRange.start !== filterOptions.year_range.min) {
       apiFilters.year_from = filters.yearRange.start;
