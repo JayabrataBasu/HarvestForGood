@@ -24,17 +24,16 @@ export default function ForumPost({
   isGuest = false,
 }: ForumPostProps) {
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
-  const [likesCount, setLikesCount] = useState(0); // You'll need to pass this as a prop
+  const [likesCount, setLikesCount] = useState(0);
 
   const formattedDate = new Date(createdAt);
   const timeAgo = formatDistanceToNow(formattedDate, { addSuffix: true });
 
-  // Truncate content if it's too long
   const truncatedContent =
     content.length > 250 ? content.slice(0, 250) + "..." : content;
 
   const handleQuickLike = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation to post
+    e.preventDefault();
     e.stopPropagation();
 
     if (isLikeAnimating) return;
@@ -42,7 +41,6 @@ export default function ForumPost({
     setIsLikeAnimating(true);
     setLikesCount((prev) => prev + 1);
 
-    // Simple animation without API call for now
     setTimeout(() => {
       setIsLikeAnimating(false);
     }, 600);
@@ -50,7 +48,7 @@ export default function ForumPost({
 
   return (
     <>
-      {/* Add CSS animations */}
+      {/* Enhanced CSS animations with farm theme */}
       <style jsx>{`
         @keyframes miniHeartPop {
           0% {
@@ -75,6 +73,17 @@ export default function ForumPost({
           }
         }
 
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .mini-heart-pop {
           animation: miniHeartPop 0.3s ease-out;
         }
@@ -82,12 +91,16 @@ export default function ForumPost({
         .mini-float {
           animation: miniFloat 0.6s ease-out forwards;
         }
+
+        .fade-in {
+          animation: fadeIn 0.5s ease-out;
+        }
       `}</style>
 
-      <article className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+      <article className="bg-gradient-to-br from-[#FEFBE9] to-[#F1F9DC] rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] overflow-hidden border border-[#EDE9D4] border-l-4 border-l-[#A4C46F] fade-in">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">
+            <h2 className="text-xl font-semibold text-[#2E382E] hover:text-[#3D9A50] transition-colors">
               <Link href={`/forums/posts/${id}`}>{title}</Link>
             </h2>
             {tags && tags.length > 0 && (
@@ -95,7 +108,7 @@ export default function ForumPost({
                 {tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#A0C49D] text-white shadow-sm"
                   >
                     {tag}
                   </span>
@@ -104,9 +117,11 @@ export default function ForumPost({
             )}
           </div>
 
-          <p className="text-gray-600 mb-4">{truncatedContent}</p>
+          <p className="text-[#4B4B3B] mb-4 leading-relaxed">
+            {truncatedContent}
+          </p>
 
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-[#5A6E3A]">
             <div className="flex items-center">
               <span className="flex items-center">
                 <span className="mr-1">By</span>
@@ -115,18 +130,20 @@ export default function ForumPost({
                 </span>
                 {isGuest && <span className="ml-1 text-xs">(Guest)</span>}
               </span>
-              <span className="mx-2">•</span>
-              <time dateTime={createdAt}>{timeAgo}</time>
+              <span className="mx-2 text-[#A0C49D]">•</span>
+              <time dateTime={createdAt} className="italic">
+                {timeAgo}
+              </time>
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Quick like button */}
+              {/* Enhanced quick like button */}
               <button
                 onClick={handleQuickLike}
                 className={`
-                  flex items-center space-x-1 text-gray-400 hover:text-red-500 
-                  transition-colors duration-200 relative
-                  ${isLikeAnimating ? "text-red-500" : ""}
+                  flex items-center space-x-1 text-[#A0C49D] hover:text-[#78B86B] 
+                  transition-all duration-200 relative px-2 py-1 rounded-lg hover:bg-white/50
+                  ${isLikeAnimating ? "text-[#78B86B]" : ""}
                 `}
               >
                 <div className="relative">
@@ -138,18 +155,17 @@ export default function ForumPost({
                     {isLikeAnimating ? "❤️" : "🤍"}
                   </span>
 
-                  {/* Mini floating heart */}
                   {isLikeAnimating && (
                     <span className="absolute top-0 left-0 mini-float">❤️</span>
                   )}
                 </div>
-                <span className="text-xs">{likesCount}</span>
+                <span className="text-xs font-medium">{likesCount}</span>
               </button>
 
-              {/* Comments link */}
+              {/* Enhanced comments link */}
               <Link href={`/forums/posts/${id}`}>
-                <span className="flex items-center text-primary hover:text-primary-dark">
-                  <span>{commentCount}</span>
+                <span className="flex items-center text-[#3D9A50] hover:text-[#368442] transition-colors px-2 py-1 rounded-lg hover:bg-white/50">
+                  <span className="font-medium">{commentCount}</span>
                   <span className="ml-1">
                     {commentCount === 1 ? "comment" : "comments"}
                   </span>
