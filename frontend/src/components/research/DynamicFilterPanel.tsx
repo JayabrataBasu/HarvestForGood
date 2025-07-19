@@ -1,23 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface FilterOptions {
   methodology_types: string[];
   year_range: { min: number; max: number };
   years_available: number[];
-  region_keywords: Array<{ id: string; name: string }>;
-  general_keywords: Array<{ id: string; name: string }>;
+  region_keywords: Array<{ id: number; name: string }>;
+  general_keywords: Array<{ id: number; name: string }>;
   keyword_categories: Array<{
-    id: string;
+    id: number;
     name: string;
     description: string;
-    keywords: Array<{ id: string; name: string }>;
+    keywords: Array<{ id: number; name: string }>;
   }>;
-  stats: {
-    total_papers: number;
-    total_regions: number;
-    total_general_keywords: number;
-  };
 }
 
 interface DynamicFilterPanelProps {
@@ -26,216 +21,293 @@ interface DynamicFilterPanelProps {
   currentFilters: any;
 }
 
-export default function DynamicFilterPanel({
+const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
   filterOptions,
   onFilterApply,
   currentFilters,
-}: DynamicFilterPanelProps) {
-  const [filters, setFilters] = useState({
-    year_from: currentFilters.year_from || null,
-    year_to: currentFilters.year_to || null,
-    methodology_type: currentFilters.methodology_type || [],
-    keywords: currentFilters.keyword || [],
+}) => {
+  interface FiltersState {
+    yearRange: { start: number; end: number };
+    methodology_types: string[];
+    keywords: string[];
+    regions: string[];
+    searchTerm: string;
+  }
+
+  const [filters, setFilters] = useState<FiltersState>({
+    yearRange: {
+      start: filterOptions.year_range.min,
+      end: filterOptions.year_range.max,
+    },
+    methodology_types: [],
+    keywords: [],
     regions: [],
-    q: currentFilters.q || "",
+    searchTerm: "",
   });
 
-  const [expandedSections, setExpandedSections] = useState({
-    methodology: true,
-    regions: false,
-    keywords: false,
-  });
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    currentFilters.expandedSections || ["years", "methodology"]
+  );
 
-  const [keywordSearch, setKeywordSearch] = useState("");
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      yearRange: {
+        start: currentFilters.year_from || filterOptions.year_range.min,
+        end: currentFilters.year_to || filterOptions.year_range.max,
+      },
+      methodology_types: currentFilters.methodology_type || [],
+      keywords: currentFilters.keyword || [],
+      regions: currentFilters.regions || [],
+    }));
+  }, [
+    currentFilters,
+    filterOptions.year_range.min,
+    filterOptions.year_range.max,
+  ]);
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
+    setExpandedSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((s) => s !== section)
+        : [...prev, section]
+    );
+  };
+
+  // Replace handleYearChange to handle direct input
+  const handleYearInputChange = (type: "start" | "end", value: string) => {
+    const year = parseInt(value) || filterOptions.year_range[type];
+    setFilters((prev) => ({
       ...prev,
-      [section]: !prev[section],
+      yearRange: {
+        ...prev.yearRange,
+        [type]: Math.max(
+          filterOptions.year_range.min,
+          Math.min(year, filterOptions.year_range.max)
+        ),
+      },
     }));
   };
 
-  const handleMethodologyChange = (methodology: string) => {
-    setFilters((prev) => {
-      const current = Array.isArray(prev.methodology_type)
-        ? prev.methodology_type
-        : [];
-      const updated = current.includes(methodology)
-        ? current.filter((m) => m !== methodology)
-        : [...current, methodology];
-      return { ...prev, methodology_type: updated };
-    });
+  const handleMethodologyToggle = (methodology: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      methodology_types: prev.methodology_types.includes(methodology)
+        ? prev.methodology_types.filter((m) => m !== methodology)
+        : [...prev.methodology_types, methodology],
+    }));
   };
 
-  const handleKeywordChange = (keyword: string) => {
-    setFilters((prev) => {
-      const current = Array.isArray(prev.keywords) ? prev.keywords : [];
-      const updated = current.includes(keyword)
-        ? current.filter((k) => k !== keyword)
-        : [...current, keyword];
-      return { ...prev, keywords: updated };
-    });
+  const handleKeywordToggle = (keyword: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      keywords: prev.keywords.includes(keyword)
+        ? prev.keywords.filter((k) => k !== keyword)
+        : [...prev.keywords, keyword],
+    }));
   };
 
-  const handleRegionChange = (region: string) => {
-    setFilters((prev) => {
-      const current = Array.isArray(prev.regions) ? prev.regions : [];
-      const updated = current.includes(region)
-        ? current.filter((r) => r !== region)
-        : [...current, region];
-      return { ...prev, regions: updated };
-    });
+  const handleRegionToggle = (region: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      regions: prev.regions.includes(region)
+        ? prev.regions.filter((r) => r !== region)
+        : [...prev.regions, region],
+    }));
   };
 
   const applyFilters = () => {
     const apiFilters: any = {};
 
-    if (filters.q) apiFilters.q = filters.q;
-    if (filters.year_from) apiFilters.year_from = filters.year_from;
-    if (filters.year_to) apiFilters.year_to = filters.year_to;
-    if (filters.methodology_type.length > 0)
-      apiFilters.methodology_type = filters.methodology_type;
-
-    // Combine keywords and regions for the keyword filter
-    const allKeywords = [...filters.keywords, ...filters.regions];
-    if (allKeywords.length > 0) apiFilters.keyword = allKeywords;
+    if (filters.yearRange.start !== filterOptions.year_range.min) {
+      apiFilters.year_from = filters.yearRange.start;
+    }
+    if (filters.yearRange.end !== filterOptions.year_range.max) {
+      apiFilters.year_to = filters.yearRange.end;
+    }
+    if (filters.methodology_types.length > 0) {
+      apiFilters.methodology_type = filters.methodology_types;
+    }
+    if (filters.keywords.length > 0) {
+      apiFilters.keyword = filters.keywords;
+    }
+    if (filters.regions.length > 0) {
+      apiFilters.keyword = [...(apiFilters.keyword || []), ...filters.regions];
+    }
 
     onFilterApply(apiFilters);
   };
 
   const resetFilters = () => {
     setFilters({
-      year_from: null,
-      year_to: null,
-      methodology_type: [],
+      yearRange: {
+        start: filterOptions.year_range.min,
+        end: filterOptions.year_range.max,
+      },
+      methodology_types: [],
       keywords: [],
       regions: [],
-      q: "",
+      searchTerm: "",
     });
-    setKeywordSearch("");
     onFilterApply({});
   };
 
-  const getFilteredKeywords = () => {
-    if (!keywordSearch.trim()) return filterOptions.general_keywords;
-
-    return filterOptions.general_keywords.filter((keyword) =>
-      keyword.name.toLowerCase().includes(keywordSearch.toLowerCase())
-    );
-  };
+  const filteredKeywords = filterOptions.general_keywords.filter((keyword) =>
+    keyword.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-        <p className="text-sm text-gray-500 mt-1">
-          {filterOptions.stats.total_papers} papers available
-        </p>
+    <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+        <button
+          onClick={resetFilters}
+          className="text-sm text-red-600 hover:text-red-800"
+        >
+          Reset All
+        </button>
       </div>
 
-      <div className="p-4 space-y-6">
-        {/* Year Range Filter */}
-        <div>
-          <h4 className="font-medium text-gray-900 mb-3">
-            Year of Publication
-          </h4>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <select
-                value={filters.year_from || ""}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    year_from: e.target.value ? parseInt(e.target.value) : null,
-                  }))
-                }
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">From</option>
-                {filterOptions.years_available.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={filters.year_to || ""}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    year_to: e.target.value ? parseInt(e.target.value) : null,
-                  }))
-                }
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">To</option>
-                {filterOptions.years_available.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+      {/* Year Range Slider */}
+      <div className="space-y-3">
+        <button
+          onClick={() => toggleSection("years")}
+          className="flex justify-between items-center w-full text-left"
+        >
+          <h3 className="font-medium text-gray-900">Year of Publication</h3>
+          <svg
+            className={`h-5 w-5 transition-transform ${
+              expandedSections.includes("years") ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+
+        {expandedSections.includes("years") && (
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              <div className="flex flex-col">
+                <label
+                  htmlFor="year-start"
+                  className="text-sm text-gray-700 mb-1"
+                >
+                  From Year
+                </label>
+                <input
+                  id="year-start"
+                  type="number"
+                  min={filterOptions.year_range.min}
+                  max={filterOptions.year_range.max}
+                  value={filters.yearRange.start}
+                  onChange={(e) =>
+                    handleYearInputChange("start", e.target.value)
+                  }
+                  className="px-3 py-2 border border-gray-300 rounded-md w-28"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label
+                  htmlFor="year-end"
+                  className="text-sm text-gray-700 mb-1"
+                >
+                  To Year
+                </label>
+                <input
+                  id="year-end"
+                  type="number"
+                  min={filterOptions.year_range.min}
+                  max={filterOptions.year_range.max}
+                  value={filters.yearRange.end}
+                  onChange={(e) => handleYearInputChange("end", e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md w-28"
+                />
+              </div>
             </div>
-            <div className="text-xs text-gray-500">
-              Available: {filterOptions.year_range.min} -{" "}
-              {filterOptions.year_range.max}
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{filterOptions.year_range.min}</span>
+              <span>{filterOptions.year_range.max}</span>
             </div>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Methodology Types */}
-        <div>
-          <button
-            onClick={() => toggleSection("methodology")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-900 mb-3"
+      {/* Methodology Types */}
+      <div className="space-y-3">
+        <button
+          onClick={() => toggleSection("methodology")}
+          className="flex justify-between items-center w-full text-left"
+        >
+          <h3 className="font-medium text-gray-900">Methodology Types</h3>
+          <svg
+            className={`h-5 w-5 transition-transform ${
+              expandedSections.includes("methodology") ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <span>Data Type</span>
-            <span className="text-gray-400">
-              {expandedSections.methodology ? "−" : "+"}
-            </span>
-          </button>
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
 
-          {expandedSections.methodology && (
-            <div className="space-y-2">
-              {filterOptions.methodology_types.map((methodology) => (
-                <label
-                  key={methodology}
-                  className="flex items-center space-x-2"
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.methodology_type.includes(methodology)}
-                    onChange={() => handleMethodologyChange(methodology)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{methodology}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+        {expandedSections.includes("methodology") && (
+          <div className="space-y-2">
+            {filterOptions.methodology_types.map((methodology) => (
+              <label key={methodology} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.methodology_types.includes(methodology)}
+                  onChange={() => handleMethodologyToggle(methodology)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{methodology}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Regions */}
-        <div>
+      {/* Regions */}
+      {filterOptions.region_keywords.length > 0 && (
+        <div className="space-y-3">
           <button
             onClick={() => toggleSection("regions")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-900 mb-3"
+            className="flex justify-between items-center w-full text-left"
           >
-            <span>Region ({filterOptions.stats.total_regions})</span>
-            <span className="text-gray-400">
-              {expandedSections.regions ? "−" : "+"}
-            </span>
+            <h3 className="font-medium text-gray-900">Regions</h3>
+            <svg
+              className={`h-5 w-5 transition-transform ${
+                expandedSections.includes("regions") ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
           </button>
 
-          {expandedSections.regions && (
+          {expandedSections.includes("regions") && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {filterOptions.region_keywords.map((region) => (
                 <label key={region.id} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={filters.regions.includes(region.name)}
-                    onChange={() => handleRegionChange(region.name)}
+                    onChange={() => handleRegionToggle(region.name)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700">{region.name}</span>
@@ -244,124 +316,91 @@ export default function DynamicFilterPanel({
             </div>
           )}
         </div>
+      )}
 
-        {/* Keywords */}
-        <div>
-          <button
-            onClick={() => toggleSection("keywords")}
-            className="w-full flex items-center justify-between text-left font-medium text-gray-900 mb-3"
+      {/* Keywords */}
+      <div className="space-y-3">
+        <button
+          onClick={() => toggleSection("keywords")}
+          className="flex justify-between items-center w-full text-left"
+        >
+          <h3 className="font-medium text-gray-900">Keywords</h3>
+          <svg
+            className={`h-5 w-5 transition-transform ${
+              expandedSections.includes("keywords") ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <span>Keywords ({filterOptions.stats.total_general_keywords})</span>
-            <span className="text-gray-400">
-              {expandedSections.keywords ? "−" : "+"}
-            </span>
-          </button>
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
 
-          {expandedSections.keywords && (
-            <div className="space-y-3">
-              {/* Keyword search */}
-              <input
-                type="text"
-                placeholder="Search keywords..."
-                value={keywordSearch}
-                onChange={(e) => setKeywordSearch(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-
-              {/* Filtered keywords */}
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {getFilteredKeywords().map((keyword) => (
-                  <label
-                    key={keyword.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.keywords.includes(keyword.name)}
-                      onChange={() => handleKeywordChange(keyword.name)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      {keyword.name}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Selected Filters Summary */}
-        {(filters.methodology_type.length > 0 ||
-          filters.keywords.length > 0 ||
-          filters.regions.length > 0) && (
-          <div className="pt-4 border-t border-gray-200">
-            <h5 className="font-medium text-gray-900 mb-2">
-              Selected Filters:
-            </h5>
-            <div className="flex flex-wrap gap-1">
-              {filters.methodology_type.map((method) => (
-                <span
-                  key={method}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
-                  {method}
-                  <button
-                    onClick={() => handleMethodologyChange(method)}
-                    className="ml-1 text-blue-600 hover:text-blue-800"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {filters.regions.map((region) => (
-                <span
-                  key={region}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                >
-                  {region}
-                  <button
-                    onClick={() => handleRegionChange(region)}
-                    className="ml-1 text-green-600 hover:text-green-800"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {filters.keywords.map((keyword) => (
-                <span
-                  key={keyword}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                >
-                  {keyword}
-                  <button
-                    onClick={() => handleKeywordChange(keyword)}
-                    className="ml-1 text-purple-600 hover:text-purple-800"
-                  >
-                    ×
-                  </button>
-                </span>
+        {expandedSections.includes("keywords") && (
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Search keywords..."
+              value={filters.searchTerm}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, searchTerm: e.target.value }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {filteredKeywords.map((keyword) => (
+                <label key={keyword.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={filters.keywords.includes(keyword.name)}
+                    onChange={() => handleKeywordToggle(keyword.name)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{keyword.name}</span>
+                </label>
               ))}
             </div>
           </div>
         )}
-
-        {/* Action Buttons */}
-        <div className="flex space-x-3 pt-4 border-t border-gray-200">
-          <button
-            onClick={applyFilters}
-            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Apply Filters
-          </button>
-          <button
-            onClick={resetFilters}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Reset
-          </button>
-        </div>
       </div>
+
+      {/* Apply Button */}
+      <button
+        onClick={applyFilters}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+      >
+        Apply Filters
+      </button>
+
+      {/* Custom CSS for dual range slider */}
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #3b82f6;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #3b82f6;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default DynamicFilterPanel;
