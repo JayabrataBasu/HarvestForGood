@@ -129,7 +129,14 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
           <DynamicFilterPanel
             filterOptions={filterOptions}
             onFilterApply={handleFilterApply}
-            currentFilters={filters}
+            currentFilters={{
+              ...filters,
+              keyword: Array.isArray(filters.keyword)
+                ? filters.keyword
+                : filters.keyword
+                ? [filters.keyword]
+                : undefined,
+            }}
           />
         ) : (
           <div className="bg-white p-6 rounded-lg shadow">
