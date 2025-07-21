@@ -2,10 +2,20 @@ import React, { useState, useEffect } from "react";
 import {
   PaperFilterOptions,
   MethodologyType,
-  KeywordCategory,
+  // KeywordCategory, // Removed because it does not exist in the module
 } from "../../types/paper.types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
+/**
+ * Define the KeywordCategory type locally if not exported from paper.types.
+ * Adjust this definition to match the actual structure used in your app.
+ */
+type KeywordCategory = {
+  id: string;
+  name: string;
+  keywords: { id: string; name: string }[];
+};
 
 interface PaperFilterProps {
   keywordCategories: KeywordCategory[];
@@ -170,7 +180,13 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
           <h3 className="font-medium mb-2">Methodology Type</h3>
           <div className="flex flex-wrap gap-2">
             {(
-              ["qualitative", "quantitative", "mixed"] as MethodologyType[]
+              [
+                "qualitative",
+                "quantitative",
+                "mixed",
+                "literature_review",
+                "unknown",
+              ] as MethodologyType[]
             ).map((type) => (
               <button
                 key={type}
@@ -181,7 +197,9 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                     : "bg-gray-100 text-gray-800 border-gray-200"
                 } border hover:bg-opacity-80 transition-colors`}
               >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === "literature_review"
+                  ? "Literature Review"
+                  : type.charAt(0).toUpperCase() + type.slice(1)}
               </button>
             ))}
           </div>

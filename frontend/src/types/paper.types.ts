@@ -34,7 +34,7 @@ export interface ResearchPaper {
   slug?: string;
 }
 
-export type MethodologyType = 'quantitative' | 'qualitative' | 'Literature_Review' | 'Unknown'| 'QUANTITATIVE';
+export type MethodologyType = 'quantitative' | 'qualitative' | 'mixed' | 'literature_review' | 'unknown';
 export type CitationTrend = 'increasing' | 'decreasing' | 'stable';
 
 // API request types
@@ -75,7 +75,7 @@ export interface BulkImportResult {
   errors: {
     index: number;
     title: string;
-    errors: any;
+    errors: unknown;
   }[];
 }
 
@@ -105,5 +105,5 @@ export interface PaperSearchParams {
   page?: number;
   page_size?: number;
   ordering?: string;
-  [key: string]: any; // Allow additional parameters
+  [key: string]: unknown; // Allow additional parameters
 }
