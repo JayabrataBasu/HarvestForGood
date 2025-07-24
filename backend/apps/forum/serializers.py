@@ -142,7 +142,7 @@ class ForumTagSerializer(serializers.ModelSerializer):
     def get_display_name(self, obj):
         return f"#{obj.name}"
 
-class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewSet
+class ForumPostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     # Provide a safe author field for backward compatibility
     author = serializers.SerializerMethodField()
@@ -176,48 +176,36 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
         return obj.comments.count()
     
     def get_author(self, obj):
-        """Provide safe author object for backward compatibility"""
         try:
+            # If obj is a dict (e.g., during serialization of validated_data)
+            if isinstance(obj, dict):
+                author = obj.get('author', None)
+                return author.username if author else None
+            # If obj is a model instance
             if obj.author:
-                return {
-                    'id': obj.author.id,
-                    'username': getattr(obj.author, 'username', ''),
-                    'first_name': getattr(obj.author, 'first_name', '') or '',
-                    'last_name': getattr(obj.author, 'last_name', '') or '',
-                    'email': getattr(obj.author, 'email', '') or '',
-                }
-            else:
-                return {
-                    'id': None,
-                    'username': '',
-                    'first_name': '',
-                    'last_name': '',
-                    'email': '',
-                }
+                return obj.author.username
+            return None
         except Exception as e:
-            logger.error(f"Error getting author for post {obj.id}: {str(e)}")
-            return {
-                'id': None,
-                'username': '',
-                'first_name': '',
-                'last_name': '',
-                'email': '',
-            }
+            # Use getattr to avoid AttributeError on dicts
+            obj_id = getattr(obj, 'id', None) or obj.get('id', None) if isinstance(obj, dict) else None
+            logger.error(f"Error getting author for post {obj_id}: {str(e)}")
+            return None
     
     def get_author_name(self, obj):
         """Get the author name, handling both registered users and guests"""
         try:
+            # If obj is a dict (e.g., during serialization of validated_data)
+            if isinstance(obj, dict):
+                author = obj.get('author', None)
+                return author.username if author else None
+            # If obj is a model instance
             if obj.author:
-                first_name = getattr(obj.author, 'first_name', '') or ''
-                last_name = getattr(obj.author, 'last_name', '') or ''
-                full_name = f"{first_name} {last_name}".strip()
-                return full_name if full_name else getattr(obj.author, 'username', 'Anonymous')
-            elif hasattr(obj, 'guest_name') and obj.guest_name:
-                return obj.guest_name
-            return "Anonymous"
+                return obj.author.username
+            return None
         except Exception as e:
-            logger.error(f"Error getting author name for post {obj.id}: {str(e)}")
-            return "Anonymous"
+            obj_id = obj.get('id', None) if isinstance(obj, dict) else getattr(obj, 'id', None)
+            logger.error(f"Error getting author name for post {obj_id}: {str(e)}")
+            return None
     
     def get_author_details(self, obj):
         """Provide safe author details for frontend"""
@@ -273,14 +261,18 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
             return obj.is_liked_by_guest(guest_identifier)
     
     def create(self, validated_data):
-        """Create post with tags"""
         tag_names = validated_data.pop('tag_names', [])
-        post = super().create(validated_data)
-        
-        if tag_names:
-            post.add_tags(tag_names)
-        
-        return post
+        try:
+            post = ForumPost.objects.create(**validated_data)
+            tags = []
+            for name in tag_names:
+                tag, _ = ForumTag.objects.get_or_create(name=name)
+                tags.append(tag)
+            post.tags.set(tags)
+            return post
+        except Exception as e:
+            logger.error(f"Error creating ForumPost: {str(e)}")
+            raise serializers.ValidationError("Failed to create forum post.")
     
     def update(self, instance, validated_data):
         """Update post and handle tag changes"""
@@ -292,11 +284,9 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
         # Handle tag updates if provided
         if tag_names is not None:
             # Remove old tags
-            old_tags = list(instance.get_tag_names())
-            instance.remove_tags(old_tags)
-            
+            instance.tags.clear()
             # Add new tags
-            instance.add_tags(tag_names)
+            instance.tags.set(tag_names)
         
         return post
 
@@ -331,15 +321,17 @@ class GuestCommentSerializer(serializers.ModelSerializer):
     guest_affiliation = serializers.CharField(max_length=100, required=True)
     guest_email = serializers.EmailField(required=False, allow_blank=True)
     post_id = serializers.IntegerField(required=True)
-    
+
     class Meta:
         model = Comment
-        fields = ('id', 'post_id', 'content', 'guest_name', 'guest_affiliation', 
-                 'guest_email', 'created_at')
+        fields = (
+            'id', 'post_id', 'content', 'guest_name', 'guest_affiliation',
+            'guest_email', 'created_at'
+        )
         extra_kwargs = {
             'content': {'required': True, 'allow_blank': False}
         }
-    
+
     def validate_post_id(self, value):
         if not ForumPost.objects.filter(id=value).exists():
             raise serializers.ValidationError("Invalid post ID")

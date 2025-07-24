@@ -215,6 +215,13 @@ class ForumPostViewSet(viewsets.ModelViewSet):
             }
         })
     
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print(serializer.errors)  # Add this line for debugging
+            return Response(serializer.errors, status=400)
+        super().create(request, *args, **kwargs)  # Call the superclass's create method
+    
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -361,7 +368,8 @@ def create_guest_post(request):
         
         # Add tags if provided
         if tag_names:
-            post.add_tags(tag_names)
+            # After saving the post instance and having a list of tag instances:
+            post.tags.set(tag_instances)  # tag_instances is a list of ForumTag objects
         
         # Return the created post data
         return Response(
