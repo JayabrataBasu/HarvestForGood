@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import ForumPost from "../ForumPost";
 import { useAuth } from "../../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import GuestAuthModal, { GuestInfo } from "../GuestAuthModal";
+import ForumFilters from "../../../components/forum/ForumFilters";
+import Pagination from "../../../components/forum/Pagination";
 
 interface Post {
   id: string;
@@ -17,48 +19,47 @@ interface Post {
   guest_affiliation?: string;
   created_at: string;
   comments_count: number;
-  tags?: string[];
+  tags?: Array<{ name: string; usage_count: number }>;
 }
 
-// Improved fetch function with better error handling
-const fetchPosts = async (): Promise<Post[]> => {
-  try {
-    // Use consistent singular form
-    const response = await fetch(`${API_BASE_URL}/forum/posts/`);
+interface PaginationInfo {
+  current_page: number;
+  total_pages: number;
+  total_items: number;
+  has_next: boolean;
+  has_previous: boolean;
+  page_size: number;
+}
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `Failed to fetch posts: HTTP ${response.status} - ${errorText}`
-      );
-      throw new Error(`Failed to fetch posts: HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Handle different API response structures
-    if (Array.isArray(data)) {
-      return data; // Response is already an array
-    } else if (data.results && Array.isArray(data.results)) {
-      return data.results; // Response is paginated with a results array
-    } else {
-      console.error("Unexpected API response structure:", data);
-      return []; // Return empty array as fallback
-    }
-  } catch (error) {
-    console.error("Failed to fetch posts:", error);
-    return []; // Return empty array instead of throwing to avoid breaking the UI
-  }
-};
+interface ForumFilters {
+  search: string;
+  tags: string;
+  dateFrom: string;
+  dateTo: string;
+}
 
 export default function ForumPage() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    current_page: 1,
+    total_pages: 1,
+    total_items: 0,
+    has_next: false,
+    has_previous: false,
+    page_size: 10,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
   const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
+  const [filters, setFilters] = useState<ForumFilters>({
+    search: "",
+    tags: "",
+    dateFrom: "",
+    dateTo: "",
+  });
 
   // Check for existing guest info on component mount
   useEffect(() => {
@@ -75,34 +76,80 @@ export default function ForumPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const loadPosts = async () => {
+  const fetchPosts = useCallback(
+    async (page: number = 1, pageSize: number = 10) => {
       try {
         setIsLoading(true);
-        const data = await fetchPosts();
-        setPosts(data);
+
+        const params = new URLSearchParams({
+          page: page.toString(),
+          page_size: pageSize.toString(),
+        });
+
+        // Add filters to params
+        if (filters.search) params.append("search", filters.search);
+        if (filters.tags) params.append("tags", filters.tags);
+        if (filters.dateFrom) params.append("date_from", filters.dateFrom);
+        if (filters.dateTo) params.append("date_to", filters.dateTo);
+
+        const response = await fetch(`${API_BASE_URL}/forum/posts/?${params}`);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch posts: HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.results && data.pagination) {
+          setPosts(data.results);
+          setPagination(data.pagination);
+        } else if (Array.isArray(data)) {
+          // Fallback for non-paginated response
+          setPosts(data);
+          setPagination((prev) => ({ ...prev, total_items: data.length }));
+        }
+
         setError(null);
-      } catch (err) {
+      } catch (error) {
+        console.error("Failed to fetch posts:", error);
         setError("Failed to load posts. Please try again later.");
-        console.error("Error loading posts:", err);
+        setPosts([]);
       } finally {
         setIsLoading(false);
       }
-    };
+    },
+    [filters]
+  );
 
-    loadPosts();
+  useEffect(() => {
+    fetchPosts(1, pagination.page_size);
+  }, [filters, fetchPosts]);
+
+  const handleFiltersChange = useCallback((newFilters: ForumFilters) => {
+    setFilters(newFilters);
   }, []);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      fetchPosts(page, pagination.page_size);
+    },
+    [fetchPosts, pagination.page_size]
+  );
+
+  const handlePageSizeChange = useCallback(
+    (pageSize: number) => {
+      fetchPosts(1, pageSize);
+    },
+    [fetchPosts]
+  );
 
   const handleGuestAuth = (info: GuestInfo) => {
     setGuestInfo(info);
     setIsGuestUser(true);
     setShowGuestAuthModal(false);
-
-    // Store in localStorage for persistent guest session
     localStorage.setItem("guestInfo", JSON.stringify(info));
   };
 
-  // Clear guest session
   const handleClearGuestSession = () => {
     localStorage.removeItem("guestInfo");
     setGuestInfo(null);
@@ -112,12 +159,11 @@ export default function ForumPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background">
       <div className="container mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-primary-dark text-gradient mb-2">
             Forum Posts
           </h1>
           <div className="flex items-center space-x-4">
-            {/* Show authentication options for non-authenticated users */}
             {!user && !isGuestUser && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
@@ -134,7 +180,6 @@ export default function ForumPage() {
                 </Link>
               </div>
             )}
-            {/* Show guest user info if in guest mode */}
             {isGuestUser && guestInfo && (
               <div className="flex items-center gap-3">
                 <span className="text-gray-600">Hello, {guestInfo.name}!</span>
@@ -146,7 +191,6 @@ export default function ForumPage() {
                 </button>
               </div>
             )}
-            {/* Show new post button only if user is authenticated (either registered or guest) */}
             {(user || isGuestUser) && (
               <Link
                 href="/forums/posts/new"
@@ -157,20 +201,22 @@ export default function ForumPage() {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  ></path>
+                  />
                 </svg>
                 New Post
               </Link>
             )}
           </div>
         </div>
+
+        {/* Filters */}
+        <ForumFilters onFiltersChange={handleFiltersChange} />
 
         {/* Authentication banner for non-authenticated users */}
         {!user && !isGuestUser && (
@@ -211,7 +257,7 @@ export default function ForumPage() {
         ) : posts.length === 0 ? (
           <div className="text-center py-16 bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-sm">
             <p className="text-gray-600 text-lg mb-4">
-              No posts available yet.
+              No posts match your search criteria.
             </p>
             {(user || isGuestUser) && (
               <p className="mt-4">
@@ -223,49 +269,42 @@ export default function ForumPage() {
                 </Link>
               </p>
             )}
-            {!user && !isGuestUser && (
-              <div className="mt-6 space-y-4">
-                <p className="text-gray-600">
-                  <Link
-                    href="/login"
-                    className="text-primary hover:text-primary-dark font-medium"
-                  >
-                    Log in
-                  </Link>{" "}
-                  or{" "}
-                  <Link
-                    href="/register"
-                    className="text-primary hover:text-primary-dark font-medium"
-                  >
-                    Create an account
-                  </Link>{" "}
-                  to start posting, or{" "}
-                  <button
-                    onClick={() => setShowGuestAuthModal(true)}
-                    className="text-primary hover:text-primary-dark font-medium underline"
-                  >
-                    continue as guest
-                  </button>
-                </p>
-              </div>
-            )}
           </div>
         ) : (
-          <div className="space-y-8">
-            {posts.map((post) => (
-              <ForumPost
-                key={post.id}
-                id={post.id}
-                title={post.title}
-                content={post.content}
-                author={post.author_name || post.guest_name || "Anonymous"}
-                createdAt={post.created_at}
-                commentCount={post.comments_count || 0}
-                tags={post.tags}
-                isGuest={!!post.guest_name}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-8">
+              {posts.map((post) => {
+                const tagNames = post.tags?.map((tag) => tag.name) || [];
+                return (
+                  <ForumPost
+                    key={post.id}
+                    id={post.id}
+                    title={post.title}
+                    content={post.content}
+                    author={post.author_name || post.guest_name || "Anonymous"}
+                    createdAt={post.created_at}
+                    commentCount={post.comments_count || 0}
+                    tags={tagNames}
+                    isGuest={!!post.guest_name}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {pagination.total_pages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={pagination.current_page}
+                  totalPages={pagination.total_pages}
+                  totalItems={pagination.total_items}
+                  pageSize={pagination.page_size}
+                  onPageChange={handlePageChange}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -19,6 +19,30 @@ class SafeQueryMixin:
             Q(content__icontains=sanitized_query)
         )
 
+class ForumTag(models.Model):
+    """Dedicated tag model for forum posts (separate from research paper keywords)"""
+    name = models.CharField(max_length=50, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    usage_count = models.IntegerField(default=0, db_index=True)
+    
+    class Meta:
+        db_table = 'forum_tag'
+        ordering = ['-usage_count', 'name']
+    
+    def __str__(self):
+        return f"#{self.name}"
+    
+    def increment_usage(self):
+        """Increment usage count"""
+        self.usage_count += 1
+        self.save(update_fields=['usage_count'])
+    
+    def decrement_usage(self):
+        """Decrement usage count (when tag is removed from a post)"""
+        if self.usage_count > 0:
+            self.usage_count -= 1
+            self.save(update_fields=['usage_count'])
+
 class ForumPost(SafeQueryMixin, models.Model):
     title = models.CharField(
         max_length=200, 
@@ -43,6 +67,14 @@ class ForumPost(SafeQueryMixin, models.Model):
     guest_affiliation = models.CharField(max_length=100, null=True, blank=True)
     guest_email = models.EmailField(null=True, blank=True)
 
+    # Add tags field
+    tags = models.ManyToManyField(
+        ForumTag,
+        related_name='posts',
+        blank=True,
+        through='ForumPostTag'
+    )
+    
     def get_likes_count(self):
         """Get the actual count of likes for this post"""
         return self.post_likes.count()
@@ -190,3 +222,13 @@ class Like(models.Model):
         content = self.post or self.comment
         liker = self.user.username if self.user else (self.guest_name or "Guest")
         return f"Like by {liker} on {content}"
+
+class ForumPostTag(models.Model):
+    """Through model for post-tag relationship with timestamp"""
+    post = models.ForeignKey(ForumPost, on_delete=models.CASCADE)
+    tag = models.ForeignKey(ForumTag, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'forum_post_tag'
+        unique_together = ('post', 'tag')

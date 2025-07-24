@@ -11,6 +11,9 @@ interface ForumPostProps {
   commentCount: number;
   tags?: string[];
   isGuest?: boolean;
+  // Add these props for comment preview
+  latestCommentSnippet?: string;
+  latestCommenter?: string;
 }
 
 function extractUrls(text: string): string[] {
@@ -57,6 +60,8 @@ export default function ForumPost({
   commentCount,
   tags,
   isGuest = false,
+  latestCommentSnippet,
+  latestCommenter,
 }: ForumPostProps) {
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -143,14 +148,17 @@ export default function ForumPost({
                 {title}
               </Link>
             </h2>
+
+            {/* Tags Display */}
             {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 ml-4">
                 {tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#A0C49D] text-white shadow-sm"
+                    className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full shadow-sm hover:bg-green-200 transition-colors"
+                    title={`#${tag} tag`}
                   >
-                    {tag}
+                    #{tag}
                   </span>
                 ))}
               </div>
@@ -160,6 +168,16 @@ export default function ForumPost({
           <p className="text-[#4B4B3B] mb-4 leading-relaxed">
             {linkify(truncatedContent)}
           </p>
+
+          {/* Latest comment preview */}
+          {latestCommentSnippet && (
+            <div className="mb-3 px-3 py-2 bg-[#F6F8ED] border-l-4 border-[#A0C49D] rounded text-sm text-[#5A6E3A]">
+              <span className="font-semibold">
+                {latestCommenter ? latestCommenter : "Latest comment"}:
+              </span>{" "}
+              <span className="italic">{latestCommentSnippet}</span>
+            </div>
+          )}
 
           {/* Link preview cards */}
           {urls.length > 0 && (
