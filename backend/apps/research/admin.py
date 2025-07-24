@@ -6,6 +6,7 @@ from django.db.models import DateField
 from .models import ResearchPaper, Author, Keyword
 from django.core.validators import RegexValidator
 from django.utils import timezone
+from django.contrib import messages
 
 class ResearchPaperAdminForm(forms.ModelForm):
     """
@@ -149,8 +150,18 @@ class AuthorAdmin(admin.ModelAdmin):
     search_fields = ['name', 'affiliation']
         
     def save_model(self, request, obj, form, change):
-        if not change:  # Only for new objects
-            obj.created_at = timezone.now()
+        # Prevent saving if affiliation is missing
+        if not obj.affiliation:
+            messages.error(request, "Affiliation is required and cannot be blank.")
+            raise ValidationError("Affiliation is required and cannot be blank.")
+
+        # Prevent duplicate (name, affiliation)
+        if not change:
+            model = type(obj)
+            if model.objects.filter(name=obj.name, affiliation=obj.affiliation).exists():
+                messages.error(request, f"Author with name '{obj.name}' and affiliation '{obj.affiliation}' already exists.")
+                raise ValidationError(f"Author with name '{obj.name}' and affiliation '{obj.affiliation}' already exists.")
+
         obj.updated_at = timezone.now()
         super().save_model(request, obj, form, change)
     
