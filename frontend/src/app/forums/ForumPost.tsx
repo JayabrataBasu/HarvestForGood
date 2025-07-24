@@ -35,7 +35,7 @@ function linkify(text: string): React.ReactNode[] {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 underline break-all hover:text-blue-800"
+        className="text-blue-600 underline break-all hover:text-blue-800 pointer-events-auto"
       >
         {url}
       </a>
@@ -134,11 +134,14 @@ export default function ForumPost({
         }
       `}</style>
 
-      <article className="bg-gradient-to-br from-[#FEFBE9] to-[#F1F9DC] rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] overflow-hidden border border-[#EDE9D4] border-l-4 border-l-[#A4C46F] fade-in">
+      <article className="modern-card fade-in">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-semibold text-[#2E382E] hover:text-[#3D9A50] transition-colors">
-              <Link href={`/forums/posts/${id}`}>{title}</Link>
+              {/* Use Link without legacyBehavior and <a> */}
+              <Link href={`/forums/posts/${id}`} tabIndex={0}>
+                {title}
+              </Link>
             </h2>
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap gap-2">

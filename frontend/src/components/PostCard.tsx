@@ -89,7 +89,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const urls = extractUrls(post.content);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow duration-200">
+    <div className="modern-card p-6 mb-4 hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-2">

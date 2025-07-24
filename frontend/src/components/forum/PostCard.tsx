@@ -106,7 +106,7 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
         }
       `}</style>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6 transition-all hover:shadow-lg">
+      <div className="modern-card">
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
           <div className="flex items-center text-gray-500 text-sm">
             <span className="mr-4 flex items-center">
