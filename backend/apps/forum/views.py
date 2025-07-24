@@ -3,10 +3,14 @@ from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import ForumPost, Comment, Like
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.utils.dateparse import parse_date
+from .models import ForumPost, Comment, Like, ForumTag
 from .serializers import (
     ForumPostSerializer, CommentSerializer, 
-    GuestPostSerializer, GuestCommentSerializer
+    GuestPostSerializer, GuestCommentSerializer,
+    ForumTagSerializer
 )
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 import logging
@@ -131,6 +135,86 @@ class ForumPostViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    def get_queryset(self):
+        """Enhanced queryset with search, tag filtering, and date filtering"""
+        queryset = ForumPost.objects.all().prefetch_related('tags', 'comments')
+        
+        # Search functionality
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            # Case sensitive search
+            queryset = queryset.filter(
+                Q(title__contains=search) | 
+                Q(content__contains=search)
+            )
+        
+        # Tag filtering (exact match, all tags must be present)
+        tag_search = self.request.query_params.get('tags', '').strip()
+        if tag_search:
+            # Parse hashtags from search
+            tag_names = []
+            for tag in tag_search.split():
+                clean_tag = tag.strip().lower().lstrip('#')
+                if clean_tag:
+                    tag_names.append(clean_tag)
+            
+            if tag_names:
+                # Posts must have ALL specified tags
+                for tag_name in tag_names:
+                    queryset = queryset.filter(tags__name=tag_name)
+        
+        # Date filtering
+        date_from = self.request.query_params.get('date_from')
+        date_to = self.request.query_params.get('date_to')
+        
+        if date_from:
+            try:
+                from_date = parse_date(date_from)
+                if from_date:
+                    queryset = queryset.filter(created_at__gte=from_date)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                to_date = parse_date(date_to)
+                if to_date:
+                    queryset = queryset.filter(created_at__lte=to_date)
+            except ValueError:
+                pass
+        
+        return queryset.distinct().order_by('-created_at')
+    
+    def list(self, request, *args, **kwargs):
+        """Override list to add pagination"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Pagination
+        page_size = int(request.query_params.get('page_size', 10))
+        page_size = min(max(page_size, 1), 50)  # Limit between 1 and 50
+        
+        paginator = Paginator(queryset, page_size)
+        page_number = request.query_params.get('page', 1)
+        
+        try:
+            page_obj = paginator.get_page(page_number)
+        except Exception:
+            page_obj = paginator.get_page(1)
+        
+        serializer = self.get_serializer(page_obj, many=True)
+        
+        return Response({
+            'results': serializer.data,
+            'pagination': {
+                'current_page': page_obj.number,
+                'total_pages': paginator.num_pages,
+                'total_items': paginator.count,
+                'has_next': page_obj.has_next(),
+                'has_previous': page_obj.has_previous(),
+                'page_size': page_size
+            }
+        })
+    
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -233,25 +317,51 @@ class CommentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class ForumTagViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for forum tags - read-only for listing and searching"""
+    queryset = ForumTag.objects.all()
+    serializer_class = ForumTagSerializer
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        """Filter tags by search term"""
+        queryset = ForumTag.objects.all()
+        
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            clean_search = search.lower().lstrip('#')
+            queryset = queryset.filter(name__icontains=clean_search)
+        
+        # Only return tags with usage > 0
+        min_usage = int(self.request.query_params.get('min_usage', 0))
+        queryset = queryset.filter(usage_count__gte=min_usage)
+        
+        return queryset.order_by('-usage_count', 'name')
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_guest_post(request):
-    """Create a forum post as a guest"""
+    """Create a forum post as a guest with tags"""
     serializer = GuestPostSerializer(data=request.data)
     if serializer.is_valid():
-        # Extract guest info
+        # Extract guest info and tags
         guest_name = serializer.validated_data.pop('guest_name')
         guest_affiliation = serializer.validated_data.pop('guest_affiliation')
         guest_email = serializer.validated_data.pop('guest_email', None)
+        tag_names = request.data.get('tag_names', [])
         
-        # Create the post with guest info in the content
+        # Create the post with guest info
         post = ForumPost.objects.create(
             **serializer.validated_data,
-            author=None,  # No author for guest posts
+            author=None,
             guest_name=guest_name,
             guest_affiliation=guest_affiliation,
             guest_email=guest_email if guest_email else None
         )
+        
+        # Add tags if provided
+        if tag_names:
+            post.add_tags(tag_names)
         
         # Return the created post data
         return Response(
@@ -260,38 +370,11 @@ def create_guest_post(request):
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
-def create_guest_comment(request):
-    """Create a comment as a guest"""
-    serializer = GuestCommentSerializer(data=request.data)
-    if serializer.is_valid():
-        # Extract post_id and guest info
-        post_id = serializer.validated_data.pop('post_id')
-        guest_name = serializer.validated_data.pop('guest_name')
-        guest_affiliation = serializer.validated_data.pop('guest_affiliation')
-        guest_email = serializer.validated_data.pop('guest_email', None)
-        
-        try:
-            post = ForumPost.objects.get(id=post_id)
-            
-            # Create the comment with guest info
-            comment = Comment.objects.create(
-                post=post,
-                author=None,  # No author for guest comments
-                **serializer.validated_data,
-                guest_name=guest_name,
-                guest_affiliation=guest_affiliation,
-                guest_email=guest_email if guest_email else None
-            )
-            
-            return Response(
-                CommentSerializer(comment).data,
-                status=status.HTTP_201_CREATED
-            )
-        except ForumPost.DoesNotExist:
-            return Response(
-                {"error": "Post not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def get_popular_tags(request):
+    """Get most popular forum tags"""
+    limit = int(request.query_params.get('limit', 20))
+    tags = ForumTag.objects.filter(usage_count__gt=0)[:limit]
+    serializer = ForumTagSerializer(tags, many=True)
+    return Response(serializer.data)

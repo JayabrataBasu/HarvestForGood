@@ -11,6 +11,10 @@ interface PostCardProps {
     likes_count: number;
     is_liked: boolean;
     created_at: string;
+    // Add these fields for comment preview
+    latest_comment_snippet?: string;
+    latest_commenter?: string;
+    comment_count?: number;
   };
   currentUser?: {
     username: string;
@@ -101,6 +105,16 @@ const PostCard: React.FC<PostCardProps> = ({
 
       <p className="text-gray-700 mb-4 line-clamp-3">{linkify(post.content)}</p>
 
+      {/* Latest comment preview */}
+      {post.latest_comment_snippet && (
+        <div className="mb-3 px-3 py-2 bg-blue-50 border-l-4 border-blue-300 rounded text-sm text-blue-800">
+          <span className="font-semibold">
+            {post.latest_commenter ? post.latest_commenter : "Latest comment"}:
+          </span>{" "}
+          <span className="italic">{post.latest_comment_snippet}</span>
+        </div>
+      )}
+
       {/* Link preview cards */}
       {urls.length > 0 && (
         <div className="space-y-2 mb-4">
@@ -137,7 +151,13 @@ const PostCard: React.FC<PostCardProps> = ({
         <span className="text-sm text-gray-500">
           {new Date(post.created_at).toLocaleDateString()}
         </span>
-
+        {/* Show comment count if available */}
+        {typeof post.comment_count === "number" && (
+          <span className="text-xs text-gray-400 ml-2">
+            💬 {post.comment_count}{" "}
+            {post.comment_count === 1 ? "comment" : "comments"}
+          </span>
+        )}
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
         <TestLikeButton

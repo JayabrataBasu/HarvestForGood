@@ -1,6 +1,6 @@
 # apps/forum/serializers.py
 from rest_framework import serializers
-from .models import ForumPost, Comment, Like
+from .models import ForumPost, Comment, Like, ForumTag
 from .validators import validate_post_content, validate_title
 import logging
 
@@ -130,6 +130,18 @@ class CommentSerializer(serializers.ModelSerializer):
             'content': {'required': True, 'allow_blank': False}
         }
 
+class ForumTagSerializer(serializers.ModelSerializer):
+    """Serializer for forum tags"""
+    display_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ForumTag
+        fields = ('id', 'name', 'display_name', 'usage_count', 'created_at')
+        read_only_fields = ('usage_count', 'created_at')
+    
+    def get_display_name(self, obj):
+        return f"#{obj.name}"
+
 class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewSet
     comments = CommentSerializer(many=True, read_only=True)
     # Provide a safe author field for backward compatibility
@@ -141,6 +153,15 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
     is_liked = serializers.SerializerMethodField()
     guest_name = serializers.CharField(read_only=True, required=False, allow_null=True)
     guest_affiliation = serializers.CharField(read_only=True, required=False, allow_null=True)
+    
+    # Add tag fields
+    tags = ForumTagSerializer(many=True, read_only=True)
+    tag_names = serializers.ListField(
+        child=serializers.CharField(max_length=50),
+        write_only=True,
+        required=False,
+        allow_empty=True
+    )
     
     def validate(self, data):
         # Additional custom validation
@@ -251,11 +272,40 @@ class ForumPostSerializer(serializers.ModelSerializer):  # Fixed: was ModelViewS
             guest_identifier = request.session.session_key or request.META.get('REMOTE_ADDR')
             return obj.is_liked_by_guest(guest_identifier)
     
+    def create(self, validated_data):
+        """Create post with tags"""
+        tag_names = validated_data.pop('tag_names', [])
+        post = super().create(validated_data)
+        
+        if tag_names:
+            post.add_tags(tag_names)
+        
+        return post
+    
+    def update(self, instance, validated_data):
+        """Update post and handle tag changes"""
+        tag_names = validated_data.pop('tag_names', None)
+        
+        # Update the post
+        post = super().update(instance, validated_data)
+        
+        # Handle tag updates if provided
+        if tag_names is not None:
+            # Remove old tags
+            old_tags = list(instance.get_tag_names())
+            instance.remove_tags(old_tags)
+            
+            # Add new tags
+            instance.add_tags(tag_names)
+        
+        return post
+
     class Meta:
         model = ForumPost
         fields = ('id', 'title', 'content', 'author', 'author_name', 'author_details',
                  'created_at', 'updated_at', 'comments', 'comments_count', 
-                 'likes_count', 'is_liked', 'guest_name', 'guest_affiliation')
+                 'likes_count', 'is_liked', 'guest_name', 'guest_affiliation',
+                 'tags', 'tag_names')
         extra_kwargs = {
             'title': {'validators': [validate_title]},
             'content': {'validators': [validate_post_content]},

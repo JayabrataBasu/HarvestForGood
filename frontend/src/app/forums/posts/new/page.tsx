@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import GuestAuthModal, { GuestInfo } from "../../GuestAuthModal";
+import TagInput from "@/components/forum/TagInput";
 
 export default function NewPost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -57,7 +59,7 @@ export default function NewPost() {
       let response;
 
       if (user) {
-        // Logged-in user post creation - use consistent singular form
+        // Logged-in user post creation
         const token = localStorage.getItem("access_token");
         response = await fetch(`${API_BASE_URL}/forum/posts/`, {
           method: "POST",
@@ -65,7 +67,11 @@ export default function NewPost() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ title, content }),
+          body: JSON.stringify({
+            title,
+            content,
+            tag_names: tags,
+          }),
         });
       } else if (guestInfo) {
         // Guest post creation
@@ -80,6 +86,7 @@ export default function NewPost() {
             guest_name: guestInfo.name,
             guest_affiliation: guestInfo.affiliation,
             guest_email: guestInfo.email || "",
+            tag_names: tags,
           }),
         });
       } else {
@@ -178,6 +185,18 @@ export default function NewPost() {
                 className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
                 required
               ></textarea>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tags (Optional)
+              </label>
+              <TagInput
+                tags={tags}
+                onTagsChange={setTags}
+                placeholder="Add tags to help others find your post (e.g., #organic #soil)"
+                maxTags={8}
+              />
             </div>
 
             <div className="flex justify-end space-x-3">

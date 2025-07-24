@@ -7,3 +7,4 @@ class User(AbstractUser):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     email_verified = models.BooleanField(default=False)
+    affiliation = models.CharField(max_length=255, null=False, blank=True, default="")

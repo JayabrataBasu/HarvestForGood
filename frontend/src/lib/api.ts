@@ -68,7 +68,8 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     ...options,
     headers,
   });
-  
+
+  const contentType = response.headers.get('content-type');
   if (!response.ok) {
     // If we get a 401 Unauthorized, our token might be expired
     if (response.status === 401) {
@@ -86,12 +87,23 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
         }
       }
     }
-    
-    const errorText = await response.text();
-    throw new Error(errorText);
+
+    // Try to parse error as JSON, otherwise return text
+    if (contentType && contentType.includes('application/json')) {
+      const errorJson = await response.json();
+      throw new Error(errorJson.detail || JSON.stringify(errorJson));
+    } else {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
   }
-  
-  return response.json();
+
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  } else {
+    // Not JSON, return as text or handle accordingly
+    return response.text();
+  }
 }
 
 /**
