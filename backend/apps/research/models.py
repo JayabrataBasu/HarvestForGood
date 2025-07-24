@@ -34,7 +34,7 @@ class Keyword(models.Model):
 
 class Author(models.Model):
     name = models.CharField(max_length=100)
-    affiliation = models.CharField(max_length=255, blank=True, null=True)
+    affiliation = models.CharField(max_length=255, blank=False, null=False)
     email = models.EmailField(blank=True, null=True)
     # Replace datetime fields with simple year-only fields
     year_created = models.CharField(max_length=4, null=True, blank=True, help_text="Year when the author was added")

@@ -13,6 +13,41 @@ interface ForumPostProps {
   isGuest?: boolean;
 }
 
+function extractUrls(text: string): string[] {
+  const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
+  return Array.from(new Set(text.match(urlRegex) || []));
+}
+
+function linkify(text: string): React.ReactNode[] {
+  const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
+  const parts = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let idx = 0;
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const url = match[0];
+    parts.push(
+      <a
+        key={`url-${idx++}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline break-all hover:text-blue-800"
+      >
+        {url}
+      </a>
+    );
+    lastIndex = match.index + url.length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts;
+}
+
 export default function ForumPost({
   id,
   title,
@@ -45,6 +80,8 @@ export default function ForumPost({
       setIsLikeAnimating(false);
     }, 600);
   };
+
+  const urls = extractUrls(content);
 
   return (
     <>
@@ -118,8 +155,40 @@ export default function ForumPost({
           </div>
 
           <p className="text-[#4B4B3B] mb-4 leading-relaxed">
-            {truncatedContent}
+            {linkify(truncatedContent)}
           </p>
+
+          {/* Link preview cards */}
+          {urls.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {urls.map((url) => {
+                let domain = "";
+                try {
+                  domain = new URL(url).hostname.replace(/^www\./, "");
+                } catch {
+                  domain = url;
+                }
+                return (
+                  <div
+                    key={url}
+                    className="border border-[#A0C49D] bg-white rounded-lg px-4 py-2 flex items-center gap-3 shadow-sm"
+                  >
+                    <span className="text-xs text-[#A0C49D] font-semibold">
+                      🔗 {domain}
+                    </span>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline break-all hover:text-blue-800 text-xs"
+                    >
+                      {url}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-sm text-[#5A6E3A]">
             <div className="flex items-center">
