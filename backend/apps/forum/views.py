@@ -52,10 +52,7 @@ class ForumPostViewSet(viewsets.ModelViewSet):
             logger.info(f"Forum post created")
         except Exception as e:
             logger.error(f"Error creating forum post: {str(e)}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise serializers.ValidationError(f"Failed to create forum post: {str(e)}")
 
     @action(detail=True, methods=['post'])
     def add_comment(self, request, pk=None):
@@ -219,8 +216,12 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             print(serializer.errors)  # Add this line for debugging
-            return Response(serializer.errors, status=400)
-        super().create(request, *args, **kwargs)  # Call the superclass's create method
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Call perform_create and then return the response
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -351,26 +352,29 @@ def create_guest_post(request):
     """Create a forum post as a guest with tags"""
     serializer = GuestPostSerializer(data=request.data)
     if serializer.is_valid():
-        # Extract guest info and tags
-        guest_name = serializer.validated_data.pop('guest_name')
-        guest_affiliation = serializer.validated_data.pop('guest_affiliation')
-        guest_email = serializer.validated_data.pop('guest_email', None)
         tag_names = request.data.get('tag_names', [])
-        
-        # Create the post with guest info
+        guest_name = serializer.validated_data.get('guest_name')
+        guest_affiliation = serializer.validated_data.get('guest_affiliation')
+        guest_email = serializer.validated_data.get('guest_email', None)
+        # Remove guest fields from validated_data before creating post
+        post_data = serializer.validated_data.copy()
+        post_data.pop('guest_name', None)
+        post_data.pop('guest_affiliation', None)
+        post_data.pop('guest_email', None)
         post = ForumPost.objects.create(
-            **serializer.validated_data,
+            **post_data,
             author=None,
             guest_name=guest_name,
             guest_affiliation=guest_affiliation,
-            guest_email=guest_email if guest_email else None
+            guest_email=guest_email
         )
-        
         # Add tags if provided
         if tag_names:
-            # After saving the post instance and having a list of tag instances:
-            post.tags.set(tag_instances)  # tag_instances is a list of ForumTag objects
-        
+            tag_instances = []
+            for tag_name in tag_names:
+                tag_obj, _ = ForumTag.objects.get_or_create(name=tag_name.lower().lstrip('#'))
+                tag_instances.append(tag_obj)
+            post.tags.set(tag_instances)
         # Return the created post data
         return Response(
             ForumPostSerializer(post).data,
