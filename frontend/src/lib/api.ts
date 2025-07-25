@@ -213,21 +213,22 @@ export const researchAPI = {
    * @param data Paper data including authors and keywords
    * @returns Promise with the created paper
    */
-  createPaper: async (data: any) => {
+  createPaper: async (data: unknown) => {
     try {
       // Ensure methodology_type is never empty
-      if (!data.methodology_type) {
-        data.methodology_type = 'mixed'; // Default value
+      const paperData = data as { methodology_type?: string; authors?: { name?: string }[]; [key: string]: unknown };
+      if (!paperData.methodology_type) {
+        paperData.methodology_type = 'mixed'; // Default value
       }
       
       // Format authors correctly
-      if (data.authors && Array.isArray(data.authors)) {
-        data.authors = data.authors.filter(author => author.name && author.name.trim() !== '');
+      if (paperData.authors && Array.isArray(paperData.authors)) {
+        paperData.authors = paperData.authors.filter(author => author.name && author.name.trim() !== '');
       }
       
       const response = await fetchAPI('/research/papers/', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: JSON.stringify(paperData)
       });
       
       return { success: true, data: response };
@@ -247,21 +248,22 @@ export const researchAPI = {
    * @param data Updated paper data
    * @returns Promise with the updated paper
    */
-  updatePaper: async (idOrSlug: string, data: any) => {
+  updatePaper: async (idOrSlug: string, data: unknown) => {
     try {
       // Ensure methodology_type is never empty
-      if (!data.methodology_type) {
-        data.methodology_type = 'mixed'; // Default value
+      const paperData = data as { methodology_type?: string; authors?: { name?: string }[]; [key: string]: unknown };
+      if (!paperData.methodology_type) {
+        paperData.methodology_type = 'mixed'; // Default value
       }
       
       // Format authors correctly
-      if (data.authors && Array.isArray(data.authors)) {
-        data.authors = data.authors.filter(author => author.name && author.name.trim() !== '');
+      if (paperData.authors && Array.isArray(paperData.authors)) {
+        paperData.authors = paperData.authors.filter(author => author.name && author.name.trim() !== '');
       }
       
       const response = await fetchAPI(`/research/papers/${idOrSlug}/`, {
         method: 'PUT',
-        body: JSON.stringify(data)
+        body: JSON.stringify(paperData)
       });
       
       return { success: true, data: response };
@@ -302,7 +304,7 @@ export const researchAPI = {
    * @param papers Array of paper objects to import
    * @returns Promise with import results
    */
-  bulkImportPapers: async (papers: any[]) => {
+  bulkImportPapers: async (papers: unknown[]) => {
     try {
       const response = await fetchAPI('/research/papers/bulk-import/', {
         method: 'POST',
@@ -441,5 +443,4 @@ export async function getPaperById(paperId: string): Promise<ResearchPaper> {
   }
 }
 
-// Re-export from utils/api.ts for consistency
-export * from '../utils/api';
+// Removed re-export from utils/api.ts because it is not a module

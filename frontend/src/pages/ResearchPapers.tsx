@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { PaperGrid } from "../components/research/PaperGrid";
-import { Paper, Keyword } from "../types/paper.types";
+// Update the import to match the actual exports from paper.types
+import { Keyword, ResearchPaper } from "../types/paper.types";
 import { researchAPI } from "../lib/api";
 
 export const ResearchPapersPage: React.FC = () => {
-  const [papers, setPapers] = useState<Paper[]>([]);
+  const [papers, setPapers] = useState<ResearchPaper[]>([]);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,3 +118,4 @@ export const ResearchPapersPage: React.FC = () => {
     </div>
   );
 };
+export default ResearchPapersPage;

@@ -14,6 +14,15 @@ export interface Keyword {
   name: string;
 }
 
+export interface KeywordCategory {
+  id: string;
+  name: string;
+  description?: string;
+  keywords?: Keyword[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ResearchPaper {
   id: string;
   title: string;
@@ -32,6 +41,10 @@ export interface ResearchPaper {
   created_at?: string;
   updated_at?: string;
   slug?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  doi?: string;
 }
 
 export type MethodologyType = 'quantitative' | 'qualitative' | 'mixed' | 'literature_review' | 'unknown';

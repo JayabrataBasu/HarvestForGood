@@ -1,12 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getPaperBySlug } from "../../../../lib/api";
 import PaperDetail from "../../../../components/research/PaperDetail";
 import { ResearchPaper } from "../../../../types/paper.types";
 
-export default function PaperDetailPage() {
-  const params = useParams();
+export default function PaperDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const [slug, setSlug] = useState<string | null>(null);
   const router = useRouter();
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -14,13 +18,21 @@ export default function PaperDetailPage() {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setSlug(resolvedParams?.slug ?? null);
+    };
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
     async function loadPaper() {
-      if (!params.slug) return;
+      if (!slug) return;
 
       setIsLoading(true);
       try {
         // In a real app, this would call an API
-        const paperData = await getPaperBySlug(params.slug as string);
+        const paperData = await getPaperBySlug(slug);
         setPaper(paperData);
 
         // Check if paper is saved in localStorage
@@ -37,7 +49,7 @@ export default function PaperDetailPage() {
     }
 
     loadPaper();
-  }, [params.slug]);
+  }, [slug]);
 
   const toggleSaveStatus = () => {
     if (!paper) return;

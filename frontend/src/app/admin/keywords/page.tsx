@@ -76,11 +76,11 @@ export default function KeywordManagement() {
     // In a real app, each keyword would have a categoryId property
     // For this example, we'll assign all to uncategorized
     const categoryId = "uncategorized";
-    if (keywordsByCategory[categoryId]) {
-      keywordsByCategory[categoryId].push(keyword);
-    } else {
-      keywordsByCategory["uncategorized"].push(keyword);
+    // Ensure the array exists before pushing
+    if (!keywordsByCategory[categoryId]) {
+      keywordsByCategory[categoryId] = [];
     }
+    keywordsByCategory[categoryId].push(keyword);
   });
 
   // Handle selecting a keyword for editing

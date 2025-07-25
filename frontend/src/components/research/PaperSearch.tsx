@@ -92,9 +92,9 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
     setPage(1);
   };
 
-  const handleFilterApply = (newFilters: any) => {
+  const handleFilterApply = (newFilters: unknown) => {
     // Convert the filter UI state to API parameters
-    setFilters(newFilters);
+    setFilters(newFilters as PaperFilterParams);
     setPage(1);
   };
 
@@ -213,7 +213,11 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
                   <span>•</span>
                   <span>{paper.journal}</span>
                   <span>•</span>
-                  <span>{formatDate(paper.publicationDate)}</span>
+                  <span>
+                    {paper.publicationDate
+                      ? formatDate(new Date(paper.publicationDate))
+                      : "N/A"}
+                  </span>
                 </div>
 
                 <p className="text-gray-600 mb-4 line-clamp-2">

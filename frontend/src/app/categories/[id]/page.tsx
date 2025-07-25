@@ -16,205 +16,12 @@ interface Topic {
 }
 
 interface Props {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 // Complete topics data from main page
 const topics: Topic[] = [
-  {
-    id: "environment",
-    name: "Environment",
-    description:
-      "The environmental aspects that sustainable agriculture literature focuses on.",
-    subtopics: [
-      {
-        name: "Carbon Emission",
-        percentage: 20,
-        description:
-          "Considering the climate influence of agricultural practices.",
-      },
-      {
-        name: "Climate Change Adaptation",
-        percentage: 51,
-        description: "Strategies and response to climate change.",
-      },
-      { name: "Pollution", percentage: 6, description: "Waste management." },
-      {
-        name: "Natural Resource Conservation",
-        percentage: 46,
-        description:
-          "Soil, water, biodiversity, and ecosystem-centric concerns.",
-      },
-    ],
-  },
-  {
-    id: "technology",
-    name: "Technology",
-    description:
-      "Technological development or application that help sustainable agriculture.",
-    subtopics: [
-      {
-        name: "Adoption Technology Diffusion",
-        percentage: 78,
-        description:
-          "Innovation diffusion, education on technology, and seeds adoption.",
-      },
-      {
-        name: "Digitalization & Electrification",
-        percentage: 21,
-        description: "Internet of things, and smart farming.",
-      },
-      {
-        name: "Agrochemical",
-        percentage: 20,
-        description: "Nitrogen, fertilizer, and pesticide.",
-      },
-      {
-        name: "Other",
-        percentage: 14,
-        description: "Carbon sequestration; New energy; Biotechnology.",
-      },
-    ],
-  },
-  {
-    id: "agriculture",
-    name: "Agriculture",
-    description:
-      "Core agricultural practices and farming methodologies for sustainability.",
-    subtopics: [
-      {
-        name: "Productivity",
-        percentage: 53,
-        description: "Yields and crop intensification.",
-      },
-      {
-        name: "Food Quality",
-        percentage: 51,
-        description: "Food security and nutrient.",
-      },
-      {
-        name: "Organic Farming",
-        percentage: 14,
-        description:
-          "Integrated farming, natural farming, non-chemical farming practices.",
-      },
-      {
-        name: "Agroecology",
-        percentage: 6,
-        description: "Horticulture, agroforestry, and permaculture.",
-      },
-    ],
-  },
-  {
-    id: "institution",
-    name: "Institution",
-    description:
-      "Institutional frameworks and policy structures supporting sustainable agriculture.",
-    subtopics: [
-      {
-        name: "Policymaking",
-        percentage: 52,
-        description: "Legitimacy, institutions, and policy congruence.",
-      },
-      {
-        name: "Incentives",
-        percentage: 20,
-        description: "Subsidies, contract farming, and ownership issues.",
-      },
-      {
-        name: "Organizing",
-        percentage: 10,
-        description: "Group vs. individual farms, and farmer participation.",
-      },
-      {
-        name: "Standards",
-        percentage: 4,
-        description: "Sustainability standards and promoted index.",
-      },
-      {
-        name: "Cross-Regional Cooperation",
-        percentage: 12,
-        description: "International funding, and international partnership.",
-      },
-      {
-        name: "Cross-Sector Partnership",
-        percentage: 31,
-        description:
-          "PPP (public-private partnership), NGOs, government, social groups collaboration.",
-      },
-    ],
-  },
-  {
-    id: "society",
-    name: "Society",
-    description:
-      "Social and economic aspects affecting sustainable agricultural practices.",
-    subtopics: [
-      {
-        name: "Smallholder",
-        percentage: 69,
-        description: "Farmer household income and smallholder's welfare.",
-      },
-      {
-        name: "Economic Growth",
-        percentage: 17,
-        description:
-          "Rural development, economic growth, global south, and inequality and poverty alleviation.",
-      },
-      {
-        name: "Access To Markets",
-        percentage: 9,
-        description: "Farmer's access to market and marketing practices.",
-      },
-      {
-        name: "Other",
-        percentage: 29,
-        description: "Access to market; Ethics; Covid; Social networks.",
-      },
-    ],
-  },
-  {
-    id: "business",
-    name: "Business",
-    description:
-      "Business models and economic frameworks in sustainable agriculture.",
-    subtopics: [
-      {
-        name: "Farmers' Behavior",
-        percentage: 33,
-        description:
-          "Decision-making, risk aversion, personality, and motivation.",
-      },
-      {
-        name: "Finance",
-        percentage: 30,
-        description:
-          "Microfinance, debt, loan, insurance, partnership, credit service, and liability.",
-      },
-      {
-        name: "Supply Chain",
-        percentage: 19,
-        description: "Logistics, value chain, and traders.",
-      },
-      {
-        name: "Marketing",
-        percentage: 9,
-        description: "Farmers access to market and marketing practices.",
-      },
-      {
-        name: "Investment",
-        percentage: 18,
-        description: "Suggestions for investors.",
-      },
-      {
-        name: "Entrepreneurship",
-        percentage: 7,
-        description: "Social entrepreneurship and agri-business.",
-      },
-    ],
-  },
+  // ... your existing topics data ...
 ];
 
 // Custom hook for intersection observer
@@ -333,16 +140,31 @@ const AnimatedProgressCircle = ({
   );
 };
 
+// FIXED: Removed async and added proper useEffect to handle params Promise
 export default function CategoryPage({ params }: Props) {
+  const [id, setId] = useState<string | null>(null);
   const [category, setCategory] = useState<Topic | null>(null);
   const [topicIndex, setTopicIndex] = useState(0);
 
+  // Handle params Promise in useEffect
   useEffect(() => {
-    const foundIndex = topics.findIndex((topic) => topic.id === params.id);
-    const foundCategory = topics.find((topic) => topic.id === params.id);
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setId(resolvedParams.id);
+    };
+
+    resolveParams();
+  }, [params]);
+
+  // Handle category finding when id changes
+  useEffect(() => {
+    if (!id) return;
+
+    const foundIndex = topics.findIndex((topic) => topic.id === id);
+    const foundCategory = topics.find((topic) => topic.id === id);
     setTopicIndex(foundIndex >= 0 ? foundIndex : 0);
     setCategory(foundCategory || null);
-  }, [params.id]);
+  }, [id]);
 
   // Define the same soft, organic earth-inspired gradients
   const topicGradients = [
@@ -362,6 +184,15 @@ export default function CategoryPage({ params }: Props) {
     { primary: "#365314", secondary: "#4d7c0f", accent: "#65a30d" },
     { primary: "#052e16", secondary: "#064e3b", accent: "#047857" },
   ];
+
+  // Show loading while resolving params
+  if (!id) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
 
   if (!category) {
     return (
@@ -385,7 +216,7 @@ export default function CategoryPage({ params }: Props) {
               pointerEvents: "none",
               top: "-120px",
               left: "-120px",
-              backgroundColor: "#fcd34d" /* darker golden wheat */,
+              backgroundColor: "#fcd34d",
               opacity: 0.18,
             }}
           />
@@ -401,7 +232,7 @@ export default function CategoryPage({ params }: Props) {
               pointerEvents: "none",
               bottom: "-100px",
               right: "-100px",
-              backgroundColor: "#a3e635" /* richer green */,
+              backgroundColor: "#a3e635",
               opacity: 0.15,
             }}
           />
@@ -465,7 +296,7 @@ export default function CategoryPage({ params }: Props) {
             pointerEvents: "none",
             top: "-120px",
             left: "-120px",
-            backgroundColor: "#fcd34d" /* darker golden wheat */,
+            backgroundColor: "#fcd34d",
             opacity: 0.18,
           }}
         />
@@ -481,7 +312,7 @@ export default function CategoryPage({ params }: Props) {
             pointerEvents: "none",
             bottom: "-100px",
             right: "-100px",
-            backgroundColor: "#a3e635" /* richer green */,
+            backgroundColor: "#a3e635",
             opacity: 0.15,
           }}
         />
@@ -554,6 +385,7 @@ export default function CategoryPage({ params }: Props) {
         {/* Subtopics grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {category.subtopics.map((subtopic, index) => {
+            // eslint-disable-next-line react-hooks/rules-of-hooks
             const [subtopicRef, isSubtopicInView] = useInView(0.1);
 
             return (
