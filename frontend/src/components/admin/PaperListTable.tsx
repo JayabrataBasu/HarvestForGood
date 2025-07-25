@@ -9,7 +9,7 @@ interface Column {
   key: string;
   header: string;
   sortable: boolean;
-  render?: (paper: any) => React.ReactNode;
+  render?: (paper: ResearchPaper) => React.ReactNode;
 }
 
 export default function PaperListTable() {
@@ -21,7 +21,7 @@ export default function PaperListTable() {
   const [pageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState<PaperFilterParams>({});
+  const [filters] = useState<PaperFilterParams>({});
   const [sortField, setSortField] = useState<string>("publication_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [selectedPapers, setSelectedPapers] = useState<string[]>([]);
@@ -37,7 +37,7 @@ export default function PaperListTable() {
         <div>
           <div className="font-medium text-primary-dark">{paper.title}</div>
           <div className="text-xs text-gray-500 mt-1">
-            {paper.authors.map((a: any) => a.name).join(", ")}
+            {paper.authors.map((a: { name: string }) => a.name).join(", ")}
           </div>
         </div>
       ),
@@ -48,11 +48,13 @@ export default function PaperListTable() {
       sortable: true,
       render: (paper) => (
         <span>
-          {new Date(paper.publicationDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
+          {paper.publicationDate
+            ? new Date(paper.publicationDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })
+            : "N/A"}
         </span>
       ),
     },
@@ -634,7 +636,7 @@ export default function PaperListTable() {
                       >
                         {column.render
                           ? column.render(paper)
-                          : (paper as any)[column.key]}
+                          : (paper as never)[column.key]}
                       </td>
                     ))}
                   </tr>

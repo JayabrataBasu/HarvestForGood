@@ -123,7 +123,7 @@ export default function ForumPage() {
 
   useEffect(() => {
     fetchPosts(1, pagination.page_size);
-  }, [filters, fetchPosts]);
+  }, [filters, fetchPosts, pagination.page_size]);
 
   const handleFiltersChange = useCallback((newFilters: ForumFilters) => {
     setFilters(newFilters);

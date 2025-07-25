@@ -34,12 +34,12 @@ interface Post {
   comments: Comment[];
 }
 
-export default function PostPage({
+export default function ForumPostPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [postId, setPostId] = useState<string>("");
+  const [postId, setPostId] = useState<string | null>(null);
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,19 +47,19 @@ export default function PostPage({
   const [submittingComment, setSubmittingComment] = useState(false);
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
-  const [guestInfo, setGuestInfo] = useState<GuestInfo | null>(null);
   const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
   const router = useRouter();
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(0);
 
-  // Await params and set postId
+  // Handle params Promise resolution
   useEffect(() => {
-    const getParams = async () => {
+    const resolveParams = async () => {
       const resolvedParams = await params;
       setPostId(resolvedParams.id);
     };
-    getParams();
+
+    resolveParams();
   }, [params]);
 
   // Check for existing guest info on component mount
@@ -67,8 +67,7 @@ export default function PostPage({
     const storedGuestInfo = localStorage.getItem("guestInfo");
     if (storedGuestInfo) {
       try {
-        const parsedInfo = JSON.parse(storedGuestInfo);
-        setGuestInfo(parsedInfo);
+        JSON.parse(storedGuestInfo);
         setIsGuestUser(true);
       } catch (e) {
         console.error("Error parsing stored guest info:", e);
@@ -78,7 +77,7 @@ export default function PostPage({
   }, []);
 
   useEffect(() => {
-    if (!postId) return; // Wait for postId to be set
+    if (!postId) return; // Wait for postId to be resolved
 
     // Check if user is authenticated
     if (!isAuthenticated() && typeof window !== "undefined") {
@@ -307,7 +306,6 @@ export default function PostPage({
   };
 
   const handleGuestAuth = (info: GuestInfo) => {
-    setGuestInfo(info);
     setIsGuestUser(true);
     setShowGuestAuthModal(false);
     localStorage.setItem("guestInfo", JSON.stringify(info));
@@ -353,66 +351,67 @@ export default function PostPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background py-12">
-      <div className="container mx-auto px-4">
-        <nav className="mb-6">
-          <Link
-            href="/forums/posts"
-            className="text-primary hover:text-primary-dark flex items-center font-medium"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+    <>
+      <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background py-12">
+        <div className="container mx-auto px-4">
+          <nav className="mb-6">
+            <Link
+              href="/forums/posts"
+              className="text-primary hover:text-primary-dark flex items-center font-medium"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to all posts
-          </Link>
-        </nav>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Back to all posts
+            </Link>
+          </nav>
 
-        <article className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card mb-6">
-          <div className="p-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              {post.title}
-            </h1>
-            <div className="flex items-center text-sm text-gray-500 mb-6">
-              <span className="font-medium text-primary-dark">
-                Posted by {post.author.first_name} {post.author.last_name} •{" "}
-                {formatDate(post.created_at)}
-              </span>
-            </div>
+          <article className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-card mb-6">
+            <div className="p-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                {post.title}
+              </h1>
+              <div className="flex items-center text-sm text-gray-500 mb-6">
+                <span className="font-medium text-primary-dark">
+                  Posted by {post.author.first_name} {post.author.last_name} •{" "}
+                  {formatDate(post.created_at)}
+                </span>
+              </div>
 
-            <div className="prose max-w-none mb-6">
-              {post.content.split("\n").map((paragraph, idx) => (
-                <p key={idx} className="mb-4 text-gray-700">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+              <div className="prose max-w-none mb-6">
+                {post.content.split("\n").map((paragraph, idx) => (
+                  <p key={idx} className="mb-4 text-gray-700">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
 
-            <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
-              <button
-                onClick={handleLike}
-                disabled={isLikeAnimating}
-                className={`
+              <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
+                <button
+                  onClick={handleLike}
+                  disabled={isLikeAnimating}
+                  className={`
                   flex items-center space-x-2 text-gray-500 hover:text-red-500 
                   transition-all duration-300 transform hover:scale-110 active:scale-95
                   ${isLikeAnimating ? "text-red-500 animate-bounce" : ""}
                   relative p-2 rounded-full
                 `}
-              >
-                <div className="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`
+                >
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`
                       h-6 w-6 transition-all duration-300 transform
                       ${
                         isLikeAnimating
@@ -420,7 +419,64 @@ export default function PostPage({
                           : ""
                       }
                     `}
-                    fill={isLikeAnimating ? "currentColor" : "none"}
+                      fill={isLikeAnimating ? "currentColor" : "none"}
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+
+                    {/* Floating emoji hearts */}
+                    {isLikeAnimating && (
+                      <>
+                        <div
+                          className="absolute -top-3 -left-2 text-lg animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        >
+                          ❤️
+                        </div>
+                        <div
+                          className="absolute -top-2 left-2 text-sm animate-bounce"
+                          style={{ animationDelay: "100ms" }}
+                        >
+                          💖
+                        </div>
+                        <div
+                          className="absolute -top-1 left-0 text-xs animate-bounce"
+                          style={{ animationDelay: "200ms" }}
+                        >
+                          💕
+                        </div>
+                      </>
+                    )}
+
+                    {/* Ripple effect */}
+                    {isLikeAnimating && (
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-red-200 rounded-full opacity-30 animate-ping"></div>
+                    )}
+                  </div>
+
+                  <span
+                    className={`transition-all duration-300 transform ${
+                      isLikeAnimating
+                        ? "animate-pulse scale-125 text-red-600 font-bold"
+                        : ""
+                    }`}
+                  >
+                    {localLikesCount} likes
+                  </span>
+                </button>
+
+                <div className="flex items-center space-x-1 text-gray-500">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
@@ -428,164 +484,109 @@ export default function PostPage({
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
                     />
                   </svg>
-
-                  {/* Floating emoji hearts */}
-                  {isLikeAnimating && (
-                    <>
-                      <div
-                        className="absolute -top-3 -left-2 text-lg animate-bounce"
-                        style={{ animationDelay: "0ms" }}
-                      >
-                        ❤️
-                      </div>
-                      <div
-                        className="absolute -top-2 left-2 text-sm animate-bounce"
-                        style={{ animationDelay: "100ms" }}
-                      >
-                        💖
-                      </div>
-                      <div
-                        className="absolute -top-1 left-0 text-xs animate-bounce"
-                        style={{ animationDelay: "200ms" }}
-                      >
-                        💕
-                      </div>
-                    </>
-                  )}
-
-                  {/* Ripple effect */}
-                  {isLikeAnimating && (
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-red-200 rounded-full opacity-30 animate-ping"></div>
-                  )}
+                  <span>{post.comments.length} comments</span>
                 </div>
-
-                <span
-                  className={`transition-all duration-300 transform ${
-                    isLikeAnimating
-                      ? "animate-pulse scale-125 text-red-600 font-bold"
-                      : ""
-                  }`}
-                >
-                  {localLikesCount} likes
-                </span>
-              </button>
-
-              <div className="flex items-center space-x-1 text-gray-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                  />
-                </svg>
-                <span>{post.comments.length} comments</span>
               </div>
             </div>
-          </div>
-        </article>
+          </article>
 
-        {!user && !isGuestUser && (
-          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
-            <h3 className="font-semibold text-lg mb-2">Join the Discussion</h3>
-            <p className="mb-3">
-              You&apos;re currently in view-only mode. Sign in or continue as a
-              guest to interact with this post.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => setShowGuestAuthModal(true)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 rounded-md transition duration-300"
-              >
-                Continue as Guest
-              </button>
-              <Link
-                href={`/login?redirect=/forums/posts/${postId}`}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300"
-              >
-                Login for Full Access
-              </Link>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6">Comments</h2>
-
-          {(user || isGuestUser) && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-3">Leave a Comment</h3>
-              <form onSubmit={handleCommentSubmit}>
-                <div className="mb-4">
-                  <textarea
-                    placeholder="Add a comment..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent bg-white"
-                    rows={3}
-                    required
-                  ></textarea>
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={submittingComment || !newComment.trim()}
-                    className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 ${
-                      submittingComment || !newComment.trim()
-                        ? "opacity-70 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    {submittingComment ? "Posting..." : "Post Comment"}
-                  </button>
-                </div>
-              </form>
+          {!user && !isGuestUser && (
+            <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+              <h3 className="font-semibold text-lg mb-2">
+                Join the Discussion
+              </h3>
+              <p className="mb-3">
+                You&apos;re currently in view-only mode. Sign in or continue as
+                a guest to interact with this post.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowGuestAuthModal(true)}
+                  className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 rounded-md transition duration-300"
+                >
+                  Continue as Guest
+                </button>
+                <Link
+                  href={`/login?redirect=/forums/posts/${postId}`}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-300"
+                >
+                  Login for Full Access
+                </Link>
+              </div>
             </div>
           )}
 
-          <div className="space-y-6">
-            {post.comments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
-                Be the first to comment on this post!
-              </p>
-            ) : (
-              post.comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className="border-b border-gray-100 pb-6 last:border-0"
-                >
-                  <div className="flex items-center mb-2">
-                    <div className="font-medium text-primary-dark">
-                      {comment.author.first_name} {comment.author.last_name}
-                    </div>
-                    <span className="mx-2 text-gray-300">•</span>
-                    <div className="text-sm text-gray-500">
-                      {formatDate(comment.created_at)}
-                    </div>
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-6">Comments</h2>
+
+            {(user || isGuestUser) && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-3">Leave a Comment</h3>
+                <form onSubmit={handleCommentSubmit}>
+                  <div className="mb-4">
+                    <textarea
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-transparent bg-white"
+                      rows={3}
+                      required
+                    ></textarea>
                   </div>
-                  <div className="text-gray-700">
-                    {comment.content.split("\n").map((paragraph, idx) => (
-                      <p key={idx} className="mb-2 last:mb-0">
-                        {paragraph}
-                      </p>
-                    ))}
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={submittingComment || !newComment.trim()}
+                      className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300 ${
+                        submittingComment || !newComment.trim()
+                          ? "opacity-70 cursor-not-allowed"
+                          : ""
+                      }`}
+                    >
+                      {submittingComment ? "Posting..." : "Post Comment"}
+                    </button>
                   </div>
-                </div>
-              ))
+                </form>
+              </div>
             )}
+
+            <div className="space-y-6">
+              {post.comments.length === 0 ? (
+                <p className="text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
+                  Be the first to comment on this post!
+                </p>
+              ) : (
+                post.comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="border-b border-gray-100 pb-6 last:border-0"
+                  >
+                    <div className="flex items-center mb-2">
+                      <div className="font-medium text-primary-dark">
+                        {comment.author.first_name} {comment.author.last_name}
+                      </div>
+                      <span className="mx-2 text-gray-300">•</span>
+                      <div className="text-sm text-gray-500">
+                        {formatDate(comment.created_at)}
+                      </div>
+                    </div>
+                    <div className="text-gray-700">
+                      {comment.content.split("\n").map((paragraph, idx) => (
+                        <p key={idx} className="mb-2 last:mb-0">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
-
       {showGuestAuthModal && (
         <GuestAuthModal
           isOpen={showGuestAuthModal}
@@ -594,6 +595,6 @@ export default function PostPage({
           mode="comment"
         />
       )}
-    </div>
+    </>
   );
 }

@@ -46,16 +46,18 @@ export default function AdminDashboard() {
 
           // Extract and count unique authors
           const authorsSet = new Set();
-          papers.forEach((paper: { authors: any[] }) => {
-            paper.authors.forEach((author: { id: unknown }) =>
-              authorsSet.add(author.id)
-            );
-          });
+          papers.forEach(
+            (paper: { authors: { id: string; name: string }[] }) => {
+              paper.authors.forEach((author: { id: string; name: string }) =>
+                authorsSet.add(author.id)
+              );
+            }
+          );
 
           // Extract and count unique keywords
           const keywordsSet = new Set();
-          papers.forEach((paper: { keywords: any[] }) => {
-            paper.keywords.forEach((keyword: { id: unknown }) =>
+          papers.forEach((paper: { keywords: { id: string }[] }) => {
+            paper.keywords.forEach((keyword: { id: string }) =>
               keywordsSet.add(keyword.id)
             );
           });
@@ -85,7 +87,7 @@ export default function AdminDashboard() {
           const recentPapers = sortedPapers.slice(0, 5).map((paper) => ({
             id: paper.id,
             title: paper.title,
-            authors: paper.authors.map((a: { name: any }) => a.name),
+            authors: paper.authors.map((a: { name: string }) => a.name),
             dateAdded: new Date(paper.publicationDate).toLocaleDateString(),
             slug: paper.slug,
           }));

@@ -4,7 +4,7 @@
  * @param waitFor The delay in milliseconds.
  * @returns A debounced version of the function.
  */
-export function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+export function debounce<F extends (...args: unknown[]) => unknown>(func: F, waitFor: number) {
   let timeout: NodeJS.Timeout;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> =>
@@ -13,6 +13,6 @@ export function debounce<F extends (...args: any[]) => any>(func: F, waitFor: nu
         clearTimeout(timeout);
       }
 
-      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+      timeout = setTimeout(() => resolve(func(...args) as ReturnType<F>), waitFor);
     });
 }

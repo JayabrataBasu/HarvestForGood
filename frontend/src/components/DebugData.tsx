@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface DebugDataProps {
-  data: any;
+  data: unknown;
   title?: string;
   enabled?: boolean;
 }

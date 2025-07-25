@@ -43,6 +43,7 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
       // Date range filter
       if (
         filters.dateRange.startDate &&
+        paper.publicationDate &&
         new Date(paper.publicationDate) < filters.dateRange.startDate
       ) {
         return false;
@@ -50,6 +51,7 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
 
       if (
         filters.dateRange.endDate &&
+        paper.publicationDate &&
         new Date(paper.publicationDate) > filters.dateRange.endDate
       ) {
         return false;

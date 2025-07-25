@@ -1,31 +1,44 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import PaperForm from "@/components/research/PaperForm";
+
 import { isAuthenticated, researchAPI } from "@/lib/api";
 import { ResearchPaper } from "@/types/paper.types";
 
-export default function EditPaperPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+interface EditPaperPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default function EditPaperPage({ params }: EditPaperPageProps) {
   const [loading, setLoading] = useState(true);
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [slug, setSlug] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    // First resolve the params Promise
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setSlug(resolvedParams.slug);
+    };
+
+    resolveParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!slug) return; // Wait for slug to be resolved
+
     // Check if user is authenticated
     if (!isAuthenticated()) {
-      router.push(`/login?next=/admin/papers/edit/${params.slug}`);
+      router.push(`/login?next=/admin/papers/edit/${slug}`);
       return;
     }
 
     // Fetch the paper data
     const loadPaper = async () => {
       try {
-        const result = await researchAPI.fetchPaperById(params.slug);
+        const result = await researchAPI.fetchPaperById(slug);
 
         if (result.success && result.data) {
           setPaper(result.data);
@@ -41,7 +54,7 @@ export default function EditPaperPage({
     };
 
     loadPaper();
-  }, [params.slug, router]);
+  }, [slug, router]);
 
   if (loading) {
     return (
@@ -120,8 +133,6 @@ export default function EditPaperPage({
             Back to Papers
           </button>
         </div>
-
-        <PaperForm initialData={paper} isEditMode={true} />
       </div>
     </div>
   );

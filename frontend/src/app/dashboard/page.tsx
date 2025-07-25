@@ -9,7 +9,6 @@ export default function Dashboard() {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
-  const [apiErrors, setApiErrors] = useState<string[]>([]);
 
   useEffect(() => {
     // If user is not logged in and the auth check is complete, redirect to login
@@ -24,7 +23,6 @@ export default function Dashboard() {
       await logout();
     } catch (error) {
       console.error("Logout error:", error);
-      setApiErrors((prev) => [...prev, "Failed to logout. Please try again."]);
     } finally {
       setIsLogoutLoading(false);
     }

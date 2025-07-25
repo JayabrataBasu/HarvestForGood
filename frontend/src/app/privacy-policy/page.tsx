@@ -19,11 +19,11 @@ export default function PrivacyPolicyPage() {
               Introduction
             </h2>
             <p className="text-gray-700 leading-relaxed mb-6">
-              This Privacy Policy describes how Harvest For Good ("we", "our",
-              or "us") collects, uses, and shares your personal information when
-              you visit or use our website and services. We are committed to
-              protecting your privacy and ensuring the security of your personal
-              information.
+              This Privacy Policy describes how Harvest For Good
+              (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) collects,
+              uses, and shares your personal information when you visit or use
+              our website and services. We are committed to protecting your
+              privacy and ensuring the security of your personal information.
             </p>
 
             <h2 className="text-2xl font-semibold text-primary-dark mb-4 mt-8">
