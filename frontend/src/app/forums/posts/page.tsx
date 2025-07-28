@@ -20,6 +20,7 @@ interface Post {
   created_at: string;
   comments_count: number;
   tags?: Array<{ name: string; usage_count: number }>;
+  pinned?: boolean; // <-- Add this line
 }
 
 interface PaginationInfo {
@@ -156,6 +157,18 @@ export default function ForumPage() {
     setIsGuestUser(false);
   };
 
+  const handlePin = async (postId: string) => {
+    await fetch(`/api/forum/posts/${postId}/pin/`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        // Add Authorization header if needed
+      },
+    });
+    fetchPosts();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-soft-green to-background">
       <div className="container mx-auto px-4 py-12">
@@ -286,6 +299,8 @@ export default function ForumPage() {
                     commentCount={post.comments_count || 0}
                     tags={tagNames}
                     isGuest={!!post.guest_name}
+                    onPin={handlePin}
+                    pinned={post.pinned}
                   />
                 );
               })}

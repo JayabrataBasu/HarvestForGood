@@ -26,7 +26,7 @@ class IsSuperUser(BasePermission):
 class ForumPostViewSet(viewsets.ModelViewSet):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'forum_posts'
-    queryset = ForumPost.objects.all()
+    queryset = ForumPost.objects.all().order_by('-pinned', '-created_at')
     serializer_class = ForumPostSerializer
     # Use AllowAny for read operations, require auth for write operations
     permission_classes = [AllowAny]
@@ -138,7 +138,7 @@ class ForumPostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Enhanced queryset with search, tag filtering, and date filtering"""
-        queryset = ForumPost.objects.all().prefetch_related('tags', 'comments')
+        queryset = ForumPost.objects.all().prefetch_related('tags', 'comments').order_by('-pinned', '-created_at')
         
         # Search functionality
         search = self.request.query_params.get('search', '').strip()
@@ -184,7 +184,7 @@ class ForumPostViewSet(viewsets.ModelViewSet):
             except ValueError:
                 pass
         
-        return queryset.distinct().order_by('-created_at')
+        return queryset.distinct().order_by('-pinned', '-created_at')
     
     def list(self, request, *args, **kwargs):
         """Override list to add pagination"""
