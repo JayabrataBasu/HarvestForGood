@@ -6,9 +6,11 @@ from rest_framework.validators import UniqueValidator
 from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
 
 class UserSerializer(serializers.ModelSerializer):
+    is_admin = serializers.ReadOnlyField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active', 'email_verified', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active', 'email_verified', 'first_name', 'last_name', 'is_admin')
         read_only_fields = ('id', 'date_joined', 'email_verified')
 
 User = get_user_model()
