@@ -12,12 +12,16 @@ from .serializers import (
     GuestPostSerializer, GuestCommentSerializer,
     ForumTagSerializer
 )
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser, BasePermission
 import logging
 from rest_framework.throttling import ScopedRateThrottle
 from django.db import IntegrityError
 
 logger = logging.getLogger(__name__)
+
+class IsSuperUser(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_superuser)
 
 class ForumPostViewSet(viewsets.ModelViewSet):
     throttle_classes = [ScopedRateThrottle]
@@ -223,7 +227,7 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["post"], permission_classes=[IsSuperUser])
     def pin(self, request, pk=None):
         post = self.get_object()
         post.pinned = not post.pinned

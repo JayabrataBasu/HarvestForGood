@@ -49,7 +49,7 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   };
 
   // Add admin check (adjust as per your user object)
-  const isAdmin = user?.isAdmin;
+  const isSuperuser = user?.isSuperuser; // <-- use this for pin button
 
   const handlePin = () => {
     if (onPin) onPin(post.id, !post.pinned);
@@ -225,7 +225,7 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
           </div>
           <div className="flex items-center gap-2">
             {/* Pin/Unpin button for admin */}
-            {isAdmin && (
+            {isSuperuser && (
               <button
                 onClick={handlePin}
                 className={`flex items-center px-2 py-1 rounded text-xs font-medium border ${
