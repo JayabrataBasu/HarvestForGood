@@ -67,3 +67,4 @@ config.json
 credentials.json
 secrets.json
 serviceAccountKey.json
+.vercel
