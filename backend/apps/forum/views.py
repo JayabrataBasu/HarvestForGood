@@ -138,7 +138,7 @@ class ForumPostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Enhanced queryset with search, tag filtering, and date filtering"""
-        queryset = ForumPost.objects.all().prefetch_related('tags', 'comments').order_by('-pinned', '-created_at')
+        queryset = ForumPost.objects.all().prefetch_related('tags', 'comments')
         
         # Search functionality
         search = self.request.query_params.get('search', '').strip()
@@ -189,6 +189,8 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         """Override list to add pagination"""
         queryset = self.filter_queryset(self.get_queryset())
+        # Ensure ordering by pinned before paginating
+        queryset = queryset.order_by('-pinned', '-created_at')
         
         # Pagination
         page_size = int(request.query_params.get('page_size', 10))
