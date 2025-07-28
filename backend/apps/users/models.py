@@ -8,3 +8,8 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     email_verified = models.BooleanField(default=False)
     affiliation = models.CharField(max_length=255, null=False, blank=True, default="")
+
+    @property
+    def is_admin(self):
+        # Only true if user is marked as staff or superuser in Django
+        return self.is_staff or self.is_superuser

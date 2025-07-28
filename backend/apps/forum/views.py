@@ -12,7 +12,7 @@ from .serializers import (
     GuestPostSerializer, GuestCommentSerializer,
     ForumTagSerializer
 )
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
 import logging
 from rest_framework.throttling import ScopedRateThrottle
 from django.db import IntegrityError
@@ -223,6 +223,13 @@ class ForumPostViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
+    @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
+    def pin(self, request, pk=None):
+        post = self.get_object()
+        post.pinned = not post.pinned
+        post.save()
+        return Response({"pinned": post.pinned})
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

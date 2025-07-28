@@ -295,7 +295,7 @@ class ForumPostSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'content', 'author', 'author_name', 'author_details',
                  'created_at', 'updated_at', 'comments', 'comments_count', 
                  'likes_count', 'is_liked', 'guest_name', 'guest_affiliation',
-                 'tags', 'tag_names')
+                 'tags', 'tag_names', 'pinned')
         extra_kwargs = {
             'title': {'validators': [validate_title]},
             'content': {'validators': [validate_post_content]},
