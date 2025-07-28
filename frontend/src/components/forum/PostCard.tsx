@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { FaThumbtack } from "react-icons/fa"; // install react-icons if not present
 
 interface Post {
   id: string;
@@ -9,14 +10,16 @@ interface Post {
   comments_count: number;
   likes_count: number;
   is_liked?: boolean;
+  pinned?: boolean; // Add this field
 }
 
 interface PostCardProps {
   post: Post;
   onLike: (postId: string) => void;
+  onPin?: (postId: string, pin: boolean) => void; // Add this prop
 }
 
-const PostCard = ({ post, onLike }: PostCardProps) => {
+const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [liked, setLiked] = useState(post.is_liked || false);
@@ -43,6 +46,13 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
 
     // Reset animation after delay
     setTimeout(() => setIsAnimating(false), 600);
+  };
+
+  // Add admin check (adjust as per your user object)
+  const isAdmin = user?.isAdmin;
+
+  const handlePin = () => {
+    if (onPin) onPin(post.id, !post.pinned);
   };
 
   return (
@@ -106,9 +116,20 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
         }
       `}</style>
 
-      <div className="modern-card">
+      <div
+        className={`modern-card ${
+          post.pinned ? "border-yellow-400 border-2" : ""
+        }`}
+      >
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
           <div className="flex items-center text-gray-500 text-sm">
+            {/* Pin icon and label */}
+            {post.pinned && (
+              <span className="flex items-center mr-3 text-yellow-600 font-semibold">
+                <FaThumbtack className="mr-1" />
+                Pinned
+              </span>
+            )}
             <span className="mr-4 flex items-center">
               <svg
                 className="w-4 h-4 mr-1"
@@ -202,26 +223,42 @@ const PostCard = ({ post, onLike }: PostCardProps) => {
               </span>
             )}
           </div>
-
-          <Link
-            href={`/forums/posts/${post.id}`}
-            className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-sm"
-          >
-            View Post
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2">
+            {/* Pin/Unpin button for admin */}
+            {isAdmin && (
+              <button
+                onClick={handlePin}
+                className={`flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                  post.pinned
+                    ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
+                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                }`}
+                title={post.pinned ? "Unpin this post" : "Pin this post"}
+              >
+                <FaThumbtack className="mr-1" />
+                {post.pinned ? "Unpin" : "Pin"}
+              </button>
+            )}
+            <Link
+              href={`/forums/posts/${post.id}`}
+              className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              ></path>
-            </svg>
-          </Link>
+              View Post
+              <svg
+                className="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                ></path>
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     </>

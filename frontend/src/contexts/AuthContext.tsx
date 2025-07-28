@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { isAuthenticated, API_BASE_URL } from "@/lib/api";
 
-interface User {
+export interface User {
   id: string;
   username: string;
   email: string;
   first_name?: string;
   last_name?: string;
   email_verified?: boolean;
+  isAdmin: boolean; // Add this line
 }
 
 interface AuthContextType {
