@@ -213,7 +213,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
           <input
             type="range"
             min="0"
-            max="100"
+            max="1000000"
             value={filters.minCitations}
             onChange={(e) => handleCitationChange(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
