@@ -181,6 +181,12 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
     keyword.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
   );
 
+  // Only use keywords from the "Region" category for the Regions filter
+  const regionCategory = filterOptions.keyword_categories.find(
+    (cat) => cat.name.toLowerCase() === "region"
+  );
+  const regionKeywords = regionCategory ? regionCategory.keywords : [];
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -303,7 +309,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
       </div>
 
       {/* Regions */}
-      {filterOptions.region_keywords.length > 0 && (
+      {regionKeywords.length > 0 && (
         <div className="space-y-3">
           <button
             onClick={() => toggleSection("regions")}
@@ -327,7 +333,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
 
           {expandedSections.includes("regions") && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {filterOptions.region_keywords.map((region) => (
+              {regionKeywords.map((region) => (
                 <label key={region.id} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
