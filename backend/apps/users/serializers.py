@@ -6,11 +6,12 @@ from rest_framework.validators import UniqueValidator
 from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
 
 class UserSerializer(serializers.ModelSerializer):
+    isSuperuser = serializers.BooleanField(source='is_superuser', read_only=True)
     is_admin = serializers.ReadOnlyField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active', 'email_verified', 'first_name', 'last_name', 'is_admin')
+        fields = ('id', 'username', 'email', 'role', 'date_joined', 'is_active', 'email_verified', 'first_name', 'last_name', 'is_admin', 'isSuperuser')
         read_only_fields = ('id', 'date_joined', 'email_verified')
 
 User = get_user_model()

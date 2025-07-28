@@ -11,6 +11,7 @@ export interface User {
   last_name?: string;
   email_verified?: boolean;
   isAdmin: boolean; // Add this line
+  isSuperuser: boolean;
 }
 
 interface AuthContextType {
