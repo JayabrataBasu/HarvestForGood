@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import { FaThumbtack } from "react-icons/fa";
 
 interface ForumPostProps {
   id: string;
@@ -14,6 +16,8 @@ interface ForumPostProps {
   // Add these props for comment preview
   latestCommentSnippet?: string;
   latestCommenter?: string;
+  onPin?: (postId: string, pin: boolean) => void; // add this
+  pinned?: boolean; // add this
 }
 
 function extractUrls(text: string): string[] {
@@ -62,9 +66,13 @@ export default function ForumPost({
   isGuest = false,
   latestCommentSnippet,
   latestCommenter,
+  onPin,
+  pinned,
 }: ForumPostProps) {
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const { user } = useAuth();
+  const isSuperuser = user?.isSuperuser;
 
   const formattedDate = new Date(createdAt);
   const timeAgo = formatDistanceToNow(formattedDate, { addSuffix: true });
@@ -84,6 +92,11 @@ export default function ForumPost({
     setTimeout(() => {
       setIsLikeAnimating(false);
     }, 600);
+  };
+
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onPin) onPin(id, !pinned); // <-- Pass both arguments
   };
 
   const urls = extractUrls(content);
@@ -139,15 +152,43 @@ export default function ForumPost({
         }
       `}</style>
 
-      <article className="modern-card fade-in">
+      <article
+        className={`modern-card fade-in ${
+          pinned ? "border-yellow-400 border-2" : ""
+        }`}
+      >
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold text-[#2E382E] hover:text-[#3D9A50] transition-colors">
-              {/* Use Link without legacyBehavior and <a> */}
-              <Link href={`/forums/posts/${id}`} tabIndex={0}>
-                {title}
-              </Link>
-            </h2>
+            <div className="flex items-center">
+              <h2 className="text-xl font-semibold text-[#2E382E] hover:text-[#3D9A50] transition-colors">
+                {/* Use Link without legacyBehavior and <a> */}
+                <Link href={`/forums/posts/${id}`} tabIndex={0}>
+                  {title}
+                </Link>
+              </h2>
+              {/* Pin icon and label */}
+              {pinned && (
+                <span className="flex items-center ml-3 text-yellow-600 font-semibold">
+                  <FaThumbtack className="mr-1" />
+                  Pinned
+                </span>
+              )}
+            </div>
+            {/* Pin/Unpin button for superuser */}
+            {isSuperuser && (
+              <button
+                onClick={handlePinClick}
+                className={`flex items-center px-2 py-1 rounded text-xs font-medium border ml-2 ${
+                  pinned
+                    ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
+                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                }`}
+                title={pinned ? "Unpin this post" : "Pin this post"}
+              >
+                <FaThumbtack className="mr-1" />
+                {pinned ? "Unpin" : "Pin"}
+              </button>
+            )}
 
             {/* Tags Display */}
             {tags && tags.length > 0 && (
