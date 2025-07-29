@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
 import Link from "next/link";
-import { isAuthenticated, API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import GuestAuthModal, { GuestInfo } from "../../GuestAuthModal";
 
@@ -48,7 +48,7 @@ export default function ForumPostPage({
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
-  const router = useRouter();
+
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [localLikesCount, setLocalLikesCount] = useState(0);
 
@@ -79,27 +79,14 @@ export default function ForumPostPage({
   useEffect(() => {
     if (!postId) return; // Wait for postId to be resolved
 
-    // Check if user is authenticated
-    if (!isAuthenticated() && typeof window !== "undefined") {
-      router.push(`/login?redirect=/forums/posts/${postId}`);
-      return;
-    }
-
-    // Fetch post details
+    // Fetch post details (no auth required for GET)
     async function fetchPost() {
       try {
         setLoading(true);
-        const token = localStorage.getItem("access_token");
-        const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/`);
         if (!response.ok) {
           throw new Error("Failed to fetch post");
         }
-
         const data = await response.json();
         setPost(data);
         setError("");
@@ -112,7 +99,7 @@ export default function ForumPostPage({
     }
 
     fetchPost();
-  }, [postId, router]);
+  }, [postId]);
 
   // Update local likes count when post loads
   useEffect(() => {
