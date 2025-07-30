@@ -261,7 +261,7 @@ export default function AboutPage() {
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="profile-card bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm rounded-[20px] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col max-w-[320px] min-h-[450px] mx-auto cursor-pointer group border border-teal-200/50 hover:-translate-y-1.5"
+                className="profile-card bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm rounded-[20px] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col max-w-[320px] min-h-[400px] mx-auto cursor-pointer group border border-teal-200/50 hover:-translate-y-1.5"
                 onClick={() => setModalMember(member)}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -269,13 +269,13 @@ export default function AboutPage() {
                 }}
                 aria-label={`Read more about ${member.name}`}
               >
-                <div className="w-full h-[240px] bg-gray-100 flex items-center justify-center">
+                <div className="w-full">
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={220}
-                    height={220}
-                    className="object-contain w-auto h-full"
+                    width={320}
+                    height={200}
+                    className="w-full h-[200px] object-cover rounded-t-[20px]"
                   />
                 </div>
                 <div className="flex flex-col flex-grow p-6">
@@ -362,6 +362,13 @@ export default function AboutPage() {
         .profile-card:hover {
           transform: translateY(-6px);
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+        .profile-card img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          border-top-left-radius: 20px;
+          border-top-right-radius: 20px;
         }
       `}</style>
     </div>
