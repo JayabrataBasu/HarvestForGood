@@ -47,32 +47,41 @@ function TeamModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-fade-in">
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-primary text-2xl"
+          className="absolute top-4 right-4 text-gray-400 hover:text-green-600 text-2xl transition-colors duration-200"
           onClick={onClose}
           aria-label="Close"
         >
           ×
         </button>
         <div className="flex flex-col items-center">
-          <Image
-            src={member.image}
-            alt={member.name}
-            width={120}
-            height={120}
-            className="rounded-full border-4 border-green-100 shadow-lg mb-4"
-          />
-          <h3 className="text-2xl font-bold mb-1">{member.name}</h3>
-          <p className="text-primary/80 mb-2">{member.role}</p>
-          <p className="text-gray-700 mb-4 text-center">{member.bio}</p>
+          <div className="relative mb-4">
+            <Image
+              src={member.image}
+              alt={member.name}
+              width={120}
+              height={120}
+              className="rounded-full border-4 border-green-100 shadow-lg"
+            />
+            <div className="absolute -bottom-2 -right-2 bg-green-500 text-white rounded-full p-2">
+              🧑‍🔬
+            </div>
+          </div>
+          <h3 className="text-2xl font-bold mb-1 text-gray-800">
+            {member.name}
+          </h3>
+          <p className="text-green-600 mb-2 font-medium">{member.role}</p>
+          <p className="text-gray-700 mb-4 text-center leading-relaxed">
+            {member.bio}
+          </p>
           <div className="flex gap-4 mb-4">
             <a
               href={`mailto:${member.email}`}
-              className="text-green-700 hover:underline flex items-center gap-1"
+              className="bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium"
             >
-              <span>Email</span>
               <svg width="16" height="16" fill="currentColor">
                 <path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2-.5a.5.5 0 00-.5.5v.217l5 3.1 5-3.1V4a.5.5 0 00-.5-.5H4zm9 1.383l-4.445 2.756a.5.5 0 01-.555 0L4 4.883V12a.5.5 0 00.5.5h7a.5.5 0 00.5-.5V4.883z" />
               </svg>
+              <span>Email</span>
             </a>
           </div>
         </div>
@@ -85,25 +94,23 @@ export default function AboutPage() {
   const [modalMember, setModalMember] = useState<
     (typeof teamMembers)[0] | null
   >(null);
-  const [ctaEmail, setCtaEmail] = useState("");
-  const [ctaSubmitted, setCtaSubmitted] = useState(false);
 
   return (
     <div
       className="min-h-screen font-sans"
       style={{
-        background: "linear-gradient(to bottom, #e9f8ec 0%, #d4ecce 100%)",
+        background:
+          "linear-gradient(135deg, #edf7ed 0%, #e0f2f1 50%, #e8f5e8 100%)",
         position: "relative",
       }}
     >
-      {/* Subtle noise overlay for texture */}
+      {/* Subtle texture overlay */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          backgroundImage: "url('/images/noise.png')",
-          opacity: 0.07,
-          mixBlendMode: "multiply",
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          opacity: 0.3,
         }}
       />
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -121,13 +128,12 @@ export default function AboutPage() {
               className="rounded-2xl transition-transform duration-700 ease-in-out group-hover:scale-105"
               priority
             />
-            {/* Blurred gradient overlay for text legibility */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-primary/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-green-900/40 to-transparent" />
           </div>
-          <div className="relative h-full flex items-center grain-overlay">
+          <div className="relative h-full flex items-center">
             <div className="container mx-auto px-6">
               <div className="max-w-3xl p-8">
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight drop-shadow-lg font-serif">
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight drop-shadow-lg">
                   Welcome To The Hub Of Sustainable Agriculture Research
                 </h1>
                 <p className="text-white/95 text-lg md:text-xl leading-relaxed drop-shadow-md">
@@ -137,7 +143,7 @@ export default function AboutPage() {
                 <div className="mt-8">
                   <Link
                     href="/research"
-                    className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-primary-dark hover:text-primary font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-highlight border border-white/20"
+                    className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-green-800 hover:text-green-900 font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg border border-white/20"
                   >
                     Explore Research
                   </Link>
@@ -148,15 +154,18 @@ export default function AboutPage() {
         </section>
 
         {/* Section anchor navigation */}
-        <nav className="flex gap-6 mb-12 justify-center text-primary-dark font-medium text-lg">
-          <a href="#vision" className="hover:underline hover:text-primary">
+        <nav className="flex gap-6 mb-12 justify-center text-green-800 font-medium text-lg">
+          <a
+            href="#vision"
+            className="hover:underline hover:text-green-600 transition-colors"
+          >
             🌍 Vision
           </a>
-          <a href="#team" className="hover:underline hover:text-primary">
+          <a
+            href="#team"
+            className="hover:underline hover:text-green-600 transition-colors"
+          >
             👥 Team
-          </a>
-          <a href="#join" className="hover:underline hover:text-primary">
-            🌱 Join
           </a>
         </nav>
 
@@ -172,33 +181,29 @@ export default function AboutPage() {
                   height={500}
                   className="rounded-xl shadow-xl object-cover h-full"
                 />
-                <div className="absolute -bottom-4 -right-4 bg-accent p-4 rounded-lg shadow-md z-10">
-                  <span className="text-primary-dark font-bold">
-                    Our Vision
-                  </span>
+                <div className="absolute -bottom-4 -right-4 bg-green-100 p-4 rounded-lg shadow-md z-10 border border-green-200">
+                  <span className="text-green-800 font-bold">Our Vision</span>
                 </div>
               </div>
             </div>
             <div className="md:w-2/3">
-              <h2 className="text-2xl font-semibold text-primary mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-semibold text-green-700 mb-2 flex items-center gap-2">
                 <span className="text-3xl">🌍</span>
                 Explore goals of sustainable agriculture
               </h2>
-              <h3 className="text-3xl md:text-4xl font-bold mb-8 text-gradient border-b-4 border-green-200 pb-2">
+              <h3 className="text-3xl md:text-4xl font-bold mb-8 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent border-b-4 border-green-200 pb-2">
                 Visions for a Sustainable Future
               </h3>
               <ul className="space-y-8">
-                <li
-                  className="flex gap-6 feature-card paper-texture p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                  data-aos="fade-up"
-                  data-aos-delay="100"
-                >
-                  <div className="feature-icon text-2xl font-bold">01</div>
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
+                  <div className="bg-green-100 text-green-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                    01
+                  </div>
                   <div>
-                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2">
-                      Business <span className="text-green-400">📈</span>
+                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
+                      Business <span className="text-green-500">📈</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600">
+                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
                       <li>
                         Support economic models that balance profit and
                         sustainability
@@ -209,17 +214,15 @@ export default function AboutPage() {
                     </ul>
                   </div>
                 </li>
-                <li
-                  className="flex gap-6 feature-card bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                  data-aos="fade-up"
-                  data-aos-delay="200"
-                >
-                  <div className="feature-icon text-2xl font-bold">02</div>
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-100">
+                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                    02
+                  </div>
                   <div>
-                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2">
-                      Policy Making <span className="text-blue-400">📜</span>
+                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
+                      Policy Making <span className="text-blue-500">📜</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600">
+                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
                       <li>Enable effective governance and incentives</li>
                       <li>
                         Shape regulatory frameworks for sustainable practices
@@ -227,17 +230,15 @@ export default function AboutPage() {
                     </ul>
                   </div>
                 </li>
-                <li
-                  className="flex gap-6 feature-card bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
-                  data-aos="fade-up"
-                  data-aos-delay="300"
-                >
-                  <div className="feature-icon text-2xl font-bold">03</div>
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-100">
+                  <div className="bg-purple-100 text-purple-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                    03
+                  </div>
                   <div>
-                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2">
-                      Research <span className="text-purple-400">🧪</span>
+                    <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
+                      Research <span className="text-purple-500">🧪</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600">
+                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
                       <li>
                         Advance knowledge on food security and climate
                         resilience
@@ -251,29 +252,32 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Team section with enhanced cards and modal */}
+        {/* Team section with enhanced cards */}
         <section
           id="team"
-          className="mb-20 bg-diagonal-lines py-16 rounded-2xl"
+          className="mb-20 bg-white/30 backdrop-blur-sm py-16 rounded-2xl border border-green-100"
         >
-          <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-4 text-gradient flex items-center justify-center gap-2">
-            <span className="text-5xl">👥</span> Meet Our Team
-          </h2>
-          <div className="flex justify-center mb-8">
-            <div className="w-24 h-2 bg-gradient-to-r from-green-300 via-green-500 to-green-300 rounded-full" />
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent flex items-center justify-center gap-3">
+              <span className="text-5xl">🌿</span>
+              Meet Our Team
+            </h2>
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-400 rounded-full" />
+            </div>
+            <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed">
+              We are a team of researchers at the Schulich School of Business,
+              York University. We are passionate about studying sustainable
+              agriculture-related practices, businesses, and farmer livelihoods
+              in the Global South.
+            </p>
           </div>
-          <p className="text-center text-gray-600 mb-16 max-w-3xl mx-auto">
-            We are a team of researchers at the Schulich School of Business,
-            York University. We are passionate about studying sustainable
-            agriculture-related practices, businesses, and farmer livelihoods in
-            the Global South.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col max-w-sm mx-auto cursor-pointer group"
-                style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}
+                className="bg-gradient-to-br from-green-50/90 to-mint-50/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col max-w-sm mx-auto cursor-pointer group border border-green-100/50 hover:-translate-y-2"
                 onClick={() => setModalMember(member)}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -286,37 +290,35 @@ export default function AboutPage() {
                     src={member.image}
                     alt={member.name}
                     width={400}
-                    height={0}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                    }}
-                    className="w-full h-auto rounded-t-xl transition-all duration-300 group-hover:scale-105"
+                    height={300}
+                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  {/* Extra details on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                    <div className="text-white text-sm mb-2">
+                  <div className="absolute -bottom-4 left-6 bg-white rounded-full p-1 shadow-lg border-4 border-green-100">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">
+                      🧑‍🔬
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                    <div className="text-white text-sm">
                       <span className="block font-semibold">
                         {member.affiliation}
                       </span>
-                      <span className="block">{member.email}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <a
-                        href={`mailto:${member.email}`}
-                        className="text-green-200 hover:text-white underline"
-                      >
-                        Email
-                      </a>
+                      <span className="block opacity-90">{member.email}</span>
                     </div>
                   </div>
                 </div>
                 <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-                  <p className="text-sm text-primary/80 mb-4">{member.role}</p>
-                  <p className="text-gray-700 mb-4">{member.bio}</p>
+                  <h3 className="text-xl font-bold mb-2 text-gray-800">
+                    {member.name}
+                  </h3>
+                  <p className="text-sm text-green-600 mb-3 font-medium">
+                    {member.role}
+                  </p>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    {member.bio}
+                  </p>
                   <button
-                    className="inline-flex items-center text-primary hover:text-primary-dark transition-colors font-medium mt-3"
+                    className="inline-flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium group-hover:bg-green-600"
                     onClick={(e) => {
                       e.stopPropagation();
                       setModalMember(member);
@@ -325,7 +327,7 @@ export default function AboutPage() {
                     Read more
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
+                      className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -342,80 +344,35 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
-          {/* Modal for team member */}
+
           {modalMember && (
             <TeamModal
               member={modalMember}
               onClose={() => setModalMember(null)}
             />
           )}
-
-          {/* Call to Action Section */}
-          <section id="join" className="mt-20 text-center">
-            <div className="bg-gradient-to-r from-green-400 via-green-300 to-green-500 p-10 rounded-xl mx-auto max-w-4xl text-white relative shadow-lg hover:shadow-2xl transition-all duration-300 border-4 border-green-200 animate-fade-in">
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 flex items-center justify-center gap-2">
-                <span className="text-3xl animate-bounce">🌱</span>
-                Join Our Research Community!
-              </h3>
-              <p className="mb-8 text-white/90 max-w-2xl mx-auto">
-                Contribute to our growing community of researchers,
-                practitioners, and policymakers working toward sustainable
-                agricultural systems.
-              </p>
-              {/* Newsletter-style input */}
-              {!ctaSubmitted ? (
-                <form
-                  className="flex flex-col md:flex-row gap-4 items-center justify-center"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setCtaSubmitted(true);
-                  }}
-                >
-                  <input
-                    type="email"
-                    required
-                    placeholder="Your email"
-                    value={ctaEmail}
-                    onChange={(e) => setCtaEmail(e.target.value)}
-                    className="px-4 py-3 rounded-lg text-primary-dark w-64 focus:outline-none focus:ring-2 focus:ring-green-300"
-                  />
-                  <button
-                    type="submit"
-                    className="inline-block bg-white text-primary-dark hover:bg-gray-100 font-medium px-8 py-3 rounded-lg transition-all duration-300 hover:shadow-lg border border-white/20"
-                  >
-                    Join
-                  </button>
-                </form>
-              ) : (
-                <div className="text-lg font-semibold flex items-center justify-center gap-2">
-                  <span>Thank you for joining!</span>{" "}
-                  <span className="animate-bounce">🎉</span>
-                </div>
-              )}
-            </div>
-          </section>
         </section>
       </div>
-      {/* Animations (AOS or similar) */}
+
       <style jsx global>{`
-        @import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Inter:wght@400;500&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Inter:wght@400;500;600&display=swap");
+
         html {
-          font-family: "Inter", Arial, sans-serif;
+          font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
         }
+
         h1,
         h2,
         h3,
         h4 {
           font-family: "Merriweather", serif;
+          font-weight: 700;
         }
-        .text-gradient {
-          background: linear-gradient(90deg, #3d9a50 0%, #a0c49d 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
+
         .animate-fade-in {
-          animation: fadeIn 1s ease;
+          animation: fadeIn 0.5s ease-out;
         }
+
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -426,7 +383,14 @@ export default function AboutPage() {
             transform: translateY(0);
           }
         }
+
+        .mint-50 {
+          background-color: #f0fdf4;
+        }
       `}</style>
     </div>
   );
+}
+{
+  /* Animations (AOS or similar) */
 }
