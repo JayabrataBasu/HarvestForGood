@@ -100,7 +100,7 @@ export default function AboutPage() {
       className="min-h-screen font-sans"
       style={{
         background:
-          "linear-gradient(135deg, #edf7ed 0%, #e0f2f1 50%, #e8f5e8 100%)",
+          "linear-gradient(135deg, #f7f8d4 0%, #e8f5c8 15%, #d4ecce 30%, #c8e6d0 45%, #b8dbd1 60%, #a8cfd2 75%, #9bc3d3 90%, #8fb7d4 100%)",
         position: "relative",
       }}
     >
@@ -109,8 +109,8 @@ export default function AboutPage() {
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          opacity: 0.3,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          opacity: 0.4,
         }}
       />
       <div className="container mx-auto px-4 py-8 relative z-10">
@@ -128,7 +128,7 @@ export default function AboutPage() {
               className="rounded-2xl transition-transform duration-700 ease-in-out group-hover:scale-105"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-green-900/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-slate-800/40 to-transparent" />
           </div>
           <div className="relative h-full flex items-center">
             <div className="container mx-auto px-6">
@@ -143,7 +143,7 @@ export default function AboutPage() {
                 <div className="mt-8">
                   <Link
                     href="/research"
-                    className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-green-800 hover:text-green-900 font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg border border-white/20"
+                    className="inline-block bg-gradient-to-r from-white to-gray-100 hover:from-gray-50 hover:to-white text-teal-800 hover:text-teal-900 font-medium px-6 py-3 rounded-lg transition-all duration-300 hover:shadow-lg border border-white/20"
                   >
                     Explore Research
                   </Link>
@@ -152,22 +152,6 @@ export default function AboutPage() {
             </div>
           </div>
         </section>
-
-        {/* Section anchor navigation */}
-        <nav className="flex gap-6 mb-12 justify-center text-green-800 font-medium text-lg">
-          <a
-            href="#vision"
-            className="hover:underline hover:text-green-600 transition-colors"
-          >
-            🌍 Vision
-          </a>
-          <a
-            href="#team"
-            className="hover:underline hover:text-green-600 transition-colors"
-          >
-            👥 Team
-          </a>
-        </nav>
 
         {/* Vision section with improved card design */}
         <section id="vision" className="mb-20">
@@ -181,29 +165,29 @@ export default function AboutPage() {
                   height={500}
                   className="rounded-xl shadow-xl object-cover h-full"
                 />
-                <div className="absolute -bottom-4 -right-4 bg-green-100 p-4 rounded-lg shadow-md z-10 border border-green-200">
-                  <span className="text-green-800 font-bold">Our Vision</span>
+                <div className="absolute -bottom-4 -right-4 bg-amber-50 p-4 rounded-lg shadow-md z-10 border border-amber-200">
+                  <span className="text-teal-800 font-bold">Our Vision</span>
                 </div>
               </div>
             </div>
             <div className="md:w-2/3">
-              <h2 className="text-2xl font-semibold text-green-700 mb-2 flex items-center gap-2">
+              <h2 className="text-2xl font-semibold text-teal-700 mb-2 flex items-center gap-2">
                 <span className="text-3xl">🌍</span>
                 Explore goals of sustainable agriculture
               </h2>
-              <h3 className="text-3xl md:text-4xl font-bold mb-8 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent border-b-4 border-green-200 pb-2">
+              <h3 className="text-3xl md:text-4xl font-bold mb-8 bg-gradient-to-r from-teal-700 to-emerald-600 bg-clip-text text-transparent border-b-4 border-teal-200 pb-2">
                 Visions for a Sustainable Future
               </h3>
               <ul className="space-y-8">
-                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-                  <div className="bg-green-100 text-green-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-emerald-200">
+                  <div className="bg-emerald-100 text-emerald-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
                     01
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
-                      Business <span className="text-green-500">📈</span>
+                      Business <span className="text-emerald-600">📈</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
+                    <ul className="list-disc ml-6 text-gray-700 space-y-1">
                       <li>
                         Support economic models that balance profit and
                         sustainability
@@ -214,15 +198,15 @@ export default function AboutPage() {
                     </ul>
                   </div>
                 </li>
-                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-blue-100">
-                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-sky-200">
+                  <div className="bg-sky-100 text-sky-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
                     02
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
-                      Policy Making <span className="text-blue-500">📜</span>
+                      Policy Making <span className="text-sky-600">📜</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
+                    <ul className="list-disc ml-6 text-gray-700 space-y-1">
                       <li>Enable effective governance and incentives</li>
                       <li>
                         Shape regulatory frameworks for sustainable practices
@@ -230,15 +214,15 @@ export default function AboutPage() {
                     </ul>
                   </div>
                 </li>
-                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-purple-100">
-                  <div className="bg-purple-100 text-purple-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+                <li className="flex gap-6 bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-200">
+                  <div className="bg-amber-100 text-amber-800 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
                     03
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 flex items-center gap-2 text-gray-800">
-                      Research <span className="text-purple-500">🧪</span>
+                      Research <span className="text-amber-600">🧪</span>
                     </h4>
-                    <ul className="list-disc ml-6 text-gray-600 space-y-1">
+                    <ul className="list-disc ml-6 text-gray-700 space-y-1">
                       <li>
                         Advance knowledge on food security and climate
                         resilience
@@ -255,17 +239,17 @@ export default function AboutPage() {
         {/* Team section with enhanced cards */}
         <section
           id="team"
-          className="mb-20 bg-white/30 backdrop-blur-sm py-16 rounded-2xl border border-green-100"
+          className="mb-20 bg-white/25 backdrop-blur-sm py-16 rounded-2xl border border-teal-100"
         >
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent flex items-center justify-center gap-3">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-teal-700 to-emerald-600 bg-clip-text text-transparent flex items-center justify-center gap-3">
               <span className="text-5xl">🌿</span>
               Meet Our Team
             </h2>
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-400 rounded-full" />
+              <div className="w-24 h-1 bg-gradient-to-r from-teal-400 via-emerald-500 to-amber-400 rounded-full" />
             </div>
-            <p className="text-gray-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-gray-800 max-w-3xl mx-auto leading-relaxed">
               We are a team of researchers at the Schulich School of Business,
               York University. We are passionate about studying sustainable
               agriculture-related practices, businesses, and farmer livelihoods
@@ -277,7 +261,7 @@ export default function AboutPage() {
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="bg-gradient-to-br from-green-50/90 to-mint-50/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col max-w-sm mx-auto cursor-pointer group border border-green-100/50 hover:-translate-y-2"
+                className="bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col max-w-sm mx-auto cursor-pointer group border border-teal-200/50 hover:-translate-y-2"
                 onClick={() => setModalMember(member)}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -293,8 +277,8 @@ export default function AboutPage() {
                     height={300}
                     className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute -bottom-4 left-6 bg-white rounded-full p-1 shadow-lg border-4 border-green-100">
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">
+                  <div className="absolute -bottom-4 left-6 bg-white rounded-full p-1 shadow-lg border-4 border-teal-100">
+                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm">
                       🧑‍🔬
                     </div>
                   </div>
@@ -311,14 +295,14 @@ export default function AboutPage() {
                   <h3 className="text-xl font-bold mb-2 text-gray-800">
                     {member.name}
                   </h3>
-                  <p className="text-sm text-green-600 mb-3 font-medium">
+                  <p className="text-sm text-teal-700 mb-3 font-medium">
                     {member.role}
                   </p>
                   <p className="text-gray-700 mb-4 leading-relaxed">
                     {member.bio}
                   </p>
                   <button
-                    className="inline-flex items-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium group-hover:bg-green-600"
+                    className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium group-hover:bg-teal-700"
                     onClick={(e) => {
                       e.stopPropagation();
                       setModalMember(member);
@@ -383,14 +367,7 @@ export default function AboutPage() {
             transform: translateY(0);
           }
         }
-
-        .mint-50 {
-          background-color: #f0fdf4;
-        }
       `}</style>
     </div>
   );
-}
-{
-  /* Animations (AOS or similar) */
 }
