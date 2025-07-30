@@ -269,20 +269,14 @@ export default function AboutPage() {
                 }}
                 aria-label={`Read more about ${member.name}`}
               >
-                <div className="relative">
+                <div className="w-full h-[240px] bg-gray-100 flex items-center justify-center">
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={320}
-                    height={200}
-                    className="w-full h-[200px] object-cover rounded-t-[20px] bg-gray-100"
+                    width={220}
+                    height={220}
+                    className="object-contain w-auto h-full"
                   />
-                  {/* Optional badge at bottom-left inside card body */}
-                  {/* <div className="absolute left-4 -bottom-4 z-10">
-                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm shadow-lg border-4 border-white">
-                      🧑‍🔬
-                    </div>
-                  </div> */}
                 </div>
                 <div className="flex flex-col flex-grow p-6">
                   <h3 className="text-xl font-bold mb-1 text-gray-800">
