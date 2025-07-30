@@ -261,7 +261,7 @@ export default function AboutPage() {
             {teamMembers.map((member) => (
               <div
                 key={member.id}
-                className="bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col max-w-sm mx-auto cursor-pointer group border border-teal-200/50 hover:-translate-y-2"
+                className="profile-card bg-gradient-to-br from-emerald-50/90 to-teal-50/90 backdrop-blur-sm rounded-[20px] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col max-w-[320px] min-h-[450px] mx-auto cursor-pointer group border border-teal-200/50 hover:-translate-y-1.5"
                 onClick={() => setModalMember(member)}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -269,40 +269,33 @@ export default function AboutPage() {
                 }}
                 aria-label={`Read more about ${member.name}`}
               >
-                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
+                <div className="relative">
                   <Image
                     src={member.image}
                     alt={member.name}
-                    width={400}
-                    height={300}
-                    className="w-full h-64 object-contain transition-transform duration-300 group-hover:scale-105"
+                    width={320}
+                    height={200}
+                    className="w-full h-[200px] object-cover rounded-t-[20px] bg-gray-100"
                   />
-                  <div className="absolute -bottom-4 left-6 bg-white rounded-full p-1 shadow-lg border-4 border-teal-100">
-                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm">
+                  {/* Optional badge at bottom-left inside card body */}
+                  {/* <div className="absolute left-4 -bottom-4 z-10">
+                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm shadow-lg border-4 border-white">
                       🧑‍🔬
                     </div>
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                    <div className="text-white text-sm">
-                      <span className="block font-semibold">
-                        {member.affiliation}
-                      </span>
-                      <span className="block opacity-90">{member.email}</span>
-                    </div>
-                  </div>
+                  </div> */}
                 </div>
-                <div className="p-6 flex-grow">
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">
+                <div className="flex flex-col flex-grow p-6">
+                  <h3 className="text-xl font-bold mb-1 text-gray-800">
                     {member.name}
                   </h3>
-                  <p className="text-sm text-teal-700 mb-3 font-medium">
+                  <p className="text-sm text-teal-700 mb-3 font-medium italic">
                     {member.role}
                   </p>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
+                  <p className="text-gray-700 mb-4 leading-relaxed flex-grow">
                     {member.bio}
                   </p>
                   <button
-                    className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium group-hover:bg-teal-700"
+                    className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 font-medium mt-auto"
                     onClick={(e) => {
                       e.stopPropagation();
                       setModalMember(member);
@@ -366,6 +359,15 @@ export default function AboutPage() {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        .profile-card {
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .profile-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
       `}</style>
     </div>
