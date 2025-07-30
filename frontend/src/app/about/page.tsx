@@ -269,13 +269,13 @@ export default function AboutPage() {
                 }}
                 aria-label={`Read more about ${member.name}`}
               >
-                <div className="relative">
+                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
                   <Image
                     src={member.image}
                     alt={member.name}
                     width={400}
                     height={300}
-                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-64 object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute -bottom-4 left-6 bg-white rounded-full p-1 shadow-lg border-4 border-teal-100">
                     <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white text-sm">
