@@ -74,7 +74,7 @@ The application follows a client-server architecture:
 
 3. Create `.env.local` file:
 
-   ```
+   ```env
    NEXT_PUBLIC_API_URL=http://localhost:8000
    ```
 
