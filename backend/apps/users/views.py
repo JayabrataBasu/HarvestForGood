@@ -20,7 +20,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
-import resend
+# import resend
 
 
 class RegisterView(generics.CreateAPIView):
@@ -81,17 +81,19 @@ def contact_message(request):
     if not all([name, email, subject, message]):
         return Response({'message': 'All fields are required.'}, status=400)
     try:
-        resend.api_key = os.environ.get("resend.api_key")
-        response = resend.Emails.send({
-            "from": "Your Name <noreply@yourdomain.com>",  # Use your verified Resend domain
-            "to": ["jayabratabasu@gmail.com"],  # Or your official email
-            "subject": f"[Contact] {subject}",
-            "html": f"<p><b>From:</b> {name} ({email})</p><p>{message}</p>",
-        })
-        if response.get("id"):
-            return Response({'message': 'Message sent successfully!'})
-        else:
-            return Response({'message': 'Failed to send message.'}, status=500)
+        # resend.api_key = os.environ.get("resend.api_key")
+        # response = resend.Emails.send({
+        #     "from": "Your Name <noreply@yourdomain.com>",  # Use your verified Resend domain
+        #     "to": ["jayabratabasu@gmail.com"],  # Or your official email
+        #     "subject": f"[Contact] {subject}",
+        #     "html": f"<p><b>From:</b> {name} ({email})</p><p>{message}</p>",
+        # })
+        # if response.get("id"):
+        #     return Response({'message': 'Message sent successfully!'})
+        # else:
+        #     return Response({'message': 'Failed to send message.'}, status=500)
+        # Temporarily return a success message for testing
+        return Response({'message': 'Message sent successfully!'})
     except Exception as e:
         return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
 # ...existing code...

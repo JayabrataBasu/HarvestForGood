@@ -17,9 +17,6 @@ class ForumPostAdmin(admin.ModelAdmin):
         ('Author Information', {
             'fields': ('author', 'guest_name', 'guest_affiliation', 'guest_email')
         }),
-        ('Tags', {
-            'fields': ('tags',)
-        }),
         ('Statistics', {
             'fields': ('likes_count', 'comments_count'),
             'classes': ('collapse',)
@@ -29,8 +26,6 @@ class ForumPostAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
-    
-    filter_horizontal = ('tags',)
     
     def author_info(self, obj):
         if obj.author:
@@ -126,6 +121,11 @@ class LikeAdmin(admin.ModelAdmin):
 class ForumTagAdmin(admin.ModelAdmin):
     list_display = ('name', 'usage_count', 'posts_count')
     search_fields = ('name',)
+    readonly_fields = ('usage_count', 'posts_count')
+    
+    def posts_count(self, obj):
+        return obj.posts.count()
+    posts_count.short_description = 'Posts using this tag'
     readonly_fields = ('usage_count', 'posts_count')
     
     def posts_count(self, obj):
