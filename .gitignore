@@ -68,3 +68,55 @@ credentials.json
 secrets.json
 serviceAccountKey.json
 .vercel
+
+# Backend email files that might be created at root
+sent_emails/
+*.eml
+
+# Python patterns at root level
+*.py[cod]
+*$py.class
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.backup
+
+# Additional database files
+*.dump
+*.sql
+dump.rdb
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build artifacts
+build/
+dist/
+out/
+staticfiles/
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*~
+
+# Documentation builds
+docs/_build/
+site/
+
+# Railway and deployment
+.railway/
+railway.json
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose*.yml

@@ -49,6 +49,14 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
    python manage.py collectstatic --noinput
    ```
 
+4. **Create Django Admin Superuser**
+
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+   This will prompt you to create an admin user with full access to the Django admin panel.
+
 ### 2. Deploying Frontend to Vercel
 
 1. **Create a Vercel Account**
@@ -145,7 +153,10 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
    # Run migrations
    python manage.py migrate
    
-   # Create a superuser (admin)
+   # Collect static files for admin
+   python manage.py collectstatic --noinput
+   
+   # Create a superuser (admin) for Django Admin Panel
    python manage.py createsuperuser
    ```
 
@@ -185,6 +196,10 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
            root /home/yourusername/harvestforgood/backend;
        }
        
+       location /media/ {
+           root /home/yourusername/harvestforgood/backend;
+       }
+       
        location / {
            include uwsgi_params;
            uwsgi_pass unix:/home/yourusername/harvestforgood/harvestforgood.sock;
@@ -209,7 +224,48 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
 - Enable Let's Encrypt certificate for your domain
 - Force HTTPS redirects
 
-### 4. Connecting Frontend and Backend
+### 4. Accessing Django Admin Panel
+
+Once your backend is deployed, you can access the full Django admin panel at:
+
+```
+https://your-backend-domain.com/admin/
+```
+
+**Features Available:**
+
+1. **User Management**
+   - View, edit, and manage all users
+   - Set staff and superuser permissions
+   - Verify email addresses
+   - Manage user roles and permissions
+
+2. **Research Paper Management**
+   - Add, edit, and delete research papers
+   - Manage authors and keywords
+   - Export papers as CSV
+   - Bulk operations
+
+3. **Forum Management**
+   - Moderate forum posts and comments
+   - Pin/unpin important posts
+   - Manage forum tags
+   - Monitor likes and engagement
+
+4. **Academic Profiles**
+   - Verify academic credentials
+   - Manage institutional affiliations
+   - Review verification documents
+
+5. **Security Monitoring**
+   - View failed login attempts
+   - Monitor suspicious activities
+   - Security dashboard and alerts
+
+**Login Credentials:**
+Use the superuser account you created during setup.
+
+### 5. Connecting Frontend and Backend
 
 1. **Update CORS Settings**
 
@@ -228,7 +284,7 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
    - In Vercel dashboard, update the `NEXT_PUBLIC_API_URL` environment variable
    - Redeploy the frontend if necessary
 
-### 5. Troubleshooting
+### 6. Troubleshooting
 
 - **Backend Connection Issues**
   - Check Hostinger firewall settings
@@ -245,7 +301,12 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
   - Check if database server allows external connections
   - Ensure Django settings correctly reference database credentials
 
-### 6. Maintenance
+- **Django Admin Access Issues**
+  - Ensure static files are collected: `python manage.py collectstatic`
+  - Check that superuser account is created
+  - Verify admin URLs are accessible in Nginx configuration
+
+### 7. Maintenance
 
 - **Backend Updates**
 
@@ -265,6 +326,9 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
   # Run migrations if needed
   python manage.py migrate
   
+  # Collect static files
+  python manage.py collectstatic --noinput
+  
   # Restart uWSGI
   uwsgi --reload uwsgi.pid
   ```
@@ -274,10 +338,25 @@ This guide explains how to deploy the Harvest For Good project using Vercel for 
   - Vercel will automatically rebuild and deploy
   - Or manually trigger a redeploy from the Vercel dashboard
 
-### 7. Monitoring
+### 8. Monitoring
 
 - Set up basic monitoring with Hostinger's tools
+- Use Django admin panel for content management
+- Monitor security through the admin security dashboard
 - Consider adding application monitoring like Sentry
 - Regularly check logs for errors
 
-With these steps, your Harvest For Good project should be successfully deployed with the frontend on Vercel and the backend on Hostinger.
+### 9. Admin Panel Access Summary
+
+Your Django admin panel provides complete control over:
+
+- **Users**: Registration, permissions, verification
+- **Content**: Research papers, forum posts, comments
+- **Moderation**: Pin posts, verify academics, manage tags
+- **Security**: Monitor logins, track suspicious activity
+- **Data**: Export, import, bulk operations
+- **Settings**: Site configuration, email templates
+
+Access URL: `https://your-backend-domain.com/admin/`
+
+With these steps, your Harvest For Good project should be successfully deployed with the frontend on Vercel and the backend on Hostinger, including full Django admin panel access.

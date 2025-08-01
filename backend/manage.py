@@ -2,6 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from django.core.management import execute_from_command_line
 
 #s.environ['PATH'] = r'C:\Program Files\PostgreSQL\17\bin;' + os.environ['PATH']
 
@@ -21,3 +22,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+from django.core.management import call_command
+call_command('createsuperuser')

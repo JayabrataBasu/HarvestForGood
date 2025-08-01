@@ -17,7 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+# Customize admin site
+admin.site.site_header = "Harvest For Good Administration"
+admin.site.site_title = "Harvest For Good Admin"
+admin.site.index_title = "Welcome to Harvest For Good Administration"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,3 +37,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('', TemplateView.as_view(template_name='api_root.html'), name='api-root'),
 ]
+
+# Serve static and media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

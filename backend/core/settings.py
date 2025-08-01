@@ -14,37 +14,61 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
-
+import dj_database_url
 
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+# Railway deployment detection
+RAILWAY_ENVIRONMENT = os.getenv('RAILWAY_ENVIRONMENT')
+IS_RAILWAY = RAILWAY_ENVIRONMENT is not None
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-development-key-change-me')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', os.getenv('SECRET_KEY', 'django-insecure-development-key-change-me'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# For development, we explicitly set these to True and False
-DEBUG = True
-DEV_HTTPS = False
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+# Database configuration with Railway support
+if IS_RAILWAY:
+    # Railway automatically provides DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
+        }
+    }
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
+# Allowed hosts configuration
+if IS_RAILWAY:
+    # Railway provides RAILWAY_PUBLIC_DOMAIN and RAILWAY_STATIC_URL
+    ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
+        'testserver',
+        '.railway.app',  # Railway subdomain
+        '.up.railway.app',  # Railway legacy domain
+        os.getenv('RAILWAY_PUBLIC_DOMAIN', ''),
+        os.getenv('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', ''),
+    ]
+    # Remove empty strings and clean up
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host and host.strip()]
+    
+    # Add custom domains from environment
+    custom_hosts = os.getenv('ALLOWED_HOSTS', '').split(',')
+    ALLOWED_HOSTS.extend([host.strip() for host in custom_hosts if host.strip()])
+else:
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 
 # Application definition
@@ -122,19 +146,40 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Security settings for development - all disabled
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Security settings for production
+if IS_RAILWAY or not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    CSRF_COOKIE_SAMESITE = 'Strict'
+    SESSION_COOKIE_SAMESITE = 'Strict'
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # Additional production security
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+else:
+    # Development settings
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'SAMEORIGIN'  # More permissive for development
 
-# JWT settings - allow insecure cookies for development
+# JWT settings with environment-based security
 REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'apps.users.serializers.UserSerializer',
     'REGISTER_SERIALIZER': 'apps.users.serializers.CustomRegisterSerializer',
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'my-app-auth',
     'JWT_AUTH_REFRESH_COOKIE': 'my-refresh-token',
-    'JWT_AUTH_SECURE': False,  # Allow cookies over HTTP
+    'JWT_AUTH_SECURE': IS_RAILWAY,  # Secure cookies in production
 }
 
 # Common security settings - keep basic XSS protection
@@ -294,20 +339,55 @@ API_EXCLUDED_PATHS = [
     '/api/research/papers',   # Also include without trailing slash
     '/api/research/keywords/',  # Allow anonymous users to view keywords
     '/api/research/keywords',   # Also include without trailing slash
+    '/admin/',  # Allow Django admin access
+    '/admin',   # Without trailing slash
 ]
+
+# Django Admin Configuration
+ADMIN_SITE_HEADER = "Harvest For Good Administration"
+ADMIN_SITE_TITLE = "Harvest For Good Admin"
+ADMIN_INDEX_TITLE = "Welcome to Harvest For Good Administration"
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# CORS settings - allow frontend to communicate with backend
-CORS_ALLOW_ALL_ORIGINS = True  # Simplified for development
-CORS_ALLOW_CREDENTIALS = True
+# CORS settings with environment-based configuration
+if IS_RAILWAY or not DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = False
+    cors_origins = []
+    
+    # Add frontend URL from environment
+    frontend_url = os.getenv('FRONTEND_URL', '')
+    if frontend_url:
+        cors_origins.append(frontend_url)
+    
+    # Add Railway domain
+    railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
+    if railway_domain:
+        cors_origins.extend([
+            f"https://{railway_domain}",
+            f"http://{railway_domain}"  # For development
+        ])
+    
+    # Add custom origins from environment
+    custom_origins = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+    cors_origins.extend([origin.strip() for origin in custom_origins if origin.strip()])
+    
+    # Add trusted origins from environment  
+    trusted_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    cors_origins.extend([origin.strip() for origin in trusted_origins if origin.strip()])
+    
+    CORS_ALLOWED_ORIGINS = list(set([origin for origin in cors_origins if origin]))
+    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -356,7 +436,19 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+if IS_RAILWAY or not DEBUG:
+    # Use whitenoise for static files in production
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    WHITENOISE_USE_FINDERS = True
+    WHITENOISE_AUTOREFRESH = True
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

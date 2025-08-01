@@ -1,4 +1,54 @@
-{% extends "admin/base.html" %} {% block title %}{{ title }} | HarvestForGood{%
-endblock %} {% block branding %}
-<h1 id="site-name">HarvestForGood Administration</h1>
+{% extends "admin/base.html" %} {% block title %}{{ title }} | Harvest For Good
+Admin{% endblock %} {% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">Harvest For Good Administration</a>
+</h1>
+{% endblock %} {% block nav-global %}
+<div id="header">
+  <div id="branding">{% block branding %}{% endblock %}</div>
+  {% if user.is_active and user.is_staff %}
+  <div id="user-tools">
+    Welcome,
+    <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+    <a href="{% url 'admin:password_change' %}">Change password</a> /
+    <a href="{% url 'admin:logout' %}">Log out</a> /
+    <a href="/" target="_blank">View site</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %} {% block extrastyle %} {{ block.super }}
+<style>
+  #header {
+    background: #2e7d32;
+    color: white;
+  }
+  #branding h1,
+  #branding h1 a:link,
+  #branding h1 a:visited {
+    color: white;
+  }
+  #user-tools a {
+    color: #fff;
+  }
+  .module h2,
+  .module caption,
+  .inline-group h2 {
+    background: #4caf50;
+  }
+  .button,
+  input[type="submit"],
+  input[type="button"],
+  .submit-row input,
+  a.button {
+    background: #4caf50;
+    border-color: #4caf50;
+  }
+  .button:hover,
+  input[type="submit"]:hover,
+  input[type="button"]:hover,
+  .submit-row input:hover,
+  a.button:hover {
+    background: #388e3c;
+  }
+</style>
 {% endblock %}

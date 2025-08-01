@@ -13,8 +13,12 @@ export function middleware(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     const headerToken = authHeader ? authHeader.split(' ')[1] : null;
     
+    // Check localStorage token (this will only work client-side)
+    const localStorageToken = typeof window !== 'undefined' ? 
+      localStorage.getItem('access_token') : null;
+    
     // If no token is found, redirect to login
-    if (!token && !headerToken) {
+    if (!token && !headerToken && !localStorageToken) {
       const url = new URL('/login', request.url);
       url.searchParams.set('next', request.nextUrl.pathname);
       return NextResponse.redirect(url);
