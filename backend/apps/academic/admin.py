@@ -4,11 +4,11 @@ from .models import Academic
 
 @admin.register(Academic)
 class AcademicAdmin(admin.ModelAdmin):
-    list_display = ('user', 'institution', 'department', 'position', 'verified', 'created_at')
-    list_filter = ('verified', 'institution', 'department', 'position')
+    list_display = ('title', 'category', 'created_at', 'updated_at')
+    list_filter = ('category', 'created_at')
     search_fields = ('user__username', 'user__email', 'institution', 'department')
     readonly_fields = ('created_at', 'updated_at')
-    list_editable = ('verified',)
+    list_editable = ()
     
     fieldsets = (
         ('User Information', {

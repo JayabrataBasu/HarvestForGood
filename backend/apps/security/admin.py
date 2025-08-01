@@ -13,7 +13,7 @@ class SecurityAdminSite(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('security-dashboard/', self.admin_site.admin_view(self.security_dashboard), name='security_dashboard'),
+            #path('security-dashboard/', self.admin_site.admin_view(self.security_dashboard), name='security_dashboard'),
             path('security-logs/', self.admin_site.admin_view(self.security_logs), name='security_logs'),
         ]
         return custom_urls + urls
@@ -50,4 +50,4 @@ class SecurityAdminSite(admin.ModelAdmin):
         return cache.get('security_logs', [])
 
 # Register the security admin
-admin.site.register_view('security/', view=SecurityAdminSite().security_dashboard, name='Security Dashboard')
+#admin.site.register_view('security/', view=SecurityAdminSite().security_dashboard, name='Security Dashboard')
