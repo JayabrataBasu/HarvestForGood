@@ -7,6 +7,9 @@ from .models import ResearchPaper, Author, Keyword
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib import messages
+from django.utils.html import format_html
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 class ResearchPaperAdminForm(forms.ModelForm):
     """
@@ -146,8 +149,16 @@ class ResearchPaperAdminForm(forms.ModelForm):
 # Optional: Register these models if you still want separate admin interfaces for them
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'affiliation', 'email']
+    list_display = ['name', 'affiliation', 'email', 'paper_count']
     search_fields = ['name', 'affiliation']
+    list_filter = ['affiliation']
+    readonly_fields = ['paper_count']
+    
+    def paper_count(self, obj):
+        count = obj.papers.count()
+        url = reverse('admin:research_researchpaper_changelist') + f'?authors__id__exact={obj.id}'
+        return format_html('<a href="{}">{} papers</a>', url, count)
+    paper_count.short_description = 'Papers'
         
     def save_model(self, request, obj, form, change):
         # Prevent saving if affiliation is missing
@@ -167,9 +178,16 @@ class AuthorAdmin(admin.ModelAdmin):
     
 @admin.register(Keyword)
 class KeywordAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'year_created', 'year_updated']
+    list_display = ['name', 'category', 'year_created', 'year_updated', 'paper_count']
     search_fields = ['name']
-    list_filter = ['category']
+    list_filter = ['category', 'year_created']
+    readonly_fields = ['paper_count']
+    
+    def paper_count(self, obj):
+        count = obj.papers.count()
+        url = reverse('admin:research_researchpaper_changelist') + f'?keywords__id__exact={obj.id}'
+        return format_html('<a href="{}">{} papers</a>', url, count)
+    paper_count.short_description = 'Papers'
     
     def save_model(self, request, obj, form, change):
         # Set the created_at field to keep the database happy
@@ -197,17 +215,27 @@ class AuthorInline(admin.TabularInline):
 @admin.register(ResearchPaper)
 class ResearchPaperAdmin(admin.ModelAdmin):
     form = ResearchPaperAdminForm
-    list_display = ['title', 'get_authors', 'publication_year', 'journal']
+    list_display = ['title', 'get_authors', 'publication_year', 'journal', 'citation_count', 'view_paper']
     search_fields = ['title', 'abstract', 'authors__name', 'journal']
-    list_filter = ['journal']
+    list_filter = ['journal', 'methodology_type', 'publication_year']
+    readonly_fields = ['view_paper', 'created_at', 'updated_at']
     
     # Add the authors inline and exclude the main field to avoid duplication
     inlines = [AuthorInline]
     exclude = ('authors',)  # This prevents duplicate author fields
     
     def get_authors(self, obj):
-        return ", ".join([author.name for author in obj.authors.all()])
+        return ", ".join([author.name for author in obj.authors.all()[:3]])  # Limit to first 3 authors
     get_authors.short_description = 'Authors'
+    
+    def view_paper(self, obj):
+        if obj.download_url:
+            return format_html(
+                '<a href="{}" target="_blank">View PDF</a>',
+                obj.download_url
+            )
+        return "No PDF available"
+    view_paper.short_description = 'PDF'
     
     def save_model(self, request, obj, form, change):
         """
@@ -215,3 +243,22 @@ class ResearchPaperAdmin(admin.ModelAdmin):
         """
         # publication_year should already be a string from the form
         super().save_model(request, obj, form, change)
+    
+    actions = ['export_as_csv']
+    
+    def export_as_csv(self, request, queryset):
+        import csv
+        from django.http import HttpResponse
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="papers.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Title', 'Authors', 'Year', 'Journal', 'DOI'])
+        
+        for paper in queryset:
+            authors = ', '.join([author.name for author in paper.authors.all()])
+            writer.writerow([paper.title, authors, paper.publication_year, paper.journal, paper.doi])
+        
+        return response
+    export_as_csv.short_description = "Export selected papers as CSV"

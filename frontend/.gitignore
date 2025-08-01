@@ -41,3 +41,70 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Additional Next.js patterns
+.next/
+out/
+build/
+dist/
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.cache/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ESLint cache
+.eslintcache
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/fixtures/
+
+# Jest
+coverage/
+.nyc_output/
+
+# Local development
+.env.local.example
+.env.development.local
+.env.test.local
+.env.production.local

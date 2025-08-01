@@ -50,3 +50,68 @@ htmlcov/
 # Local development
 .python-version
 .pytest_cache/
+
+# Email files (from your test_email.py)
+sent_emails/
+*.eml
+
+# Migration backups
+*/migrations/__pycache__/
+*/migrations/*.pyc
+migration_backup/
+*.backup
+
+# Django debug toolbar
+debug_toolbar/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Test files
+.tox/
+.pytest_cache/
+test_*.py
+*_test.py
+test_output/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.spyderproject
+.spyproject
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+
+# Log files
+*.log.*
+error.log
+access.log
+django.log
+
+# File uploads
+uploads/
+user_uploads/
+temporary_files/
+
+# Database dumps
+*.sql
+*.dump
+dump.rdb
