@@ -6,7 +6,7 @@ import { ForumPost, PaginatedResponse } from "../types/api";
 const ForumPostsList: React.FC = () => {
   const { data, loading, error, refetch } = useApi<
     PaginatedResponse<ForumPost>
-  >(apiService.forumPosts.getAll);
+  >(apiService.getForumPosts);
 
   if (loading) {
     return (

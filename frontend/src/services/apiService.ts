@@ -1,30 +1,32 @@
 import api from '../utils/api';
 import API_CONFIG from '../config/api';
-import { ForumPost, ResearchPaper, PaginatedResponse } from '../types/api';
+import { ResearchPaper } from '../types/paper.types';
+import { LoginCredentials, RegisterData, User } from '../types/auth.types';
 
 export const apiService = {
   // Forum Posts
-  forumPosts: {
-    getAll: () => api.get<PaginatedResponse<ForumPost>>(API_CONFIG.ENDPOINTS.FORUM_POSTS),
-    getById: (id: number) => api.get<ForumPost>(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}${id}/`),
-    create: (data: Partial<ForumPost>) => api.post<ForumPost>(API_CONFIG.ENDPOINTS.FORUM_POSTS, data),
-    update: (id: number, data: Partial<ForumPost>) => api.put<ForumPost>(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}${id}/`, data),
-    delete: (id: number) => api.delete(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}${id}/`),
-  },
+  getForumPosts: () => api.get(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}`),
+  getForumPost: (id: number) => api.get(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}${id}/`),
+  createForumPost: (data: { title: string; content: string; authorId: number }) => api.post(`${API_CONFIG.ENDPOINTS.FORUM_POSTS}`, data),
 
   // Research Papers
   researchPapers: {
-    getAll: () => api.get<PaginatedResponse<ResearchPaper>>(API_CONFIG.ENDPOINTS.RESEARCH_PAPERS),
-    getById: (id: number) => api.get<ResearchPaper>(`${API_CONFIG.ENDPOINTS.RESEARCH_PAPERS}${id}/`),
-    create: (data: Partial<ResearchPaper>) => api.post<ResearchPaper>(API_CONFIG.ENDPOINTS.RESEARCH_PAPERS, data),
+    getAll: () => api.get(`${API_CONFIG.ENDPOINTS.RESEARCH_PAPERS}`),
+    get: (id: number) => api.get(`${API_CONFIG.ENDPOINTS.RESEARCH_PAPERS}${id}/`),
     update: (id: number, data: Partial<ResearchPaper>) => api.put<ResearchPaper>(`${API_CONFIG.ENDPOINTS.RESEARCH_PAPERS}${id}/`, data),
     delete: (id: number) => api.delete(`${API_CONFIG.ENDPOINTS.RESEARCH_PAPERS}${id}/`),
   },
 
+  // Authentication
+  login: (credentials: LoginCredentials) => api.post(`${API_CONFIG.AUTH.LOGIN}`, credentials),
+  register: (userData: RegisterData) => api.post(`${API_CONFIG.AUTH.REGISTER}`, userData),
+  logout: () => api.post(`${API_CONFIG.AUTH.LOGOUT}`),
+  getCurrentUser: () => api.get(`${API_CONFIG.AUTH.USER}`),
+
   // Users
   users: {
     getProfile: () => api.get(API_CONFIG.AUTH.USER),
-    updateProfile: (data: Partial<{ name?: string; email?: string; password?: string }>) => api.put(API_CONFIG.AUTH.USER, data),
+    updateProfile: (data: Partial<User>) => api.put(API_CONFIG.AUTH.USER, data),
   },
 
   // Test connection

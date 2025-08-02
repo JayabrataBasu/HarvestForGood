@@ -20,13 +20,12 @@ interface APIConfig {
 }
 
 const API_CONFIG: APIConfig = {
-  // Ensure proper URL formatting
   BASE_URL: process.env.NEXT_PUBLIC_API_URL || 
             (process.env.NODE_ENV === 'production' 
               ? 'https://harvestforgood-production.up.railway.app/api/' 
               : 'http://localhost:8000/api/'),
   
-  TIMEOUT: 30000, // Increased timeout
+  TIMEOUT: 30000,
   
   AUTH: {
     LOGIN: 'auth/login/',
@@ -43,12 +42,10 @@ const API_CONFIG: APIConfig = {
   }
 };
 
-// Debug logging
+export default API_CONFIG;
+export type { APIConfig, AuthEndpoints, APIEndpoints };
 console.log('API Configuration:', {
   BASE_URL: API_CONFIG.BASE_URL,
   NODE_ENV: process.env.NODE_ENV,
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL
 });
-
-export default API_CONFIG;
-export type { APIConfig, AuthEndpoints, APIEndpoints };
