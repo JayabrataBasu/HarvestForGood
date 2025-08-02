@@ -1,6 +1,5 @@
 [phases.build]
 cmds = [
-  "python manage.py migrate --noinput",
   "python manage.py collectstatic --noinput"
 ]
 
@@ -22,4 +21,4 @@ packages = [
   "freetype",
   "fontconfig"
 ]
-  
+

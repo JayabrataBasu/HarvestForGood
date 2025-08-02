@@ -35,7 +35,6 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if DATABASE_URL:
-    # Parse the DATABASE_URL from Railway or other providers
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL)
     }
