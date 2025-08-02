@@ -138,18 +138,20 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Security settings for production
+# Security settings for production - UPDATED TO FIX REDIRECT LOOP
 if IS_RAILWAY or not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # DO NOT force SSL redirect - Railway handles HTTPS termination
+    SECURE_SSL_REDIRECT = False  # Changed from True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    CSRF_COOKIE_SAMESITE = 'Strict'
-    SESSION_COOKIE_SAMESITE = 'Strict'
+    # Disable HSTS for now to avoid redirect issues
+    SECURE_HSTS_SECONDS = 0  # Changed from 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False  # Changed from True
+    SECURE_HSTS_PRELOAD = False  # Changed from True
+    CSRF_COOKIE_SAMESITE = 'Lax'  # Changed from 'Strict'
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Changed from 'Strict'
     X_FRAME_OPTIONS = 'DENY'
     
     # Additional production security
