@@ -29,14 +29,14 @@ const API_CONFIG: APIConfig = {
 
   AUTH: {
     LOGIN: 'auth/login/',
-    REGISTER: 'auth/register/',
+    REGISTER: 'auth/registration/', // Changed to match Django allauth
     LOGOUT: 'auth/logout/',
     USER: 'auth/user/',
-    REFRESH: 'auth/refresh/',
+    REFRESH: 'token/refresh/', // Changed to match your JWT setup
   },
   
   ENDPOINTS: {
-    FORUM_POSTS: 'forums/posts/', // Changed from 'forum/posts/' to match your backend
+    FORUM_POSTS: 'forum/posts/', // Changed back to singular 'forum'
     RESEARCH_PAPERS: 'research/papers/',
     USERS: 'users/',
   }
