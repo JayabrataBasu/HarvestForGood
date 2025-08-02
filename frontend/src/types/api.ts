@@ -33,5 +33,5 @@ export interface ResearchPaper {
 export interface APIError {
   detail?: string;
   message?: string;
-  [key: string]: any;
+  [key: string]: string | undefined;
 }

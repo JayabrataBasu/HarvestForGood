@@ -38,12 +38,31 @@ const TestConnection: React.FC = () => {
         isSuccess: true,
       });
       console.log("API Response:", response.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Connection Error:", error);
+      let errorMessage = "Unknown error";
+      interface ApiError {
+        response?: {
+          data?: {
+            detail?: string;
+          };
+        };
+        message?: string;
+      }
+
+      if (typeof error === "object" && error !== null) {
+        const apiError = error as ApiError;
+        if (
+          apiError.response &&
+          typeof apiError.response.data?.detail === "string"
+        ) {
+          errorMessage = apiError.response.data.detail;
+        } else if (typeof apiError.message === "string") {
+          errorMessage = apiError.message;
+        }
+      }
       setStatus({
-        message: `❌ Connection failed: ${
-          error.response?.data?.detail || error.message
-        }`,
+        message: `❌ Connection failed: ${errorMessage}`,
         isLoading: false,
         isSuccess: false,
       });
