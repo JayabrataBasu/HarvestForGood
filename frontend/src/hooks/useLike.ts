@@ -32,9 +32,14 @@ export const useLike = ({
     setError(null);
 
     try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+        (process.env.NODE_ENV === 'production' 
+          ? "https://harvestforgood-production.up.railway.app/api"
+          : "http://localhost:8000/api");
+
       const endpoint = itemType === 'post' 
-        ? `http://localhost:8000/api/forum/posts/${itemId}/like/`
-        : `http://localhost:8000/api/forum/comments/${itemId}/like/`;
+        ? `${API_BASE_URL}/forum/posts/${itemId}/like/`
+        : `${API_BASE_URL}/forum/comments/${itemId}/like/`;
 
       const body = guestName ? { guest_name: guestName } : {};
       

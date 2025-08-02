@@ -23,22 +23,22 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ...existing code...
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        }/users/contact/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL ||
+        (process.env.NODE_ENV === "production"
+          ? "https://harvestforgood-production.up.railway.app/api"
+          : "http://localhost:8000/api");
+
+      const response = await fetch(`${API_URL}/users/contact/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
       const data = await response.json();
       setSubmitStatus({
         success: response.ok,
@@ -55,7 +55,6 @@ export default function ContactPage() {
       setIsSubmitting(false);
     }
   };
-  // ...existing code...
 
   return (
     <div className="container mx-auto px-4 py-8">

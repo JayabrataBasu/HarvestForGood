@@ -5,7 +5,10 @@ import PaperCard from "../research/PaperCard";
 import { ResearchPaper, Keyword } from "../../types/paper.types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://harvestforgood-production.up.railway.app/api"
+    : "http://localhost:8000/api");
 
 export function HomeResearchSection() {
   const [papers, setPapers] = useState<ResearchPaper[]>([]);

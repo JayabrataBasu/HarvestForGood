@@ -3,7 +3,10 @@ import { parseCookies } from "nookies";
 import { ResearchPaper } from '@/types/paper.types';
 import { handleApiError } from './errorHandler';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? "https://harvestforgood-production.up.railway.app/api"
+    : "http://localhost:8000/api");
 
 /**
  * Check if a user is authenticated by looking for tokens
