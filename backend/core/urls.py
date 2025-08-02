@@ -37,6 +37,7 @@ def api_root(request):
             'forum_posts': '/api/forum/posts/',
             'research_papers': '/api/research/papers/',
             'admin': '/admin/',
+            'auth': '/api/auth/',
         }
     })
 
@@ -50,6 +51,8 @@ urlpatterns = [
     path('api/research/', include('apps.research.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('', TemplateView.as_view(template_name='api_root.html'), name='api-root'),
 ]
 
