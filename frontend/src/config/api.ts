@@ -26,17 +26,17 @@ const API_CONFIG: APIConfig = {
               : 'http://localhost:8000/api/'),
   
   TIMEOUT: 30000,
-  
+
   AUTH: {
     LOGIN: 'auth/login/',
-    REGISTER: 'auth/registration/', 
+    REGISTER: 'auth/register/',
     LOGOUT: 'auth/logout/',
     USER: 'auth/user/',
-    REFRESH: 'token/refresh/',
+    REFRESH: 'auth/refresh/',
   },
   
   ENDPOINTS: {
-    FORUM_POSTS: 'forum/posts/',
+    FORUM_POSTS: 'forums/posts/', // Changed from 'forum/posts/' to match your backend
     RESEARCH_PAPERS: 'research/papers/',
     USERS: 'users/',
   }
@@ -44,6 +44,7 @@ const API_CONFIG: APIConfig = {
 
 export default API_CONFIG;
 export type { APIConfig, AuthEndpoints, APIEndpoints };
+
 console.log('API Configuration:', {
   BASE_URL: API_CONFIG.BASE_URL,
   NODE_ENV: process.env.NODE_ENV,
