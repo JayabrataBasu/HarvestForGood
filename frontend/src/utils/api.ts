@@ -1,11 +1,11 @@
 import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import API_CONFIG from '../config/api';
 
-// Create axios instance
+// Create axios instance with proper CORS configuration
 const api = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
-  withCredentials: false, // Changed to false for Railway CORS
+  withCredentials: false, // Set to false for Railway CORS
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -15,29 +15,28 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    console.log(`Making request to: ${config.baseURL}${config.url}`);
+    
     const token = localStorage.getItem('access_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-    // Add CORS headers
-    if (config.headers) {
-      config.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor for token refresh and debugging
+// Response interceptor with better error handling
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     console.log('API Success:', response.config.url, response.status);
     return response;
   },
   async (error: AxiosError) => {
-    console.error('API Error:', {
+    console.error('API Error Details:', {
       url: error.config?.url,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data,
       message: error.message
     });
@@ -64,7 +63,6 @@ api.interceptors.response.use(
         } catch (refreshError) {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          // Don't redirect automatically, let components handle it
           console.error('Token refresh failed:', refreshError);
         }
       }

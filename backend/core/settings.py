@@ -255,7 +255,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Changed from IsAuthenticated
+        'rest_framework.permissions.AllowAny',  # This is correct for public access
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -265,11 +265,11 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '1000/hour',  # Increased from 100 to 1000
-        'user': '2000/hour',  # Increased from 1000 to 2000
-        'forum_posts': '200/hour',  # Increased from 20 to 200
-        'auth_attempts': '20/hour',  # Increased from 5 to 20
-        'dj_rest_auth': '20/min',  # Increased from 5 to 20
+        'anon': '1000/hour',
+        'user': '2000/hour',
+        'forum_posts': '200/hour',
+        'auth_attempts': '20/hour',
+        'dj_rest_auth': '20/min',
     }
 }
 
@@ -344,22 +344,19 @@ ADMIN_INDEX_TITLE = "Welcome to Harvest For Good Administration"
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# CORS settings with environment-based configuration
+# CORS settings - FIXED for production
 if IS_RAILWAY or not DEBUG:
     CORS_ALLOW_ALL_ORIGINS = False
-    cors_origins = [
+    CORS_ALLOWED_ORIGINS = [
         'https://harvestforgood.vercel.app',
         'https://harvestforgood.com',
         'https://www.harvestforgood.com',
     ]
-    
-    # Add frontend URL from environment
-    frontend_url = os.getenv('FRONTEND_URL', '')
-    if frontend_url:
-        cors_origins.append(frontend_url)
-    
-    CORS_ALLOWED_ORIGINS = cors_origins
-    CSRF_TRUSTED_ORIGINS = cors_origins
+    CSRF_TRUSTED_ORIGINS = [
+        'https://harvestforgood.vercel.app',
+        'https://harvestforgood.com', 
+        'https://www.harvestforgood.com',
+    ]
 else:
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOWED_ORIGINS = [

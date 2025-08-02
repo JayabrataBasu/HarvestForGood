@@ -43,8 +43,17 @@ class APISecurityMiddleware:
 
     def __call__(self, request):
         if request.path.startswith('/api/'):
-            # Skip signature check for authentication endpoints
-            if request.path.startswith(('/api/token/', '/api/users/register/', '/api/research/papers/')):
+            # Skip signature check for public endpoints
+            public_paths = [
+                '/api/token/', 
+                '/api/users/register/', 
+                '/api/research/papers/',
+                '/api/forum/posts/',  # Add this - forum posts should be public
+                '/api/forum/comments/',  # Add this - comments should be public for reading
+                '/api/auth/',  # Add this - auth endpoints should be public
+            ]
+            
+            if any(request.path.startswith(path) for path in public_paths):
                 return self.get_response(request)
 
             # Verify timestamp and signature for other API endpoints
