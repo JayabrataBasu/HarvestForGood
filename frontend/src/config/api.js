@@ -19,12 +19,10 @@ const API_CONFIG = {
     FORUM_POSTS: 'forum/posts/',
     RESEARCH_PAPERS: 'research/papers/',
     USERS: 'users/',
-  }
-};
-
-export default API_CONFIG;
     COMMENTS: 'forum/comments/',
   }
 };
 
 export default API_CONFIG;
+
+

@@ -44,19 +44,11 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
           
           return api(originalRequest);
-        } catch (refreshError) {
+        } catch {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           window.location.href = '/login';
         }
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
-export default api;
       }
     }
     
