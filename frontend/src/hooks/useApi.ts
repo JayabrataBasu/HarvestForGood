@@ -37,7 +37,10 @@ export function useApi<T>(
       setState({
         data: null,
         loading: false,
-        error: axiosError.response?.data?.detail || axiosError.message || 'An error occurred',
+        error:
+          typeof axiosError.response?.data === 'object' && axiosError.response?.data && 'detail' in axiosError.response.data
+            ? ((axiosError.response.data as { detail?: string }).detail ?? axiosError.message ?? 'An error occurred')
+            : axiosError.message || 'An error occurred',
       });
     }
   }, [apiCall]);
