@@ -5,9 +5,10 @@ import API_CONFIG from '../config/api';
 const api = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
-  withCredentials: true,
+  withCredentials: false, // Changed to false for Railway CORS
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
@@ -18,15 +19,29 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Add CORS headers
+    if (config.headers) {
+      config.headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor for token refresh
+// Response interceptor for token refresh and debugging
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    console.log('API Success:', response.config.url, response.status);
+    return response;
+  },
   async (error: AxiosError) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -46,10 +61,11 @@ api.interceptors.response.use(
           }
           
           return api(originalRequest);
-        } catch {
+        } catch (refreshError) {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
+          // Don't redirect automatically, let components handle it
+          console.error('Token refresh failed:', refreshError);
         }
       }
     }
