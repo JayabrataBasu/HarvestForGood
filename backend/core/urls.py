@@ -20,14 +20,29 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 # Customize admin site
 admin.site.site_header = "Harvest For Good Administration"
 admin.site.site_title = "Harvest For Good Admin"
 admin.site.index_title = "Welcome to Harvest For Good Administration"
 
+# Create a simple API root view
+@api_view(['GET'])
+def api_root(request):
+    return Response({
+        'message': 'Harvest For Good API is working!',
+        'endpoints': {
+            'forum_posts': '/api/forum/posts/',
+            'research_papers': '/api/research/papers/',
+            'admin': '/admin/',
+        }
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', api_root, name='api-root'),
     path('api/users/', include('apps.users.urls')),
     path('api/forums/', include('apps.forums.urls')),  # plural version
     path('api/forum/', include('apps.forum.urls')),   # singular version - add this line
