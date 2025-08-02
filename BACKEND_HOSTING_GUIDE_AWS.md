@@ -1,6 +1,6 @@
 # Harvest For Good - Backend Hosting Guide (Django + PostgreSQL on AWS)
 
-## 1. Prepare Your Django Project
+## 1. Prepare Your Django Projectt
 
 - Ensure your Django project is working locally with PostgreSQL.
 - Update `settings.py` for allowed hosts:
