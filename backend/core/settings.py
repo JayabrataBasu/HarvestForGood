@@ -255,7 +255,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # Changed from IsAuthenticated
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -347,31 +347,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # CORS settings with environment-based configuration
 if IS_RAILWAY or not DEBUG:
     CORS_ALLOW_ALL_ORIGINS = False
-    cors_origins = []
+    cors_origins = [
+        'https://harvestforgood.vercel.app',
+        'https://harvestforgood.com',
+        'https://www.harvestforgood.com',
+    ]
     
     # Add frontend URL from environment
     frontend_url = os.getenv('FRONTEND_URL', '')
     if frontend_url:
         cors_origins.append(frontend_url)
     
-    # Add Railway domain
-    railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
-    if railway_domain:
-        cors_origins.extend([
-            f"https://{railway_domain}",
-            f"http://{railway_domain}"  # For development
-        ])
-    
-    # Add custom origins from environment
-    custom_origins = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
-    cors_origins.extend([origin.strip() for origin in custom_origins if origin.strip()])
-    
-    # Add trusted origins from environment  
-    trusted_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-    cors_origins.extend([origin.strip() for origin in trusted_origins if origin.strip()])
-    
-    CORS_ALLOWED_ORIGINS = list(set([origin for origin in cors_origins if origin]))
-    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+    CORS_ALLOWED_ORIGINS = cors_origins
+    CSRF_TRUSTED_ORIGINS = cors_origins
 else:
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOWED_ORIGINS = [

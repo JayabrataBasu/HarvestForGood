@@ -10,10 +10,13 @@ const ExampleUsage: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        console.log("Fetching from:", apiService); // Debug log
         const response = await apiService.getForumPosts();
+        console.log("API Response:", response); // Debug log
         const data = response.data as PaginatedResponse<ForumPost>;
         setPosts(data.results || []);
       } catch (err: unknown) {
+        console.error("API Error:", err); // Debug log
         if (err instanceof Error) {
           setError(err.message);
         } else {
