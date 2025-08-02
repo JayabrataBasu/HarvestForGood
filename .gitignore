@@ -7,12 +7,17 @@ local_settings.py
 db.sqlite3
 media/
 
-# Environment variables
+# Environment variables - NEVER commit these
 .env
 .env.local
 .env.*.local
 .env.production
 .env.development
+
+# Backend requirements and sensitive files
+backend/.env
+backend/.env.*
+backend/requirements.txt
 
 # Virtual Environment
 venv/
