@@ -99,9 +99,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # MOVED TO TOP - CRITICAL FOR CORS
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise here if IS_RAILWAY
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -344,23 +345,30 @@ ADMIN_INDEX_TITLE = "Welcome to Harvest For Good Administration"
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# CORS settings - FIXED for production
+# CORS settings - COMPLETELY REWRITTEN FOR PRODUCTION
 if IS_RAILWAY or not DEBUG:
+    # Enable CORS for production
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [
         'https://harvestforgood.vercel.app',
         'https://harvestforgood.com',
         'https://www.harvestforgood.com',
-        'https://harvestforgood-production.up.railway.app',  # Add Railway domain
-    ]
-    CSRF_TRUSTED_ORIGINS = [
-        'https://harvestforgood.vercel.app',
-        'https://harvestforgood.com', 
-        'https://www.harvestforgood.com',
-        'https://harvestforgood-production.up.railway.app',  # Add Railway domain for admin
+        # Add more domains if needed
     ]
     
-    # Add these CORS headers to fix the fetch issues
+    # Set CORS headers properly
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_PREFLIGHT_MAX_AGE = 86400
+    
+    CORS_ALLOW_METHODS = [
+        'DELETE',
+        'GET',
+        'OPTIONS',
+        'PATCH',
+        'POST',
+        'PUT',
+    ]
+    
     CORS_ALLOW_HEADERS = [
         'accept',
         'accept-encoding',
@@ -373,31 +381,31 @@ if IS_RAILWAY or not DEBUG:
         'x-requested-with',
         'cache-control',
         'pragma',
+        'x-csrf-token',
     ]
     
     CORS_EXPOSE_HEADERS = [
         'content-type',
         'x-csrftoken',
     ]
+    
+    # CSRF settings for production
+    CSRF_TRUSTED_ORIGINS = [
+        'https://harvestforgood.vercel.app',
+        'https://harvestforgood.com', 
+        'https://www.harvestforgood.com',
+        'https://harvestforgood-production.up.railway.app',
+    ]
 else:
+    # Development CORS settings - ADD NEXT.JS DEFAULT PORT
     CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_CREDENTIALS = True
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "http://localhost:3000",  # Next.js default
+        "http://127.0.0.1:3000", 
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]
-
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -426,8 +434,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 if IS_RAILWAY or not DEBUG:
-    # Use whitenoise for static files in production
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    # Whitenoise is already in MIDDLEWARE above
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_USE_FINDERS = True
     WHITENOISE_AUTOREFRESH = True
