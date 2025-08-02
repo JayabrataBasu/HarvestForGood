@@ -18,7 +18,7 @@ export interface ForumPost {
   };
   created_at: string;
   updated_at: string;
-  tags: string[];
+  tags?: string[];
 }
 
 export interface ResearchPaper {
@@ -27,7 +27,15 @@ export interface ResearchPaper {
   abstract: string;
   author: string;
   published_date: string;
-  keywords: string[];
+  keywords?: string[];
+}
+
+export interface User {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_verified: boolean;
 }
 
 export interface APIError {
