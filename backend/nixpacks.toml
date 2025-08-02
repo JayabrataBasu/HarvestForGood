@@ -1,6 +1,7 @@
 [phases.build]
 cmds = [
-  "python manage.py collectstatic --noinput"
+  # Temporarily disable collectstatic during build
+  # "python manage.py collectstatic --noinput"
 ]
 
 [phases.start]
