@@ -351,11 +351,13 @@ if IS_RAILWAY or not DEBUG:
         'https://harvestforgood.vercel.app',
         'https://harvestforgood.com',
         'https://www.harvestforgood.com',
+        'https://harvestforgood-production.up.railway.app',  # Add Railway domain
     ]
     CSRF_TRUSTED_ORIGINS = [
         'https://harvestforgood.vercel.app',
         'https://harvestforgood.com', 
         'https://www.harvestforgood.com',
+        'https://harvestforgood-production.up.railway.app',  # Add Railway domain for admin
     ]
     
     # Add these CORS headers to fix the fetch issues
