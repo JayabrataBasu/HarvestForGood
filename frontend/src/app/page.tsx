@@ -100,13 +100,13 @@ export default function Home() {
       </section>
 
       {/* Welcome section */}
-      <section className="bg-gradient-to-r from-green-900 via-green-800 via-green-700 to-green-600 text-white py-12">
+      <section className="bg-gradient-to-r from-emerald-900 via-forest-800 via-teal-800 via-green-700 via-emerald-600 via-cyan-600 to-teal-500 text-cream py-12">
         <div className="container mx-auto px-4 md:flex">
           <div className="md:w-1/2 mb-6 md:mb-0">
-            <h2 className="text-4xl font-bold mb-4">Welcome!</h2>
+            <h2 className="text-4xl font-bold mb-4 text-amber-50">Welcome!</h2>
           </div>
           <div className="md:w-1/2">
-            <p className="text-lg mb-4">
+            <p className="text-lg mb-4 text-stone-100">
               This website is a developing hub for archiving and communicating
               the issues and improvements in sustainable agriculture,
               particularly in the Global South. We are currently building a
@@ -115,7 +115,7 @@ export default function Home() {
             </p>
             <Link
               href="/research"
-              className="inline-block bg-white text-green-800 px-6 py-2 rounded-full font-semibold hover:bg-green-100 transition-colors"
+              className="inline-block bg-amber-50 text-emerald-800 px-6 py-2 rounded-full font-semibold hover:bg-stone-100 transition-colors"
             >
               Explore resources
             </Link>
