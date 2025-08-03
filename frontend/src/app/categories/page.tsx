@@ -542,12 +542,19 @@ export default function CategoriesPage() {
                             TOPIC {index + 1}
                           </p>
                         </div>
-                        <h3
-                          className="text-3xl font-bold mb-4"
-                          style={{ color: colors.primary }}
+                        <Link
+                          href={`/research?keyword=${encodeURIComponent(
+                            topic.id
+                          )}`}
+                          className="block"
                         >
-                          {topic.name}
-                        </h3>
+                          <h3
+                            className="text-3xl font-bold mb-4 hover:opacity-80 transition-opacity duration-300 cursor-pointer"
+                            style={{ color: colors.primary }}
+                          >
+                            {topic.name}
+                          </h3>
+                        </Link>
                         <p
                           className="mb-6 text-lg leading-relaxed"
                           style={{ color: colors.secondary }}
@@ -555,7 +562,9 @@ export default function CategoriesPage() {
                           {topic.description}
                         </p>
                         <Link
-                          href={`/categories/${topic.id}`}
+                          href={`/research?keyword=${encodeURIComponent(
+                            topic.id
+                          )}`}
                           className="inline-flex items-center gap-2 backdrop-blur-sm px-6 py-3 rounded-full font-medium transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105"
                           style={{
                             backgroundColor: `${colors.primary}15`,
@@ -595,36 +604,47 @@ export default function CategoriesPage() {
                               useInView(0.1);
 
                             return (
-                              <div
+                              <Link
                                 key={subtopic.name}
-                                ref={subtopicRef}
-                                className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden"
-                                style={{
-                                  backgroundColor: `${colors.primary}06`,
-                                  backdropFilter: "blur(8px)",
-                                  border: `1px solid ${colors.primary}15`,
-                                  animationDelay: `${subtopicIndex * 200}ms`,
-                                }}
+                                href={`/research?keyword=${encodeURIComponent(
+                                  subtopic.name
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "-")
+                                )}`}
+                                className="block"
                               >
-                                <div className="flex flex-col items-center text-center relative z-10">
-                                  <AnimatedProgressCircle
-                                    percentage={subtopic.percentage}
-                                    isActive={isSubtopicInView || isTopicInView}
-                                  />
-                                  <h4
-                                    className="font-bold mb-3 text-lg leading-tight group-hover:opacity-90 transition-opacity duration-300"
-                                    style={{ color: colors.primary }}
-                                  >
-                                    {subtopic.name}
-                                  </h4>
-                                  <p
-                                    className="text-sm leading-relaxed group-hover:opacity-90 transition-opacity duration-300"
-                                    style={{ color: colors.secondary }}
-                                  >
-                                    {subtopic.description}
-                                  </p>
+                                <div
+                                  ref={subtopicRef}
+                                  className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group relative overflow-hidden cursor-pointer"
+                                  style={{
+                                    backgroundColor: `${colors.primary}06`,
+                                    backdropFilter: "blur(8px)",
+                                    border: `1px solid ${colors.primary}15`,
+                                    animationDelay: `${subtopicIndex * 200}ms`,
+                                  }}
+                                >
+                                  <div className="flex flex-col items-center text-center relative z-10">
+                                    <AnimatedProgressCircle
+                                      percentage={subtopic.percentage}
+                                      isActive={
+                                        isSubtopicInView || isTopicInView
+                                      }
+                                    />
+                                    <h4
+                                      className="font-bold mb-3 text-lg leading-tight group-hover:opacity-90 transition-opacity duration-300"
+                                      style={{ color: colors.primary }}
+                                    >
+                                      {subtopic.name}
+                                    </h4>
+                                    <p
+                                      className="text-sm leading-relaxed group-hover:opacity-90 transition-opacity duration-300"
+                                      style={{ color: colors.secondary }}
+                                    >
+                                      {subtopic.description}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
+                              </Link>
                             );
                           })}
                         </div>
