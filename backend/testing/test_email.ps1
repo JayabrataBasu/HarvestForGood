@@ -64,6 +64,10 @@ catch {
     if ($_.Exception.Response) {
         Write-Host "Status Code: $($_.Exception.Response.StatusCode.value__)"
         Write-Host "Status Description: $($_.Exception.Response.StatusDescription)"
+        Write-Host "`nIf you see '530 Authentication Required':"
+        Write-Host "1. Check Railway environment variables are set"
+        Write-Host "2. Verify Gmail app password is correct (16 chars, no spaces)"
+        Write-Host "3. Ensure Gmail 2FA is enabled"
     }
 }
 
