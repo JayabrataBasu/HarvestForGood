@@ -93,10 +93,10 @@ export default function PrivacyPolicyPage() {
               If you have any questions about this Privacy Policy or our data
               practices, please contact us at{" "}
               <a
-                href="mailto:jayabratabasu@gmail.com"
+                href="mailto:harvestforgood01@gmail.com"
                 className="text-primary hover:text-primary-dark"
               >
-                jayabratabasu@gmail.com
+                harvestforgood01@gmail.com
               </a>{" "}
               or through our{" "}
               <a
