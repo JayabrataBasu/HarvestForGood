@@ -20,7 +20,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
-# import resend
 
 
 class RegisterView(generics.CreateAPIView):
@@ -78,24 +77,46 @@ def contact_message(request):
     email = request.data.get('email')
     subject = request.data.get('subject')
     message = request.data.get('message')
+    
     if not all([name, email, subject, message]):
         return Response({'message': 'All fields are required.'}, status=400)
+    
     try:
-        # resend.api_key = os.environ.get("resend.api_key")
-        # response = resend.Emails.send({
-        #     "from": "Your Name <noreply@yourdomain.com>",  # Use your verified Resend domain
-        #     "to": ["jayabratabasu@gmail.com"],  # Or your official email
-        #     "subject": f"[Contact] {subject}",
-        #     "html": f"<p><b>From:</b> {name} ({email})</p><p>{message}</p>",
-        # })
-        # if response.get("id"):
-        #     return Response({'message': 'Message sent successfully!'})
-        # else:
-        #     return Response({'message': 'Failed to send message.'}, status=500)
-        # Temporarily return a success message for testing
-        return Response({'message': 'Message sent successfully!'})
+        # Use Django's built-in send_mail instead of Resend
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        # Format the email content
+        email_subject = f"[Contact Form] {subject}"
+        email_message = f"""
+        Contact Form Submission
+        
+        Name: {name}
+        Email: {email}
+        Subject: {subject}
+        
+        Message:
+        {message}
+        
+        ---
+        This message was sent from the Harvest For Good contact form.
+        """
+        
+        # Send email using Django's send_mail
+        send_mail(
+            subject=email_subject,
+            message=email_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=['harvestforgood01@gmail.com'],
+            fail_silently=False,
+        )
+        
+        return Response({'message': 'Message sent successfully!'}, status=200)
+        
     except Exception as e:
+        print(f"Error sending contact email: {str(e)}")
         return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
+
 # ...existing code...
 
 

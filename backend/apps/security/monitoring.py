@@ -14,7 +14,7 @@ class SecurityMonitor:
         send_mail(
             'Suspicious Activity Detected',
             f'Multiple suspicious activities detected for user {user.username}',
-            'jayabratabasu@gmail.com',
-            ['jayabratabasu@gmail.com'],
+            'harvestforgood01@gmail.com',
+            ['harvestforgood01@gmail.com'],
             fail_silently=False,
         )

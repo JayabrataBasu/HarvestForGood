@@ -47,7 +47,7 @@ try {
     $emailData = @{
         "subject"        = "Test Email from PowerShell"
         "message"        = "If you receive this, email configuration is working!"
-        "recipient_list" = @("jayabratabasu@gmail.com")
+        "recipient_list" = @("harvestforgood01@gmail.com")
     } | ConvertTo-Json -Compress
 
     $emailResponse = Invoke-RestMethod `
