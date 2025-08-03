@@ -125,3 +125,8 @@ railway.json
 .dockerignore
 Dockerfile
 docker-compose*.yml
+
+# Node.js
+node_modules/
+
+# Do NOT add .gitignore to this file.
