@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface SubTopic {
   name: string;
@@ -330,6 +331,7 @@ const AnimatedProgressCircle = ({
 export default function CategoriesPage() {
   const [selectedResourceType, setSelectedResourceType] =
     useState<string>("All");
+  const router = useRouter();
 
   const resourceTypes = [
     "All",
@@ -338,6 +340,16 @@ export default function CategoriesPage() {
     "Interview",
     "Research Paper",
   ];
+
+  const handleResourceTypeClick = (type: string) => {
+    if (type === "All") {
+      setSelectedResourceType(type);
+    } else {
+      // Redirect to research page with the resource type as a keyword
+      const keyword = type.toLowerCase().replace(/\s+/g, "-");
+      router.push(`/research?keyword=${encodeURIComponent(keyword)}`);
+    }
+  };
 
   // Define soft, organic earth-inspired gradient colors for each topic
   const topicGradients = [
@@ -466,7 +478,7 @@ export default function CategoriesPage() {
             {resourceTypes.map((type) => (
               <button
                 key={type}
-                onClick={() => setSelectedResourceType(type)}
+                onClick={() => handleResourceTypeClick(type)}
                 className={`px-8 py-3 border-2 rounded-full transition-all duration-300 font-medium ${
                   type === selectedResourceType
                     ? "bg-green-700 text-white border-green-700 shadow-xl transform scale-105 shadow-green-700/25"
