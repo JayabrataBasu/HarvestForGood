@@ -100,13 +100,33 @@ export default function Home() {
       </section>
 
       {/* Welcome section */}
-      <section className="bg-gradient-to-r from-emerald-900 via-forest-800 via-teal-800 via-green-700 via-emerald-600 via-cyan-600 to-teal-500 text-cream py-12">
-        <div className="container mx-auto px-4 md:flex">
-          <div className="md:w-1/2 mb-6 md:mb-0">
-            <h2 className="text-4xl font-bold mb-4 text-amber-50">Welcome!</h2>
+      <section
+        className="w-full py-16 px-8"
+        style={{
+          background:
+            "linear-gradient(to right, #022C22, #064E3B, #065F46, #047857, #059669, #10B981)",
+        }}
+      >
+        <div className="container mx-auto flex flex-col md:flex-row items-center max-w-6xl">
+          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-12">
+            <p
+              className="text-sm uppercase tracking-wide mb-4"
+              style={{ color: "#D1FADF" }}
+            >
+              HARVEST FOR GOOD
+            </p>
+            <h2
+              className="text-5xl font-bold mb-6"
+              style={{ color: "#FEFCE8" }}
+            >
+              Welcome!
+            </h2>
           </div>
           <div className="md:w-1/2">
-            <p className="text-lg mb-4 text-stone-100">
+            <p
+              className="text-lg mb-6 max-w-lg leading-relaxed"
+              style={{ color: "#F5F5F4" }}
+            >
               This website is a developing hub for archiving and communicating
               the issues and improvements in sustainable agriculture,
               particularly in the Global South. We are currently building a
@@ -115,7 +135,19 @@ export default function Home() {
             </p>
             <Link
               href="/research"
-              className="inline-block bg-amber-50 text-emerald-800 px-6 py-2 rounded-full font-semibold hover:bg-stone-100 transition-colors"
+              className="inline-block px-8 py-3 rounded-full font-semibold transition-all duration-200"
+              style={{
+                backgroundColor: "#FEFCE8",
+                color: "#064E3B",
+              }}
+              onMouseEnter={(e) =>
+                ((e.target as HTMLAnchorElement).style.backgroundColor =
+                  "#F5F5F4")
+              }
+              onMouseLeave={(e) =>
+                ((e.target as HTMLAnchorElement).style.backgroundColor =
+                  "#FEFCE8")
+              }
             >
               Explore resources
             </Link>
