@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { HomeResearchSection } from "../components/home/HomeResearchSection";
+import { Analytics } from "@vercel/analytics/next";
 
 const slides = [
   {
@@ -52,6 +53,7 @@ export default function Home() {
 
   return (
     <div>
+      <Analytics />
       {/* Slideshow section */}
       <section className="relative h-[600px]">
         {slides.map((slide, index) => (
