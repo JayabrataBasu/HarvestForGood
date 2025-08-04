@@ -101,31 +101,31 @@ export default function Home() {
 
       {/* Welcome section */}
       <section
-        className="w-full py-16 px-8"
+        className="w-full py-20 px-8"
         style={{
           background:
-            "linear-gradient(to right, #022C22, #064E3B, #065F46, #047857, #059669, #10B981)",
+            "linear-gradient(135deg, #1e3a32 0%, #2d5a4a 25%, #3a6b5a 50%, #4a7c69 75%, #5a8d78 100%)",
         }}
       >
-        <div className="container mx-auto flex flex-col md:flex-row items-center max-w-6xl">
-          <div className="md:w-1/2 mb-8 md:mb-0 md:pr-12">
+        <div className="container mx-auto flex flex-col md:flex-row items-center max-w-7xl">
+          <div className="md:w-2/5 mb-8 md:mb-0 md:pr-16">
             <p
-              className="text-sm uppercase tracking-wide mb-4"
-              style={{ color: "#D1FADF" }}
+              className="text-sm uppercase tracking-wide mb-6 font-medium"
+              style={{ color: "#a7c3b8" }}
             >
               HARVEST FOR GOOD
             </p>
             <h2
-              className="text-5xl font-bold mb-6"
-              style={{ color: "#FEFCE8" }}
+              className="text-6xl md:text-7xl font-bold mb-6 leading-tight"
+              style={{ color: "#f8faf9" }}
             >
               Welcome!
             </h2>
           </div>
-          <div className="md:w-1/2">
+          <div className="md:w-3/5 md:pl-8">
             <p
-              className="text-lg mb-6 max-w-lg leading-relaxed"
-              style={{ color: "#F5F5F4" }}
+              className="text-lg mb-8 leading-relaxed"
+              style={{ color: "#e8f2ed" }}
             >
               This website is a developing hub for archiving and communicating
               the issues and improvements in sustainable agriculture,
@@ -135,19 +135,21 @@ export default function Home() {
             </p>
             <Link
               href="/research"
-              className="inline-block px-8 py-3 rounded-full font-semibold transition-all duration-200"
+              className="inline-block px-10 py-4 rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               style={{
-                backgroundColor: "#FEFCE8",
-                color: "#064E3B",
+                backgroundColor: "#d1e7dd",
+                color: "#1e3a32",
               }}
-              onMouseEnter={(e) =>
-                ((e.target as HTMLAnchorElement).style.backgroundColor =
-                  "#F5F5F4")
-              }
-              onMouseLeave={(e) =>
-                ((e.target as HTMLAnchorElement).style.backgroundColor =
-                  "#FEFCE8")
-              }
+              onMouseEnter={(e) => {
+                (e.target as HTMLAnchorElement).style.backgroundColor =
+                  "#c7dcc7";
+                (e.target as HTMLAnchorElement).style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLAnchorElement).style.backgroundColor =
+                  "#d1e7dd";
+                (e.target as HTMLAnchorElement).style.transform = "scale(1)";
+              }}
             >
               Explore resources
             </Link>
