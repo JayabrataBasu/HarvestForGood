@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import PaperCard from "../research/PaperCard";
 import { ResearchPaper, Keyword } from "../../types/paper.types";
+import { useSavedPapers } from "@/hooks/useSavedPapers";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -14,11 +15,10 @@ export function HomeResearchSection() {
   const [papers, setPapers] = useState<ResearchPaper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savedPapers, setSavedPapers] = useState<Set<string>>(new Set());
+  const { savedPaperIds, toggleSave } = useSavedPapers();
 
   useEffect(() => {
     fetchLatestPapers();
-    loadSavedPapers();
   }, []);
 
   const fetchLatestPapers = async () => {
@@ -78,28 +78,17 @@ export function HomeResearchSection() {
     }
   };
 
-  const loadSavedPapers = () => {
-    try {
-      const saved = localStorage.getItem("savedPapers");
-      if (saved) {
-        setSavedPapers(new Set(JSON.parse(saved)));
-      }
-    } catch (err) {
-      console.error("Error loading saved papers:", err);
-    }
-  };
-
   const handleSavePaper = (paperId: string) => {
-    const newSavedPapers = new Set(savedPapers);
-
-    if (savedPapers.has(paperId)) {
-      newSavedPapers.delete(paperId);
-    } else {
-      newSavedPapers.add(paperId);
+    const paper = papers.find((p) => p.id === paperId);
+    if (paper) {
+      toggleSave({
+        id: paper.id,
+        title: paper.title,
+        authors: paper.authors?.map((author) => author.name) || [],
+        publicationYear: paper.publication_year || "Unknown",
+        slug: paper.slug,
+      });
     }
-
-    setSavedPapers(newSavedPapers);
-    localStorage.setItem("savedPapers", JSON.stringify([...newSavedPapers]));
   };
 
   const handleKeywordClick = (keyword: Keyword) => {
@@ -199,14 +188,13 @@ export function HomeResearchSection() {
         </p>
       </div>
 
-      {/* Papers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         {papers.map((paper) => (
           <PaperCard
             key={paper.id}
             paper={paper}
-            onSave={handleSavePaper}
-            isSaved={savedPapers.has(paper.id)}
+            onSave={() => handleSavePaper(paper.id)}
+            isSaved={savedPaperIds.has(paper.id)}
             onKeywordClick={handleKeywordClick}
           />
         ))}

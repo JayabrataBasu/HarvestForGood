@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { FaThumbtack } from "react-icons/fa"; // install react-icons if not present
+import { FaThumbtack } from "react-icons/fa";
+import { useLike } from "@/hooks/useLike";
 
 interface ForumPostProps {
   id: string;
@@ -66,8 +67,7 @@ export default function ForumPost({
   latestCommenter,
   pinned,
 }: ForumPostProps) {
-  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const { isLiked, likesCount, isLoading, handleLike } = useLike(id, 0, false);
 
   const formattedDate = new Date(createdAt);
   const timeAgo = formatDistanceToNow(formattedDate, { addSuffix: true });
@@ -79,14 +79,11 @@ export default function ForumPost({
     e.preventDefault();
     e.stopPropagation();
 
-    if (isLikeAnimating) return;
-
-    setIsLikeAnimating(true);
-    setLikesCount((prev) => prev + 1);
-
-    setTimeout(() => {
-      setIsLikeAnimating(false);
-    }, 600);
+    try {
+      await handleLike();
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
   };
 
   const urls = extractUrls(content);
@@ -243,26 +240,35 @@ export default function ForumPost({
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Enhanced quick like button */}
+              {/* Enhanced quick like button with proper state management */}
               <button
                 onClick={handleQuickLike}
+                disabled={isLoading}
                 className={`
-                  flex items-center space-x-1 text-[#A0C49D] hover:text-[#78B86B] 
-                  transition-all duration-200 relative px-2 py-1 rounded-lg hover:bg-white/50
-                  ${isLikeAnimating ? "text-[#78B86B]" : ""}
+                  flex items-center space-x-1 transition-all duration-200 relative px-2 py-1 rounded-lg
+                  ${
+                    isLoading
+                      ? "cursor-not-allowed opacity-70"
+                      : "hover:bg-white/50"
+                  }
+                  ${
+                    isLiked
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-[#A0C49D] hover:text-[#78B86B]"
+                  }
                 `}
               >
                 <div className="relative">
                   <span
-                    className={`text-lg ${
-                      isLikeAnimating ? "mini-heart-pop" : ""
-                    }`}
+                    className={`text-lg ${isLoading ? "animate-pulse" : ""}`}
                   >
-                    {isLikeAnimating ? "❤️" : "🤍"}
+                    {isLiked ? "❤️" : "🤍"}
                   </span>
 
-                  {isLikeAnimating && (
-                    <span className="absolute top-0 left-0 mini-float">❤️</span>
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+                    </div>
                   )}
                 </div>
                 <span className="text-xs font-medium">{likesCount}</span>

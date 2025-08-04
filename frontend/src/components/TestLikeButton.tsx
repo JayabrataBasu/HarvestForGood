@@ -1,87 +1,61 @@
-import React, { useState } from "react";
-import { Heart } from "lucide-react";
+import React from "react";
+import { useLike } from "@/hooks/useLike";
 
 interface TestLikeButtonProps {
-  isLiked: boolean;
-  likesCount: number;
-  onLike: () => Promise<void>;
+  postId: string;
+  initialLikesCount?: number;
+  initialIsLiked?: boolean;
 }
 
 const TestLikeButton: React.FC<TestLikeButtonProps> = ({
-  isLiked,
-  likesCount,
-  onLike,
+  postId,
+  initialLikesCount = 0,
+  initialIsLiked = false,
 }) => {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [localLiked, setLocalLiked] = useState(isLiked);
-  const [localCount, setLocalCount] = useState(likesCount);
-
-  const handleClick = async () => {
-    console.log("TestLikeButton clicked!");
-    setIsAnimating(true);
-
-    const newLikedState = !localLiked;
-    setLocalLiked(newLikedState);
-    setLocalCount((prev) => (newLikedState ? prev + 1 : prev - 1));
-
-    try {
-      await onLike();
-      console.log("Like action successful");
-    } catch (error) {
-      console.error("Like failed:", error);
-      setLocalLiked(!newLikedState);
-      setLocalCount((prev) => (newLikedState ? prev - 1 : prev + 1));
-    } finally {
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 1000);
-    }
-  };
+  const { isLiked, likesCount, isLoading, handleLike } = useLike(
+    postId,
+    initialLikesCount,
+    initialIsLiked
+  );
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={handleClick}
-        className={`
-          relative p-3 rounded-full transition-all duration-300 transform
-          ${localLiked ? "text-red-500 bg-red-50" : "text-gray-500 bg-gray-50"}
-          ${isAnimating ? "animate-bounce scale-125" : "scale-100"}
-          hover:scale-110 active:scale-95 hover:shadow-lg
-          border-2 ${localLiked ? "border-red-200" : "border-gray-200"}
-        `}
-        disabled={isAnimating}
-      >
-        <Heart
-          className={`
-            w-6 h-6 transition-all duration-300
-            ${localLiked ? "fill-current animate-pulse" : ""}
-            ${isAnimating ? "rotate-12" : "rotate-0"}
-          `}
-        />
+    <button
+      onClick={handleLike}
+      disabled={isLoading}
+      className={`
+        flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform 
+        ${
+          isLoading
+            ? "cursor-not-allowed opacity-70"
+            : "hover:scale-105 active:scale-95"
+        }
+        ${
+          isLiked
+            ? "bg-red-100 text-red-600 border-2 border-red-300 hover:bg-red-200"
+            : "bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200"
+        }
+      `}
+    >
+      <div className="relative">
+        <span
+          className={`text-lg transition-all duration-300 ${
+            isLoading ? "animate-pulse" : ""
+          }`}
+        >
+          {isLiked ? "❤️" : "🤍"}
+        </span>
 
-        {isAnimating && (
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-400 to-pink-400 opacity-30 animate-ping" />
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+          </div>
         )}
-      </button>
-
-      <span
-        className={`
-          text-lg font-bold transition-all duration-300
-          ${localLiked ? "text-red-600" : "text-gray-600"}
-          ${isAnimating ? "animate-pulse scale-125" : "scale-100"}
-        `}
-      >
-        {localCount}
-      </span>
-
-      {isAnimating && localLiked && (
-        <div className="absolute text-2xl animate-bounce">❤️</div>
-      )}
-
-      <div className="text-xs text-gray-400">
-        {isAnimating ? "🔄" : localLiked ? "❤️" : "🤍"}
       </div>
-    </div>
+
+      <span className="font-medium">
+        {likesCount} {likesCount === 1 ? "like" : "likes"}
+      </span>
+    </button>
   );
 };
 

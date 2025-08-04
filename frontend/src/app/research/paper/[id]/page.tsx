@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPaperById } from "../../../../lib/api";
+import { useSavedPapers } from "@/hooks/useSavedPapers";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ResearchPaper, Author, Keyword } from "../../../../types/paper.types";
 
@@ -11,7 +12,7 @@ export default function PaperDetailPage() {
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
+  const { isSaved, toggleSave } = useSavedPapers();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [activeTab, setActiveTab] = useState<"overview" | "methodology">(
     "overview"
@@ -29,12 +30,6 @@ export default function PaperDetailPage() {
         const paperData = await getPaperById(params.id as string);
         console.log("Paper data received:", paperData); // Debug log
         setPaper(paperData);
-
-        // Check if paper is saved in localStorage
-        const savedPapers = JSON.parse(
-          localStorage.getItem("savedPapers") || "[]"
-        );
-        setIsSaved(savedPapers.includes(paperData.id));
       } catch (err) {
         setError("Failed to load paper details. Please try again later.");
         console.error(err);
@@ -47,19 +42,15 @@ export default function PaperDetailPage() {
   }, [params]);
 
   const toggleSaveStatus = () => {
-    const savedPapers = JSON.parse(localStorage.getItem("savedPapers") || "[]");
+    if (!paper) return;
 
-    if (isSaved) {
-      const updatedSavedPapers = savedPapers.filter(
-        (id: string) => id !== paper?.id
-      );
-      localStorage.setItem("savedPapers", JSON.stringify(updatedSavedPapers));
-    } else {
-      savedPapers.push(paper?.id);
-      localStorage.setItem("savedPapers", JSON.stringify(savedPapers));
-    }
-
-    setIsSaved(!isSaved);
+    toggleSave({
+      id: paper.id,
+      title: paper.title,
+      authors: paper.authors?.map((author) => author.name) || [],
+      publicationYear: paper.publication_year || "Unknown",
+      slug: paper.slug,
+    });
   };
 
   const handleGoBack = () => {
@@ -225,6 +216,8 @@ export default function PaperDetailPage() {
       </div>
     );
   }
+
+  const paperIsSaved = paper ? isSaved(paper.id) : false;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -547,12 +540,12 @@ export default function PaperDetailPage() {
               <button
                 onClick={toggleSaveStatus}
                 className={`mt-6 inline-flex items-center px-8 py-4 rounded-full shadow-lg text-base font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 ${
-                  isSaved
+                  paperIsSaved
                     ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-400 hover:from-amber-600 hover:to-orange-600 focus:ring-amber-300 pulse-glow"
                     : "bg-gradient-to-r from-white to-sky-50 text-gray-800 border border-sky-200 hover:from-sky-50 hover:to-sky-100 hover:shadow-xl focus:ring-emerald-300"
                 }`}
               >
-                {isSaved ? (
+                {paperIsSaved ? (
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
