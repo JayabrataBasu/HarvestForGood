@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import GuestAuthModal, { GuestInfo } from "../../GuestAuthModal";
+import { useLike } from "@/hooks/useLike";
 
 interface Author {
   id: number;
@@ -32,6 +32,7 @@ interface Post {
   updated_at: string;
   likes_count: number;
   comments: Comment[];
+  is_liked?: boolean;
 }
 
 export default function ForumPostPage({
@@ -49,8 +50,12 @@ export default function ForumPostPage({
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
 
-  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
-  const [localLikesCount, setLocalLikesCount] = useState(0);
+  const {
+    isLiked,
+    likesCount,
+    isLoading: isLikeLoading,
+    handleLike,
+  } = useLike(postId || "", post?.likes_count || 0, post?.is_liked || false);
 
   // Handle params Promise resolution
   useEffect(() => {
@@ -101,13 +106,6 @@ export default function ForumPostPage({
     fetchPost();
   }, [postId]);
 
-  // Update local likes count when post loads
-  useEffect(() => {
-    if (post) {
-      setLocalLikesCount(post.likes_count || 0);
-    }
-  }, [post]);
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -118,42 +116,13 @@ export default function ForumPostPage({
     });
   };
 
-  const handleLike = async () => {
-    if (!post || isLikeAnimating) return;
-
-    setIsLikeAnimating(true);
-
-    // Optimistic update
-    setLocalLikesCount((prev) => prev + 1);
+  const handleLikeClick = async () => {
+    if (!postId || isLikeLoading) return;
 
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/forum/posts/${postId}/like/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setLocalLikesCount(data.likes_count || localLikesCount);
-        console.log("Like successful!");
-      } else {
-        // Revert optimistic update
-        setLocalLikesCount((prev) => prev - 1);
-        console.error("Failed to like post");
-      }
-    } catch (err) {
-      // Revert optimistic update
-      setLocalLikesCount((prev) => prev - 1);
-      console.error("Error liking post:", err);
-    } finally {
-      setTimeout(() => setIsLikeAnimating(false), 800);
+      await handleLike();
+    } catch (error) {
+      console.error("Error liking post:", error);
     }
   };
 
@@ -386,27 +355,26 @@ export default function ForumPostPage({
 
               <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
                 <button
-                  onClick={handleLike}
-                  disabled={isLikeAnimating}
+                  onClick={handleLikeClick}
+                  disabled={isLikeLoading}
                   className={`
-                  flex items-center space-x-2 text-gray-500 hover:text-red-500 
-                  transition-all duration-300 transform hover:scale-110 active:scale-95
-                  ${isLikeAnimating ? "text-red-500 animate-bounce" : ""}
+                  flex items-center space-x-2 transition-all duration-300 transform hover:scale-110 active:scale-95
+                  ${isLikeLoading ? "cursor-not-allowed opacity-70" : ""}
+                  ${
+                    isLiked
+                      ? "text-red-500"
+                      : "text-gray-500 hover:text-red-500"
+                  }
                   relative p-2 rounded-full
                 `}
                 >
                   <div className="relative">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className={`
-                      h-6 w-6 transition-all duration-300 transform
-                      ${
-                        isLikeAnimating
-                          ? "fill-current scale-125 animate-pulse"
-                          : ""
-                      }
-                    `}
-                      fill={isLikeAnimating ? "currentColor" : "none"}
+                      className={`h-6 w-6 transition-all duration-300 transform ${
+                        isLikeLoading ? "animate-pulse" : ""
+                      }`}
+                      fill={isLiked ? "currentColor" : "none"}
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
@@ -418,44 +386,19 @@ export default function ForumPostPage({
                       />
                     </svg>
 
-                    {/* Floating emoji hearts */}
-                    {isLikeAnimating && (
-                      <>
-                        <div
-                          className="absolute -top-3 -left-2 text-lg animate-bounce"
-                          style={{ animationDelay: "0ms" }}
-                        >
-                          ❤️
-                        </div>
-                        <div
-                          className="absolute -top-2 left-2 text-sm animate-bounce"
-                          style={{ animationDelay: "100ms" }}
-                        >
-                          💖
-                        </div>
-                        <div
-                          className="absolute -top-1 left-0 text-xs animate-bounce"
-                          style={{ animationDelay: "200ms" }}
-                        >
-                          💕
-                        </div>
-                      </>
-                    )}
-
-                    {/* Ripple effect */}
-                    {isLikeAnimating && (
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-red-200 rounded-full opacity-30 animate-ping"></div>
+                    {isLikeLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      </div>
                     )}
                   </div>
 
                   <span
-                    className={`transition-all duration-300 transform ${
-                      isLikeAnimating
-                        ? "animate-pulse scale-125 text-red-600 font-bold"
-                        : ""
+                    className={`transition-all duration-300 ${
+                      isLikeLoading ? "animate-pulse" : ""
                     }`}
                   >
-                    {localLikesCount} likes
+                    {likesCount} likes
                   </span>
                 </button>
 

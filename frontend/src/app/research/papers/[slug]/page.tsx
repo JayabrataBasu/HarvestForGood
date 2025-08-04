@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getPaperBySlug } from "../../../../lib/api";
 import PaperDetail from "../../../../components/research/PaperDetail";
 import { ResearchPaper } from "../../../../types/paper.types";
+import { useSavedPapers } from "@/hooks/useSavedPapers";
 
 export default function PaperDetailPage({
   params,
@@ -15,7 +16,7 @@ export default function PaperDetailPage({
   const [paper, setPaper] = useState<ResearchPaper | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
+  const { isSaved, toggleSave } = useSavedPapers();
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -34,12 +35,6 @@ export default function PaperDetailPage({
         // In a real app, this would call an API
         const paperData = await getPaperBySlug(slug);
         setPaper(paperData);
-
-        // Check if paper is saved in localStorage
-        const savedPapers = JSON.parse(
-          localStorage.getItem("savedPapers") || "[]"
-        );
-        setIsSaved(savedPapers.includes(paperData.id));
       } catch (err) {
         setError("Failed to load paper details. Please try again later.");
         console.error(err);
@@ -54,24 +49,20 @@ export default function PaperDetailPage({
   const toggleSaveStatus = () => {
     if (!paper) return;
 
-    const savedPapers = JSON.parse(localStorage.getItem("savedPapers") || "[]");
-
-    if (isSaved) {
-      const updatedSavedPapers = savedPapers.filter(
-        (id: string) => id !== paper.id
-      );
-      localStorage.setItem("savedPapers", JSON.stringify(updatedSavedPapers));
-    } else {
-      savedPapers.push(paper.id);
-      localStorage.setItem("savedPapers", JSON.stringify(savedPapers));
-    }
-
-    setIsSaved(!isSaved);
+    toggleSave({
+      id: paper.id,
+      title: paper.title,
+      authors: paper.authors?.map((author) => author.name) || [],
+      publicationYear: paper.publication_year || "Unknown",
+      slug: paper.slug,
+    });
   };
 
   const handleGoBack = () => {
     router.back();
   };
+
+  const paperIsSaved = paper ? isSaved(paper.id) : false;
 
   if (isLoading) {
     return (
@@ -234,92 +225,161 @@ export default function PaperDetailPage({
             <PaperDetail
               paper={paper}
               onSave={toggleSaveStatus}
-              isSaved={isSaved}
+              isSaved={paperIsSaved}
             />
           </div>
         </div>
+
+        {/* Enhanced title card with save functionality */}
+        <div className="relative backdrop-blur-lg rounded-3xl shadow-2xl border border-white/40 p-8 lg:p-12 mb-10 animate-fade-up card-hover-effect group">
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-50/90 via-teal-50/80 to-sky-50/90"></div>
+          <div className="absolute inset-0 rounded-3xl ring-1 ring-emerald-200/60 shadow-2xl"></div>
+          <div className="absolute inset-0 rounded-3xl shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.04)] shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.5)]"></div>
+
+          <div className="relative group-hover:scale-[1.01] transition-transform duration-300">
+            <h2 className="text-4xl font-extrabold leading-tight text-gray-900 mb-4">
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent drop-shadow-md">
+                {paper.title}
+              </span>
+            </h2>
+            <div className="flex flex-wrap gap-4 mb-6">
+              <span className="text-sm font-semibold text-gray-700 bg-gray-100 rounded-full px-3 py-1">
+                {paper.publication_year}
+              </span>
+              {paper.authors && paper.authors.length > 0 && (
+                <span className="text-sm font-semibold text-gray-700 bg-gray-100 rounded-full px-3 py-1">
+                  {paper.authors.map((author) => author.name).join(", ")}
+                </span>
+              )}
+            </div>
+
+            {/* Enhanced save button with proper state management */}
+            <div className="flex justify-center">
+              <button
+                onClick={toggleSaveStatus}
+                className={`mt-6 inline-flex items-center px-8 py-4 rounded-full shadow-lg text-base font-bold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 ${
+                  paperIsSaved
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-400 hover:from-amber-600 hover:to-orange-600 focus:ring-amber-300 pulse-glow"
+                    : "bg-gradient-to-r from-white to-sky-50 text-gray-800 border border-sky-200 hover:from-sky-50 hover:to-sky-100 hover:shadow-xl focus:ring-emerald-300"
+                }`}
+              >
+                {paperIsSaved ? (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                    </svg>
+                    Saved to Library
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                      />
+                    </svg>
+                    Save to Library
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating decorative elements */}
+        <div className="absolute top-20 left-10 w-16 h-16 bg-gradient-to-r from-emerald-300 to-teal-300 rounded-full opacity-20 animate-float"></div>
+        <div
+          className="absolute top-60 right-20 w-12 h-12 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-full opacity-20 animate-float"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-40 left-32 w-20 h-20 bg-gradient-to-r from-blue-300 to-sky-300 rounded-full opacity-20 animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+
+        {/* Custom animations and enhanced styles */}
+        <style jsx global>{`
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes float {
+            0%,
+            100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-20px);
+            }
+          }
+
+          .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
+          }
+
+          .animate-float {
+            animation: float 6s ease-in-out infinite;
+          }
+
+          /* Enhanced farm color utilities */
+          .from-morning-50\/85 {
+            --tw-gradient-from: rgb(240 249 255 / 0.85);
+          }
+          .via-sky-100\/80 {
+            --tw-gradient-to: rgb(224 242 254 / 0.8);
+          }
+          .to-mist-50\/85 {
+            --tw-gradient-to: rgb(248 250 252 / 0.85);
+          }
+          .from-blush-50\/90 {
+            --tw-gradient-from: rgb(254 242 242 / 0.9);
+          }
+          .via-clay-100\/85 {
+            --tw-gradient-to: rgb(254 226 226 / 0.85);
+          }
+          .to-vanilla-50\/90 {
+            --tw-gradient-to: rgb(254 252 232 / 0.9);
+          }
+          .from-fern-50\/90 {
+            --tw-gradient-from: rgb(240 253 244 / 0.9);
+          }
+          .via-meadow-100\/85 {
+            --tw-gradient-to: rgb(220 252 231 / 0.85);
+          }
+          .to-frost-50\/90 {
+            --tw-gradient-to: rgb(248 250 252 / 0.9);
+          }
+          .ring-sky-200\/50 {
+            --tw-ring-color: rgb(186 230 253 / 0.5);
+          }
+          .ring-rose-200\/50 {
+            --tw-ring-color: rgb(254 205 211 / 0.5);
+          }
+          .ring-emerald-200\/60 {
+            --tw-ring-color: rgb(167 243 208 / 0.6);
+          }
+        `}</style>
       </div>
-
-      {/* Floating decorative elements */}
-      <div className="absolute top-20 left-10 w-16 h-16 bg-gradient-to-r from-emerald-300 to-teal-300 rounded-full opacity-20 animate-float"></div>
-      <div
-        className="absolute top-60 right-20 w-12 h-12 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-full opacity-20 animate-float"
-        style={{ animationDelay: "1s" }}
-      ></div>
-      <div
-        className="absolute bottom-40 left-32 w-20 h-20 bg-gradient-to-r from-blue-300 to-sky-300 rounded-full opacity-20 animate-float"
-        style={{ animationDelay: "2s" }}
-      ></div>
-
-      {/* Custom animations and enhanced styles */}
-      <style jsx global>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.8s ease-out forwards;
-        }
-
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-
-        /* Enhanced farm color utilities */
-        .from-morning-50\/85 {
-          --tw-gradient-from: rgb(240 249 255 / 0.85);
-        }
-        .via-sky-100\/80 {
-          --tw-gradient-to: rgb(224 242 254 / 0.8);
-        }
-        .to-mist-50\/85 {
-          --tw-gradient-to: rgb(248 250 252 / 0.85);
-        }
-        .from-blush-50\/90 {
-          --tw-gradient-from: rgb(254 242 242 / 0.9);
-        }
-        .via-clay-100\/85 {
-          --tw-gradient-to: rgb(254 226 226 / 0.85);
-        }
-        .to-vanilla-50\/90 {
-          --tw-gradient-to: rgb(254 252 232 / 0.9);
-        }
-        .from-fern-50\/90 {
-          --tw-gradient-from: rgb(240 253 244 / 0.9);
-        }
-        .via-meadow-100\/85 {
-          --tw-gradient-to: rgb(220 252 231 / 0.85);
-        }
-        .to-frost-50\/90 {
-          --tw-gradient-to: rgb(248 250 252 / 0.9);
-        }
-        .ring-sky-200\/50 {
-          --tw-ring-color: rgb(186 230 253 / 0.5);
-        }
-        .ring-rose-200\/50 {
-          --tw-ring-color: rgb(254 205 211 / 0.5);
-        }
-        .ring-emerald-200\/60 {
-          --tw-ring-color: rgb(167 243 208 / 0.6);
-        }
-      `}</style>
     </div>
   );
 }

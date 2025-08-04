@@ -1,6 +1,5 @@
 import React from "react";
 import TestLikeButton from "./TestLikeButton";
-import { useLike } from "../hooks/useLike";
 
 interface PostCardProps {
   post: {
@@ -16,10 +15,6 @@ interface PostCardProps {
     latest_commenter?: string;
     comment_count?: number;
   };
-  currentUser?: {
-    username: string;
-  } | null;
-  guestName?: string;
 }
 
 // Utility to extract URLs from text
@@ -59,48 +54,16 @@ function linkify(text: string): React.ReactNode[] {
   return parts;
 }
 
-const PostCard: React.FC<PostCardProps> = ({
-  post,
-  currentUser,
-  guestName,
-}) => {
-  const { isLiked, likesCount, isLoading, toggleLike, error } = useLike({
-    initialLiked: post.is_liked,
-    initialCount: post.likes_count,
-    itemId: post.id,
-    itemType: "post",
-    guestName: !currentUser ? guestName : undefined,
-  });
-
-  console.log("PostCard render:", {
-    postId: post.id,
-    isLiked,
-    likesCount,
-    isLoading,
-  });
-
-  const handleLike = async () => {
-    console.log("PostCard handleLike called");
-    try {
-      await toggleLike();
-      console.log("Like action completed successfully");
-    } catch (error) {
-      console.error("Like action failed:", error);
-    }
-  };
-
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
   // Find URLs for preview
   const urls = extractUrls(post.content);
-
   return (
-    <div className="modern-card p-6 mb-4 hover:shadow-lg transition-shadow duration-200">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            {post.title}
-          </h3>
-          <p className="text-sm text-gray-500">By {post.author_name}</p>
-        </div>
+    <div>
+      <div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+          {post.title}
+        </h3>
+        <p className="text-sm text-gray-500">By {post.author_name}</p>
       </div>
 
       <p className="text-gray-700 mb-4 line-clamp-3">{linkify(post.content)}</p>
@@ -158,12 +121,11 @@ const PostCard: React.FC<PostCardProps> = ({
             {post.comment_count === 1 ? "comment" : "comments"}
           </span>
         )}
-        {error && <div className="text-red-500 text-sm">{error}</div>}
 
         <TestLikeButton
-          isLiked={isLiked}
-          likesCount={likesCount}
-          onLike={handleLike}
+          postId={post.id.toString()}
+          initialLikesCount={post.likes_count}
+          initialIsLiked={post.is_liked}
         />
       </div>
     </div>
