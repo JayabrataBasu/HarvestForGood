@@ -104,7 +104,7 @@ export default function Home() {
         className="w-full py-20 px-8"
         style={{
           background:
-            "linear-gradient(90deg, #1a3528 0%, #2d4a3d 20%, #3f5f52 40%, #517467 60%, #63897c 80%, #759e91 100%)",
+            "linear-gradient(90deg, #0f2419 0%, #1e4d2b 14%, #2d6a3e 28%, #3c8751 42%, #4ba564 57%, #7bc96f 71%, #a8e081 85%, #d4f5a3 100%)",
         }}
       >
         <div className="container mx-auto flex flex-col md:flex-row items-center max-w-7xl">
