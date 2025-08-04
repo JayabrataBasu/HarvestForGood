@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { isAuthenticated, API_BASE_URL } from "@/lib/api";
-import { clearAllLikeStates } from "@/hooks/useLike";
+import { clearUserLikeStates } from "@/hooks/useLike";
 
 export interface User {
   id: string;
@@ -88,15 +88,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
+      // Clear user-specific like states
+      if (user?.id) {
+        clearUserLikeStates(user.id);
+      }
+
       // Clear authentication tokens
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
 
       // Clear user state
       setUser(null);
-
-      // Clear all like states on logout
-      clearAllLikeStates();
 
       // Ensure we only redirect in client environment
       if (typeof window !== "undefined") {
