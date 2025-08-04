@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_BASE_URL } from '@/lib/api';
 
@@ -8,30 +8,70 @@ interface LikeState {
   isLoading: boolean;
 }
 
+// Global state management for likes to ensure consistency across components
+const likeStates = new Map<string, LikeState>();
+const likeSubscribers = new Map<string, Set<(state: LikeState) => void>>();
+
 export const useLike = (postId: string, initialLikesCount: number = 0, initialIsLiked: boolean = false) => {
   const { user } = useAuth();
-  const [likeState, setLikeState] = useState<LikeState>({
-    isLiked: initialIsLiked,
-    likesCount: initialLikesCount,
-    isLoading: false
+  
+  // Initialize state from global store or use initial values
+  const [likeState, setLikeState] = useState<LikeState>(() => {
+    const globalState = likeStates.get(postId);
+    if (globalState) {
+      return globalState;
+    }
+    
+    const newState = {
+      isLiked: initialIsLiked,
+      likesCount: initialLikesCount,
+      isLoading: false
+    };
+    
+    likeStates.set(postId, newState);
+    return newState;
   });
 
+  // Subscribe to global state changes
+  useEffect(() => {
+    if (!likeSubscribers.has(postId)) {
+      likeSubscribers.set(postId, new Set());
+    }
+    
+    const subscribers = likeSubscribers.get(postId)!;
+    subscribers.add(setLikeState);
+    
+    return () => {
+      subscribers.delete(setLikeState);
+      if (subscribers.size === 0) {
+        likeSubscribers.delete(postId);
+      }
+    };
+  }, [postId]);
+
+  // Update global state and notify all subscribers
+  const updateGlobalState = useCallback((newState: LikeState) => {
+    likeStates.set(postId, newState);
+    const subscribers = likeSubscribers.get(postId);
+    if (subscribers) {
+      subscribers.forEach(callback => callback(newState));
+    }
+  }, [postId]);
+
   // Get unique identifier for guest users
-  const getGuestIdentifier = () => {
+  const getGuestIdentifier = useCallback(() => {
     if (typeof window === 'undefined') return null;
     
-    // Try to get from sessionStorage first, then localStorage
     let guestId = sessionStorage.getItem('guestId') || localStorage.getItem('guestId');
     
     if (!guestId) {
-      // Generate a unique identifier for guest
       guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       sessionStorage.setItem('guestId', guestId);
       localStorage.setItem('guestId', guestId);
     }
     
     return guestId;
-  };
+  }, []);
 
   // Load like state from localStorage on component mount
   useEffect(() => {
@@ -44,10 +84,15 @@ export const useLike = (postId: string, initialLikesCount: number = 0, initialIs
       if (savedState) {
         try {
           const parsedState = JSON.parse(savedState);
-          setLikeState(prevState => ({
-            ...prevState,
-            isLiked: parsedState.isLiked || false
-          }));
+          // Only update if we haven't already loaded state for this post
+          const currentGlobalState = likeStates.get(postId);
+          if (!currentGlobalState || currentGlobalState.likesCount === initialLikesCount) {
+            updateGlobalState({
+              isLiked: parsedState.isLiked || false,
+              likesCount: initialLikesCount, // Use initial count from props, not storage
+              isLoading: false
+            });
+          }
         } catch (error) {
           console.error('Error parsing saved like state:', error);
         }
@@ -55,20 +100,25 @@ export const useLike = (postId: string, initialLikesCount: number = 0, initialIs
     };
 
     loadLikeState();
-  }, [postId, user]);
+  }, [postId, user, initialLikesCount, getGuestIdentifier, updateGlobalState]);
 
   // Save like state to localStorage
-  const saveLikeState = (isLiked: boolean) => {
+  const saveLikeState = useCallback((isLiked: boolean) => {
     if (typeof window === 'undefined') return;
 
     const storageKey = user ? `like_${postId}_${user.id}` : `like_${postId}_${getGuestIdentifier()}`;
     localStorage.setItem(storageKey, JSON.stringify({ isLiked, timestamp: Date.now() }));
-  };
+  }, [postId, user, getGuestIdentifier]);
 
   const handleLike = async (): Promise<void> => {
     if (likeState.isLoading) return;
 
-    setLikeState(prev => ({ ...prev, isLoading: true }));
+    // Set loading state
+    const loadingState = { ...likeState, isLoading: true };
+    updateGlobalState(loadingState);
+
+    // Store original state for rollback
+    const originalState = { ...likeState };
 
     try {
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like/`, {
@@ -86,21 +136,23 @@ export const useLike = (postId: string, initialLikesCount: number = 0, initialIs
       if (response.ok) {
         const data = await response.json();
         const newIsLiked = data.action === 'liked';
+        const newLikesCount = data.likes_count || 0;
         
-        setLikeState({
+        const newState = {
           isLiked: newIsLiked,
-          likesCount: data.likes_count || 0,
+          likesCount: newLikesCount,
           isLoading: false
-        });
-
-        // Save to localStorage
+        };
+        
+        updateGlobalState(newState);
         saveLikeState(newIsLiked);
       } else {
         throw new Error('Failed to update like status');
       }
     } catch (error) {
       console.error('Error handling like:', error);
-      setLikeState(prev => ({ ...prev, isLoading: false }));
+      // Rollback to original state on error
+      updateGlobalState({ ...originalState, isLoading: false });
       throw error;
     }
   };
@@ -109,4 +161,15 @@ export const useLike = (postId: string, initialLikesCount: number = 0, initialIs
     ...likeState,
     handleLike
   };
+};
+
+// Utility function to get current like state for a post (useful for debugging)
+export const getLikeState = (postId: string): LikeState | undefined => {
+  return likeStates.get(postId);
+};
+
+// Utility function to clear all like states (useful for logout)
+export const clearAllLikeStates = () => {
+  likeStates.clear();
+  likeSubscribers.clear();
 };
