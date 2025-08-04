@@ -23,13 +23,14 @@ interface PostCardProps {
 const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
-  
+
   // Remove local like state management - use centralized hook instead
-  const { isLiked, likesCount, isLoading: isLikeLoading, handleLike } = useLike(
-    post.id,
-    post.likes_count || 0,
-    post.is_liked || false
-  );
+  const {
+    isLiked,
+    likesCount,
+    isLoading: isLikeLoading,
+    handleLike,
+  } = useLike(post.id, post.likes_count || 0, post.is_liked || false);
 
   useEffect(() => {
     const guestInfo = localStorage.getItem("guestInfo");
@@ -154,7 +155,11 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
                 className={`
                   like-button flex items-center relative transition-all duration-200 p-2 rounded-full
                   ${isLikeLoading ? "cursor-not-allowed opacity-70" : ""}
-                  ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"}
+                  ${
+                    isLiked
+                      ? "text-red-500"
+                      : "text-gray-500 hover:text-red-500"
+                  }
                 `}
               >
                 <div className="relative">
@@ -220,29 +225,6 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
               href={`/forums/posts/${post.id}`}
               className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-sm"
             >
-              View Post
-              <svg
-                className="w-4 h-4 ml-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                ></path>
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default PostCard;
               View Post
               <svg
                 className="w-4 h-4 ml-1"
