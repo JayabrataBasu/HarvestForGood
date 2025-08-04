@@ -18,9 +18,18 @@ const TestLikeButton: React.FC<TestLikeButtonProps> = ({
     initialIsLiked
   );
 
+  const handleClick = async () => {
+    try {
+      await handleLike();
+    } catch (error) {
+      console.error("Error handling like:", error);
+      // Error is already handled in the hook, no need for additional UI feedback here
+    }
+  };
+
   return (
     <button
-      onClick={handleLike}
+      onClick={handleClick}
       disabled={isLoading}
       className={`
         flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform 

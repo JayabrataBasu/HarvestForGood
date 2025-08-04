@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { FaThumbtack } from "react-icons/fa"; // install react-icons if not present
+import { FaThumbtack } from "react-icons/fa";
+import { useLike } from "@/hooks/useLike";
 
 interface Post {
   id: string;
@@ -22,34 +23,33 @@ interface PostCardProps {
 const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
-  const [liked, setLiked] = useState(post.is_liked || false);
-  const [likesCount, setLikesCount] = useState(post.likes_count || 0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Remove local like state management - use centralized hook instead
+  const { isLiked, likesCount, isLoading: isLikeLoading, handleLike } = useLike(
+    post.id,
+    post.likes_count || 0,
+    post.is_liked || false
+  );
 
   useEffect(() => {
     const guestInfo = localStorage.getItem("guestInfo");
     setIsGuestUser(!!guestInfo);
   }, []);
 
-  const handleLike = () => {
-    if (isAnimating) return;
+  const handleLikeClick = async () => {
+    if (isLikeLoading) return;
 
-    setIsAnimating(true);
-
-    // Optimistic update
-    const newLikedState = !liked;
-    setLiked(newLikedState);
-    setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
-
-    // Call parent function
-    onLike(post.id);
-
-    // Reset animation after delay
-    setTimeout(() => setIsAnimating(false), 600);
+    try {
+      await handleLike();
+      // Call parent function for any additional handling
+      onLike(post.id);
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
   };
 
-  // Add admin check (adjust as per your user object)
-  const isSuperuser = user?.isSuperuser; // <-- use this for pin button
+  // Add admin check
+  const isSuperuser = user?.isSuperuser;
 
   const handlePin = () => {
     if (onPin) onPin(post.id, !post.pinned);
@@ -149,19 +149,20 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
 
             {user || isGuestUser ? (
               <button
-                onClick={handleLike}
+                onClick={handleLikeClick}
+                disabled={isLikeLoading}
                 className={`
                   like-button flex items-center relative transition-all duration-200 p-2 rounded-full
-                  ${liked ? "text-red-500" : "text-gray-500 hover:text-red-500"}
-                  ${isAnimating ? "heart-animate" : ""}
+                  ${isLikeLoading ? "cursor-not-allowed opacity-70" : ""}
+                  ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-500"}
                 `}
               >
                 <div className="relative">
                   <svg
                     className={`w-4 h-4 mr-1 transition-all duration-300 ${
-                      liked ? "fill-current scale-110" : ""
+                      isLiked ? "fill-current scale-110" : ""
                     }`}
-                    fill={liked ? "currentColor" : "none"}
+                    fill={isLiked ? "currentColor" : "none"}
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -173,36 +174,12 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
                     ></path>
                   </svg>
 
-                  {/* Floating hearts when liked */}
-                  {isAnimating && liked && (
-                    <>
-                      <div className="absolute -top-2 -left-1 text-red-400 text-xs float-heart">
-                        ❤️
-                      </div>
-                      <div
-                        className="absolute -top-2 left-2 text-pink-400 text-xs float-heart"
-                        style={{ animationDelay: "0.1s" }}
-                      >
-                        💖
-                      </div>
-                      <div
-                        className="absolute -top-1 left-0 text-red-300 text-xs float-heart"
-                        style={{ animationDelay: "0.2s" }}
-                      >
-                        💕
-                      </div>
-                    </>
-                  )}
-
-                  {/* Ripple effect */}
-                  {isAnimating && (
+                  {isLikeLoading && (
                     <div className="absolute inset-0 rounded-full bg-red-200 opacity-50 animate-ping"></div>
                   )}
                 </div>
 
-                <span className={`${isAnimating ? "count-bounce" : ""}`}>
-                  {likesCount} likes
-                </span>
+                <span>{likesCount} likes</span>
               </button>
             ) : (
               <span className="flex items-center">
@@ -243,6 +220,29 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
               href={`/forums/posts/${post.id}`}
               className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-sm"
             >
+              View Post
+              <svg
+                className="w-4 h-4 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                ></path>
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default PostCard;
               View Post
               <svg
                 className="w-4 h-4 ml-1"
