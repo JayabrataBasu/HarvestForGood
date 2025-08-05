@@ -66,7 +66,7 @@
 ## Component Interactions
 
 - PaperFilter → ResearchPapers: Emits filter changes
-- Search → ResearchPapers: Provides search results
+- Search → ResearchPapers: Provides search results  
 - ResearchPapers → PaperGrid: Passes filtered/searched paper data
 - PaperCard ↔ ResearchPapers: Handles paper selection and interactions
 
@@ -83,3 +83,12 @@
 - Debounced search and filter operations
 - Optimized re-rendering strategies
 - Caching of frequently accessed data
+
+## Debugging Guide
+
+When "No papers found" appears:
+1. Check browser console for API response logs
+2. Verify filter parameter mapping between frontend and backend
+3. Ensure backend API returns proper data structure
+4. Check for type mismatches in date/year fields
+5. Verify keyword and methodology field mappings

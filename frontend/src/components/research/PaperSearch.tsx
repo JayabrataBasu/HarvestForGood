@@ -48,6 +48,36 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
     loadFilterOptions();
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFilters({ ...filters, q: searchTerm });
+    setPage(1);
+  };
+
+  const handleFilterApply = (newFilters: unknown) => {
+    // Convert the filter UI state to API parameters with proper keyword logic
+    const apiFilters = newFilters as Record<string, unknown>;
+
+    // Fix: Ensure proper parameter mapping for the backend API
+    const backendFilters: Record<string, unknown> = {};
+
+    // Map frontend filter names to backend parameter names
+    if (apiFilters.q) backendFilters.q = apiFilters.q;
+    if (apiFilters.year_from) backendFilters.year_from = apiFilters.year_from;
+    if (apiFilters.year_to) backendFilters.year_to = apiFilters.year_to;
+    if (apiFilters.methodology_type)
+      backendFilters.methodology_type = apiFilters.methodology_type;
+    if (apiFilters.keyword) {
+      backendFilters.keyword = apiFilters.keyword;
+      backendFilters.keyword_logic = apiFilters.keyword_logic || "or";
+    }
+
+    console.log("Applying filters:", backendFilters); // Debug log
+
+    setFilters(backendFilters as PaperFilterParams);
+    setPage(1);
+  };
+
   // Load papers when filters or page changes
   useEffect(() => {
     async function loadPapers() {
@@ -55,10 +85,12 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
       setError(null);
 
       try {
+        console.log("Fetching papers with filters:", filters, "page:", page); // Debug log
         const result = await researchAPI.fetchPapers(filters, page);
 
         if (result.success) {
           const responseData = result.data as PaginatedResponse<ResearchPaper>;
+          console.log("API Response:", responseData); // Debug log
 
           // Remove potential duplicates based on paper ID
           const uniquePapers = responseData.results.filter(
@@ -73,11 +105,12 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
           const pageSize = 10;
           setTotalPages(Math.ceil(responseData.count / pageSize));
         } else {
+          console.error("API Error:", result.message); // Debug log
           setError(result.message || "Failed to load papers");
         }
       } catch (err) {
+        console.error("Fetch Error:", err); // Debug log
         setError("An error occurred while fetching the papers");
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -85,29 +118,6 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
 
     loadPapers();
   }, [filters, page]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilters({ ...filters, q: searchTerm });
-    setPage(1);
-  };
-
-  const handleFilterApply = (newFilters: unknown) => {
-    // Convert the filter UI state to API parameters with proper keyword logic
-    const apiFilters = newFilters as Record<string, unknown>;
-
-    // Add keyword_logic parameter if keywords are selected
-    if (
-      apiFilters.keyword &&
-      Array.isArray(apiFilters.keyword) &&
-      apiFilters.keyword.length > 0
-    ) {
-      apiFilters.keyword_logic = apiFilters.keyword_logic || "or";
-    }
-
-    setFilters(apiFilters as PaperFilterParams);
-    setPage(1);
-  };
 
   const changePage = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -146,6 +156,11 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
                 ? filters.keyword
                 : filters.keyword
                 ? [filters.keyword]
+                : undefined,
+              methodology_type: Array.isArray(filters.methodology_type)
+                ? filters.methodology_type
+                : filters.methodology_type
+                ? [filters.methodology_type]
                 : undefined,
             }}
           />

@@ -40,29 +40,29 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
     if (isLoading) return;
 
     const filtered = papers.filter((paper) => {
-      // Date range filter
+      // Date range filter - Fix: Handle both publicationDate and publication_date
+      const pubDate = paper.publicationDate || paper.publication_date;
       if (
         filters.dateRange.startDate &&
-        paper.publicationDate &&
-        new Date(paper.publicationDate) < filters.dateRange.startDate
+        pubDate &&
+        new Date(pubDate) < filters.dateRange.startDate
       ) {
         return false;
       }
 
       if (
         filters.dateRange.endDate &&
-        paper.publicationDate &&
-        new Date(paper.publicationDate) > filters.dateRange.endDate
+        pubDate &&
+        new Date(pubDate) > filters.dateRange.endDate
       ) {
         return false;
       }
 
       // Methodology filter
+      const methodology = paper.methodologyType;
       if (
         filters.methodologyTypes.length > 0 &&
-        !filters.methodologyTypes.includes(
-          paper.methodologyType as MethodologyType
-        )
+        !filters.methodologyTypes.includes(methodology as MethodologyType)
       ) {
         return false;
       }
@@ -72,10 +72,9 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
         return false;
       }
 
-      // Keywords filter
+      // Keywords filter - Fix: Ensure keywords exist and are properly formatted
       if (filters.keywords.length > 0) {
-        const paperKeywordNames = paper.keywords.map((k) => k.name);
-        // Check if any of the paper's keywords match any of the filter keywords
+        const paperKeywordNames = paper.keywords?.map((k) => k.name) || [];
         const hasMatchingKeyword = filters.keywords.some((keyword) =>
           paperKeywordNames.includes(keyword)
         );
@@ -392,3 +391,4 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
     </div>
   );
 };
+export default PaperGrid;

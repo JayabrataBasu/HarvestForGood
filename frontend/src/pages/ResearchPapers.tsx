@@ -36,8 +36,10 @@ export const ResearchPapersPage: React.FC = () => {
       setError(null);
 
       try {
-        // Fetch papers from your Django API
-        const papersResponse = await researchAPI.fetchPapers();
+        console.log("Fetching initial data..."); // Debug log
+
+        // Fetch papers from your Django API with empty filters to get all papers
+        const papersResponse = await researchAPI.fetchPapers({}, 1);
         if (!papersResponse.success) {
           throw new Error(papersResponse.message || "Failed to fetch papers");
         }
@@ -50,17 +52,24 @@ export const ResearchPapersPage: React.FC = () => {
           );
         }
 
-        setPapers(papersResponse.data.results || papersResponse.data || []);
-        setKeywords(
-          keywordsResponse.data.results || keywordsResponse.data || []
-        );
+        console.log("Papers response:", papersResponse.data); // Debug log
+        console.log("Keywords response:", keywordsResponse.data); // Debug log
+
+        // Handle both paginated and direct array responses
+        const papersData =
+          papersResponse.data.results || papersResponse.data || [];
+        const keywordsData =
+          keywordsResponse.data.results || keywordsResponse.data || [];
+
+        setPapers(Array.isArray(papersData) ? papersData : []);
+        setKeywords(Array.isArray(keywordsData) ? keywordsData : []);
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error
             ? err.message
             : "Failed to load research papers. Please try again later.";
+        console.error("Error fetching research data:", err); // Debug log
         setError(errorMessage);
-        console.error("Error fetching research data:", err);
       } finally {
         setIsLoading(false);
       }
