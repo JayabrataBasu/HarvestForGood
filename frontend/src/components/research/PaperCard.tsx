@@ -91,6 +91,11 @@ const PaperCard: React.FC<PaperCardProps> = ({
     );
   };
 
+  function toCapitalCase(str: string): string {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   return (
     <div
       className={`bg-white border rounded-xl shadow-sm hover-card-rise cursor-pointer transition-all duration-300 overflow-hidden ${
@@ -174,11 +179,14 @@ const PaperCard: React.FC<PaperCardProps> = ({
               key={keyword.id}
               onClick={(e) => {
                 e.stopPropagation();
-                onKeywordClick(keyword);
+                onKeywordClick({
+                  ...keyword,
+                  name: toCapitalCase(keyword.name),
+                });
               }}
               className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-full text-xs hover:bg-emerald-100 transition-colors"
             >
-              {keyword.name}
+              {toCapitalCase(keyword.name)}
             </button>
           ))}
         </div>
