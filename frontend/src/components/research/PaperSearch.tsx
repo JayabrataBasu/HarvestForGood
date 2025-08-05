@@ -157,11 +157,6 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
                 : filters.keyword
                 ? [filters.keyword]
                 : undefined,
-              methodology_type: Array.isArray(filters.methodology_type)
-                ? filters.methodology_type
-                : filters.methodology_type
-                ? [filters.methodology_type]
-                : undefined,
             }}
           />
         ) : (

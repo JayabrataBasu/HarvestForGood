@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PaperFilterOptions, MethodologyType } from "../../types/paper.types";
+import { PaperFilterOptions } from "../../types/paper.types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -28,7 +28,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
       startDate: null,
       endDate: null,
     },
-    methodologyTypes: [],
+    methodologyTypes: [], // Keep for backward compatibility but don't render
     keywords: [],
     minCitations: 0,
     ...initialFilters,
@@ -41,22 +41,6 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
   useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
-
-  const handleMethodologyChange = (type: MethodologyType) => {
-    setFilters((prev) => {
-      if (prev.methodologyTypes.includes(type)) {
-        return {
-          ...prev,
-          methodologyTypes: prev.methodologyTypes.filter((t) => t !== type),
-        };
-      } else {
-        return {
-          ...prev,
-          methodologyTypes: [...prev.methodologyTypes, type],
-        };
-      }
-    });
-  };
 
   function toCapitalCase(str: string): string {
     if (!str) return "";
@@ -120,7 +104,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
   // Filter keywords based on search term
   const getFilteredKeywords = () => {
     if (!searchTerm.trim()) {
-      return null; // Return null to show categories when no search
+      return null;
     }
 
     const term = searchTerm.toLowerCase();
@@ -176,36 +160,6 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
 
       {/* Basic filters always visible */}
       <div className="space-y-4">
-        {/* Methodology type filter */}
-        <div>
-          <h3 className="font-medium mb-2">Methodology Type</h3>
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                "qualitative",
-                "quantitative",
-                "mixed",
-                "literature_review",
-                "unknown",
-              ] as MethodologyType[]
-            ).map((type) => (
-              <button
-                key={type}
-                onClick={() => handleMethodologyChange(type)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                  filters.methodologyTypes.includes(type)
-                    ? "bg-blue-100 text-blue-800 border-blue-300"
-                    : "bg-gray-100 text-gray-800 border-gray-200"
-                } border hover:bg-opacity-80 transition-colors`}
-              >
-                {type === "literature_review"
-                  ? "Literature Review"
-                  : type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Citation threshold filter */}
         <div>
           <h3 className="font-medium mb-2">
@@ -278,7 +232,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                       key={keyword.id}
                       onClick={() => handleKeywordChange(keyword.name)}
                       className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-                        filters.keywords.includes(keyword.name)
+                        filters.keywords.includes(toCapitalCase(keyword.name))
                           ? "bg-blue-100 text-blue-800 border-blue-300"
                           : "bg-gray-50 text-gray-700 border-gray-200"
                       } border hover:bg-opacity-80 transition-colors`}
@@ -326,7 +280,9 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                               key={keyword.id}
                               onClick={() => handleKeywordChange(keyword.name)}
                               className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-                                filters.keywords.includes(keyword.name)
+                                filters.keywords.includes(
+                                  toCapitalCase(keyword.name)
+                                )
                                   ? "bg-blue-100 text-blue-800 border-blue-300"
                                   : "bg-gray-50 text-gray-700 border-gray-200"
                               } border hover:bg-opacity-80 transition-colors`}
@@ -355,7 +311,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                     key={keywordName}
                     className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium flex items-center"
                   >
-                    {toCapitalCase(keywordName)}
+                    {keywordName}
                     <button
                       onClick={() => handleKeywordChange(keywordName)}
                       className="ml-1.5 text-blue-600 hover:text-blue-800"
@@ -401,7 +357,5 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
 };
 
 export default PaperFilter;
-
-// Example usage inside your filter logic:
 
 // Example usage inside your filter logic:

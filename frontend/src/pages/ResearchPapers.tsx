@@ -94,7 +94,7 @@ export const ResearchPapersPage: React.FC = () => {
   const filteredPapers = React.useMemo(() => {
     return filterPapers(papers, {
       keywords: filters.keywords,
-      methodologyTypes: filters.methodologyTypes,
+
       dateRange: filters.dateRange,
       minCitations: filters.minCitations,
     });

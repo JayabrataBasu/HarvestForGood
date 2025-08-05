@@ -70,7 +70,7 @@ export interface PaperFilterOptions {
     startDate: Date | null;
     endDate: Date | null;
   };
-  methodologyTypes: MethodologyType[];
+  methodologyTypes: MethodologyType[]; // Keep for backward compatibility
   keywords: string[];
   minCitations: number;
 }
