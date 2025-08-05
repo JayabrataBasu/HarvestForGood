@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ResearchPaper, Keyword } from "../../types/paper.types";
 import PaperCard from "./PaperCard";
+import { filterPapers } from "../../utils/filter";
 
 interface PaperGridProps {
   papers: ResearchPaper[];
@@ -9,6 +10,8 @@ interface PaperGridProps {
   pageSize?: number;
   savedPaperIds?: string[];
   onSavePaper?: (paperId: string, isSaving: boolean) => void;
+  selectedKeywords?: string[];
+  onKeywordSelect?: (keyword: string) => void; // Add callback for keyword selection
 }
 
 export const PaperGrid: React.FC<PaperGridProps> = ({
@@ -19,19 +22,37 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
   pageSize = 12,
   savedPaperIds = [],
   onSavePaper = () => {},
+  selectedKeywords = [],
+  onKeywordSelect,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isGridView, setIsGridView] = useState(true);
+  const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>(papers);
 
-  const totalPapers = papers.length;
+  // Apply filtering when papers or selectedKeywords change
+  useEffect(() => {
+    try {
+      if (selectedKeywords.length > 0) {
+        const filtered = filterPapers(papers, {
+          keywords: selectedKeywords,
+        });
+        setFilteredPapers(filtered);
+      } else {
+        setFilteredPapers(papers);
+      }
+      setCurrentPage(1); // Reset to first page when filtering changes
+    } catch (error) {
+      console.error("Error filtering papers:", error);
+      // Fallback to showing all papers if filtering fails
+      setFilteredPapers(papers);
+    }
+  }, [papers, selectedKeywords]);
+
+  const totalPapers = filteredPapers.length;
   const totalPages = Math.ceil(totalPapers / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalPapers);
-  const currentPagePapers = papers.slice(startIndex, endIndex);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [papers]);
+  const currentPagePapers = filteredPapers.slice(startIndex, endIndex);
 
   const toggleViewMode = () => {
     setIsGridView((prev) => !prev);
@@ -39,10 +60,10 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
 
   function handleKeywordClick(keyword: Keyword): void {
     // Scroll to top and highlight papers with the clicked keyword
-    // (Assumes server-side filtering, so just scroll and optionally show a message)
     window.scrollTo({ top: 0, behavior: "smooth" });
-    // Optionally, you could trigger a callback or show a toast/snackbar here
-    // For now, just log the keyword
+    if (onKeywordSelect) {
+      onKeywordSelect(keyword.name);
+    }
     console.log("Keyword clicked:", keyword);
   }
 
@@ -55,6 +76,11 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
         ) : (
           <div className="text-sm text-gray-600">
             Showing {startIndex + 1}-{endIndex} of {totalPapers} papers
+            {selectedKeywords.length > 0 && (
+              <span className="ml-2 text-blue-600">
+                (filtered by: {selectedKeywords.join(", ")})
+              </span>
+            )}
           </div>
         )}
 
@@ -122,8 +148,8 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
         </div>
       )}
 
-      {/* Empty state - Remove clear filters button since filters are handled server-side */}
-      {!isLoading && papers.length === 0 && (
+      {/* Empty state */}
+      {!isLoading && filteredPapers.length === 0 && (
         <div className="text-center py-12 px-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -143,14 +169,17 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
             No papers found
           </h3>
           <p className="text-gray-500 mb-6">
-            Try adjusting your search terms or filters to find more research
-            papers.
+            {selectedKeywords.length > 0
+              ? `No papers found containing all keywords: ${selectedKeywords.join(
+                  ", "
+                )}`
+              : "Try adjusting your search terms or filters to find more research papers."}
           </p>
         </div>
       )}
 
       {/* Papers grid/list */}
-      {!isLoading && papers.length > 0 && (
+      {!isLoading && filteredPapers.length > 0 && (
         <div
           className={
             isGridView

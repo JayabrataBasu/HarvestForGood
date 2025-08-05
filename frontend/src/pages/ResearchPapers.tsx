@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PaperGrid } from "../components/research/PaperGrid";
-// Update the import to match the actual exports from paper.types
-import { Keyword, ResearchPaper } from "../types/paper.types";
+import PaperFilter from "../components/research/PaperFilter";
+import PaperGrid from "../components/research/PaperGrid";
+import { filterPapers } from "../utils/filter";
 import { researchAPI } from "../lib/api";
+import {
+  Keyword,
+  ResearchPaper,
+  PaperFilterOptions,
+} from "../types/paper.types";
 
 export const ResearchPapersPage: React.FC = () => {
   const [papers, setPapers] = useState<ResearchPaper[]>([]);
@@ -13,6 +18,12 @@ export const ResearchPapersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [savedPaperIds, setSavedPaperIds] = useState<string[]>([]);
   const [searchWords] = useState<string[]>([]);
+  const [filters, setFilters] = useState<PaperFilterOptions>({
+    dateRange: { startDate: null, endDate: null },
+    methodologyTypes: [],
+    keywords: [],
+    minCitations: 0,
+  });
 
   // Load saved papers from localStorage
   useEffect(() => {
@@ -37,9 +48,8 @@ export const ResearchPapersPage: React.FC = () => {
       setError(null);
 
       try {
-        console.log("Fetching initial data..."); // Debug log
+        console.log("Fetching initial data...");
 
-        // Send arbitrary words/keywords to API
         const papersResponse = await researchAPI.fetchPapers(
           { q: searchWords, keyword: searchWords, keyword_logic: "or" },
           1
@@ -48,7 +58,6 @@ export const ResearchPapersPage: React.FC = () => {
           throw new Error(papersResponse.message || "Failed to fetch papers");
         }
 
-        // Fetch keywords from your Django API
         const keywordsResponse = await researchAPI.fetchKeywords();
         if (!keywordsResponse.success) {
           throw new Error(
@@ -56,10 +65,9 @@ export const ResearchPapersPage: React.FC = () => {
           );
         }
 
-        console.log("Papers response:", papersResponse.data); // Debug log
-        console.log("Keywords response:", keywordsResponse.data); // Debug log
+        console.log("Papers response:", papersResponse.data);
+        console.log("Keywords response:", keywordsResponse.data);
 
-        // Handle both paginated and direct array responses
         const papersData =
           papersResponse.data.results || papersResponse.data || [];
         const keywordsData =
@@ -72,7 +80,7 @@ export const ResearchPapersPage: React.FC = () => {
           err instanceof Error
             ? err.message
             : "Failed to load research papers. Please try again later.";
-        console.error("Error fetching research data:", err); // Debug log
+        console.error("Error fetching research data:", err);
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -81,6 +89,29 @@ export const ResearchPapersPage: React.FC = () => {
 
     fetchData();
   }, [searchWords]);
+
+  // Apply client-side filtering to papers from API
+  const filteredPapers = React.useMemo(() => {
+    return filterPapers(papers, {
+      keywords: filters.keywords,
+      methodologyTypes: filters.methodologyTypes,
+      dateRange: filters.dateRange,
+      minCitations: filters.minCitations,
+    });
+  }, [papers, filters]);
+
+  const handleFilterChange = (newFilters: PaperFilterOptions) => {
+    setFilters(newFilters);
+  };
+
+  const handleKeywordSelect = (keyword: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      keywords: prev.keywords.includes(keyword)
+        ? prev.keywords.filter((k) => k !== keyword)
+        : [...prev.keywords, keyword],
+    }));
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -121,12 +152,39 @@ export const ResearchPapersPage: React.FC = () => {
           <span className="ml-3 text-gray-600">Loading research papers...</span>
         </div>
       ) : (
-        <PaperGrid
-          papers={papers}
-          availableKeywords={keywords}
-          savedPaperIds={savedPaperIds}
-          onSavePaper={handleSavePaper}
-        />
+        <div className="flex gap-6">
+          <div className="w-1/4">
+            <PaperFilter
+              keywordCategories={
+                keywords.length > 0
+                  ? [
+                      {
+                        id: "default",
+                        name: "All Keywords",
+                        keywords: keywords.map((k) => ({
+                          id: k.id,
+                          name: k.name,
+                        })),
+                      },
+                    ]
+                  : []
+              }
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+            />
+          </div>
+          <div className="w-3/4">
+            <PaperGrid
+              papers={filteredPapers}
+              availableKeywords={keywords}
+              isLoading={false}
+              selectedKeywords={filters.keywords}
+              onKeywordSelect={handleKeywordSelect}
+              savedPaperIds={savedPaperIds}
+              onSavePaper={handleSavePaper}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

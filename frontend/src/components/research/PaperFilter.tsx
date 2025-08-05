@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {
-  PaperFilterOptions,
-  MethodologyType,
-  // KeywordCategory, // Removed because it does not exist in the module
-} from "../../types/paper.types";
+import { PaperFilterOptions, MethodologyType } from "../../types/paper.types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 /**
  * Define the KeywordCategory type locally if not exported from paper.types.
- * Adjust this definition to match the actual structure used in your app.
  */
 type KeywordCategory = {
   id: string;
@@ -400,3 +395,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
 };
 
 export default PaperFilter;
+
+// Example usage inside your filter logic:
+
+// Example usage inside your filter logic:
