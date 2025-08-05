@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  ResearchPaper,
-  PaperFilterOptions,
-  Keyword,
-  MethodologyType,
-} from "../../types/paper.types";
+import { ResearchPaper, Keyword } from "../../types/paper.types";
 import PaperCard from "./PaperCard";
 
 interface PaperGridProps {
@@ -25,92 +20,31 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
   savedPaperIds = [],
   onSavePaper = () => {},
 }) => {
-  const [filteredPapers, setFilteredPapers] = useState(papers);
-  const [filters, setFilters] = useState<PaperFilterOptions>({
-    dateRange: { startDate: null, endDate: null },
-    methodologyTypes: [],
-    keywords: [],
-    minCitations: 0,
-  });
+  // Remove local filtering state - API handles filtering server-side
   const [currentPage, setCurrentPage] = useState(1);
   const [isGridView, setIsGridView] = useState(true);
 
-  // Apply filters when they change or when papers change
-  useEffect(() => {
-    if (isLoading) return;
+  // Remove the useEffect that was doing client-side filtering
+  // The papers prop already contains filtered results from the API
 
-    const filtered = papers.filter((paper) => {
-      // Date range filter - Fix: Handle both publicationDate and publication_date
-      const pubDate = paper.publicationDate || paper.publication_date;
-      if (
-        filters.dateRange.startDate &&
-        pubDate &&
-        new Date(pubDate) < filters.dateRange.startDate
-      ) {
-        return false;
-      }
-
-      if (
-        filters.dateRange.endDate &&
-        pubDate &&
-        new Date(pubDate) > filters.dateRange.endDate
-      ) {
-        return false;
-      }
-
-      // Methodology filter
-      const methodology = paper.methodologyType;
-      if (
-        filters.methodologyTypes.length > 0 &&
-        !filters.methodologyTypes.includes(methodology as MethodologyType)
-      ) {
-        return false;
-      }
-
-      // Citation count filter
-      if (paper.citationCount < filters.minCitations) {
-        return false;
-      }
-
-      // Keywords filter - Fix: Ensure keywords exist and are properly formatted
-      if (filters.keywords.length > 0) {
-        const paperKeywordNames = paper.keywords?.map((k) => k.name) || [];
-        const hasMatchingKeyword = filters.keywords.some((keyword) =>
-          paperKeywordNames.includes(keyword)
-        );
-        if (!hasMatchingKeyword) return false;
-      }
-
-      return true;
-    });
-
-    setFilteredPapers(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [filters, papers, isLoading]);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleFilterChange = (newFilters: PaperFilterOptions) => {
-    setFilters(newFilters);
-  };
-
-  // Handle keyword click from PaperCard
+  // Handle keyword click from PaperCard - this should trigger parent component to update API filters
   const handleKeywordClick = (keyword: Keyword) => {
-    setFilters((prev) => {
-      // If keyword is already in filters, don't add it again
-      if (prev.keywords.includes(keyword.name)) return prev;
-      return {
-        ...prev,
-        keywords: [...prev.keywords, keyword.name],
-      };
-    });
+    // This should be handled by parent component to update server-side filters
+    console.log("Keyword clicked:", keyword.name);
+    // TODO: Implement proper keyword filter communication with parent component
   };
 
-  // Calculate pagination values
-  const totalPapers = filteredPapers.length;
+  // Use papers directly since they're already filtered by the API
+  const totalPapers = papers.length;
   const totalPages = Math.ceil(totalPapers / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalPapers);
-  const currentPagePapers = filteredPapers.slice(startIndex, endIndex);
+  const currentPagePapers = papers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when papers change (new API results)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [papers]);
 
   // Toggle between grid and list views
   const toggleViewMode = () => {
@@ -193,8 +127,8 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && filteredPapers.length === 0 && (
+      {/* Empty state - Remove clear filters button since filters are handled server-side */}
+      {!isLoading && papers.length === 0 && (
         <div className="text-center py-12 px-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -214,26 +148,14 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
             No papers found
           </h3>
           <p className="text-gray-500 mb-6">
-            Try adjusting your filters to find more research papers.
+            Try adjusting your search terms or filters to find more research
+            papers.
           </p>
-          <button
-            onClick={() =>
-              setFilters({
-                dateRange: { startDate: null, endDate: null },
-                methodologyTypes: [],
-                keywords: [],
-                minCitations: 0,
-              })
-            }
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Clear All Filters
-          </button>
         </div>
       )}
 
       {/* Papers grid/list */}
-      {!isLoading && filteredPapers.length > 0 && (
+      {!isLoading && papers.length > 0 && (
         <div
           className={
             isGridView

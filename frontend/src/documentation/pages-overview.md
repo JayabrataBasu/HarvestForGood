@@ -92,3 +92,12 @@ When "No papers found" appears:
 3. Ensure backend API returns proper data structure
 4. Check for type mismatches in date/year fields
 5. Verify keyword and methodology field mappings
+6. **CRITICAL**: Ensure PaperGrid.tsx is NOT doing client-side filtering on already server-filtered results
+   - The API handles all filtering server-side and returns filtered results
+   - Client-side filtering in PaperGrid can cause double filtering, resulting in empty results
+   - PaperGrid should display papers as-is from the API response
+7. Check console logs for "Applying filters" and "API Response" to see filter flow
+8. Verify that filter parameters match exactly between frontend requests and backend expectations
+   - Keywords should match case sensitivity
+   - Methodology types should use exact backend values
+   - Date formats should be consistent
