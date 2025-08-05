@@ -58,11 +58,16 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
     setIsGridView((prev) => !prev);
   };
 
+  function toCapitalCase(str: string): string {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   function handleKeywordClick(keyword: Keyword): void {
     // Scroll to top and highlight papers with the clicked keyword
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (onKeywordSelect) {
-      onKeywordSelect(keyword.name);
+      onKeywordSelect(toCapitalCase(keyword.name));
     }
     console.log("Keyword clicked:", keyword);
   }
@@ -190,7 +195,13 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
           {currentPagePapers.map((paper) => (
             <div key={paper.id} className={isGridView ? "" : "p-4"}>
               <PaperCard
-                paper={paper}
+                paper={{
+                  ...paper,
+                  keywords: paper.keywords.map((k) => ({
+                    ...k,
+                    name: toCapitalCase(k.name),
+                  })),
+                }}
                 onSave={(paperId) =>
                   onSavePaper(paperId, !savedPaperIds.includes(paperId))
                 }

@@ -1,5 +1,11 @@
 import { ResearchPaper } from "../types/paper.types";
 
+// Capital case utility
+function toCapitalCase(str: string): string {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 /**
  * Generic filter function that applies criteria to data array
  * For keywords, uses partial matching - must include all chosen keywords (extras allowed)
@@ -27,9 +33,9 @@ export function filter<T>(
       if (key === keywordField && Array.isArray(itemValue) && Array.isArray(value)) {
         // Support both [{name: string}] and [string]
         const itemKeywords = (itemValue as (string | { name: string })[]).map((k) =>
-          typeof k === 'string' ? k : (k && typeof k.name === 'string' ? k.name : '')
+          toCapitalCase(typeof k === 'string' ? k : (k && typeof k.name === 'string' ? k.name : ''))
         );
-        const chosenKeywords = value as string[];
+        const chosenKeywords = (value as string[]).map(toCapitalCase);
         // Only match if every chosen keyword is present in itemKeywords
         return chosenKeywords.every((kw) =>
           itemKeywords.includes(kw)

@@ -75,6 +75,11 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
       .join(", ");
   };
 
+  function toCapitalCase(str: string): string {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Enhanced farm-to-sunset gradient background */}
@@ -601,7 +606,7 @@ const PaperDetail: React.FC<PaperDetailProps> = ({
                       style={{ animationDelay: `${index * 0.1}s` }}
                       onClick={() => onKeywordClick && onKeywordClick(keyword)}
                     >
-                      {keyword.name}
+                      {toCapitalCase(keyword.name)}
                     </span>
                   ))}
                 </div>

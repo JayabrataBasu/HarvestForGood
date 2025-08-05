@@ -58,17 +58,23 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
     });
   };
 
+  function toCapitalCase(str: string): string {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
   const handleKeywordChange = (keywordName: string) => {
+    const capitalKeyword = toCapitalCase(keywordName);
     setFilters((prev) => {
-      if (prev.keywords.includes(keywordName)) {
+      if (prev.keywords.includes(capitalKeyword)) {
         return {
           ...prev,
-          keywords: prev.keywords.filter((k) => k !== keywordName),
+          keywords: prev.keywords.filter((k) => k !== capitalKeyword),
         };
       } else {
         return {
           ...prev,
-          keywords: [...prev.keywords, keywordName],
+          keywords: [...prev.keywords, capitalKeyword],
         };
       }
     });
@@ -277,7 +283,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                           : "bg-gray-50 text-gray-700 border-gray-200"
                       } border hover:bg-opacity-80 transition-colors`}
                     >
-                      {keyword.name}
+                      {toCapitalCase(keyword.name)}
                     </button>
                   ))}
                 </div>
@@ -325,7 +331,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                                   : "bg-gray-50 text-gray-700 border-gray-200"
                               } border hover:bg-opacity-80 transition-colors`}
                             >
-                              {keyword.name}
+                              {toCapitalCase(keyword.name)}
                             </button>
                           ))}
                         </div>
@@ -349,7 +355,7 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                     key={keywordName}
                     className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium flex items-center"
                   >
-                    {keywordName}
+                    {toCapitalCase(keywordName)}
                     <button
                       onClick={() => handleKeywordChange(keywordName)}
                       className="ml-1.5 text-blue-600 hover:text-blue-800"
