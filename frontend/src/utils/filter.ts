@@ -49,10 +49,10 @@ export function filter<T>(
 
       const itemValue = (item as Record<string, unknown>)[key];
 
-      // Optimized keyword matching with Sets
-      if (key === keywordField && Array.isArray(itemValue) && Array.isArray(value)) {
+      // Only match keywords in the keywords array, not in abstract/title
+      if (key === keywordField && Array.isArray((item as Record<string, unknown>)[keywordField]) && Array.isArray(value)) {
         // Extract keyword names from objects or use strings directly
-        const itemKeywords = (itemValue as (string | { name: string })[])
+        const itemKeywords = ((item as Record<string, unknown>)[keywordField] as (string | { name: string })[])
           .map((k) => typeof k === 'string' ? k : (k?.name || ''))
           .filter(Boolean); // Remove empty strings
         
