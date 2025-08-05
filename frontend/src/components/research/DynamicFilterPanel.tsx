@@ -63,6 +63,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
   const [expandedSections, setExpandedSections] = useState<string[]>(
     currentFilters.expandedSections || ["years", "methodology"]
   );
+  const [keywordLogic, setKeywordLogic] = useState<"and" | "or">("and");
 
   useEffect(() => {
     setFilters((prev) => ({
@@ -142,6 +143,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
       methodology_type: string[];
       keyword: string[];
       regions: string[];
+      keyword_logic: string;
     }> = {};
 
     if (filters.yearRange.start !== filterOptions.year_range.min) {
@@ -155,6 +157,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
     }
     if (filters.keywords.length > 0) {
       apiFilters.keyword = filters.keywords;
+      apiFilters.keyword_logic = keywordLogic;
     }
     if (filters.regions.length > 0) {
       apiFilters.keyword = [...(apiFilters.keyword || []), ...filters.regions];
@@ -351,6 +354,32 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
 
       {/* Keywords */}
       <div className="space-y-3">
+        {/* Keyword logic toggle */}
+        <div className="flex items-center mb-2">
+          <span className="text-xs text-gray-500 mr-2">Keyword Match:</span>
+          <button
+            type="button"
+            className={`px-2 py-1 rounded-l border ${
+              keywordLogic === "and"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+            onClick={() => setKeywordLogic("and")}
+          >
+            ALL
+          </button>
+          <button
+            type="button"
+            className={`px-2 py-1 rounded-r border ${
+              keywordLogic === "or"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+            onClick={() => setKeywordLogic("or")}
+          >
+            ANY
+          </button>
+        </div>
         <button
           onClick={() => toggleSection("keywords")}
           className="flex justify-between items-center w-full text-left"

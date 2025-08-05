@@ -85,7 +85,6 @@ export const useLike = (
         'Content-Type': 'application/json',
       };
 
-      // Add auth header for logged-in users
       if (user) {
         const token = localStorage.getItem('access_token');
         if (token) {
@@ -98,8 +97,7 @@ export const useLike = (
         guest_name?: string;
       }
       const body: LikeRequestBody = {};
-      
-      // Add guest info for non-authenticated users
+
       if (!user) {
         const guestInfo = localStorage.getItem('guestInfo');
         const guestId = getGuestIdentifier();
@@ -118,6 +116,7 @@ export const useLike = (
         }
       }
 
+      // Send request to backend
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like/`, {
         method: 'POST',
         headers,
@@ -128,22 +127,19 @@ export const useLike = (
         const data = await response.json();
         const serverIsLiked = data.action === 'liked';
         const serverLikesCount = data.likes_count || 0;
-        
-        // Update with server response
+
         setIsLiked(serverIsLiked);
         setLikesCount(serverLikesCount);
         saveLikeState(serverIsLiked);
       } else {
-        // Revert optimistic update on error
         setIsLiked(originalIsLiked);
         setLikesCount(originalCount);
-        
+
         const errorText = await response.text();
         console.error('Like API error:', response.status, errorText);
         throw new Error(`Failed to ${newIsLiked ? 'like' : 'unlike'} post`);
       }
     } catch (error) {
-      // Revert optimistic update on error
       setIsLiked(originalIsLiked);
       setLikesCount(originalCount);
       console.error('Error handling like:', error);
@@ -189,3 +185,4 @@ export const clearAllLikeStates = () => {
     console.error('Error clearing all like states:', error);
   }
 };
+  

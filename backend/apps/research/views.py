@@ -217,6 +217,7 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         year_to = parse_year_param(self.request.query_params.get('year_to'))
         journal = self.request.query_params.get('journal', None)
         sort = self.request.query_params.get('sort', None)
+        keyword_logic = self.request.query_params.get('keyword_logic', 'and').lower()
         
         # Full-text search
         if q:
@@ -242,7 +243,13 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         
         # Apply filters
         if keywords:
-            queryset = queryset.filter(keywords__name__in=keywords)
+            if keyword_logic == 'and' and len(keywords) > 1:
+                # Papers must have ALL selected keywords
+                for kw in keywords:
+                    queryset = queryset.filter(keywords__name=kw)
+            else:
+                # Default OR logic (any keyword matches)
+                queryset = queryset.filter(keywords__name__in=keywords)
 
         if authors:
             queryset = queryset.filter(authors__name__in=authors)
