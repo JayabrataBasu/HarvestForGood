@@ -28,7 +28,7 @@ export function HomeResearchSection() {
 
       // Fetch the latest 6 papers, ordered by publication year (newest first)
       const response = await fetch(
-        `${API_BASE_URL}/research/papers/?ordering=-publication_year&limit=6`,
+        `${API_BASE_URL}/research/papers/?ordering=-publication_year&limit=6&keyword_logic=and`, // Added keyword_logic=and
         {
           method: "GET",
           headers: {
