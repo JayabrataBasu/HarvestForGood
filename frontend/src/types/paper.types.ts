@@ -52,15 +52,15 @@ export type CitationTrend = 'increasing' | 'decreasing' | 'stable';
 
 // API request types
 export interface PaperFilterParams {
-  q?: string;         // General search term
-  keyword?: string | string[];   // Filter by keyword - can be string or array
-  author?: string | string[];    // Filter by author name - can be string or array
+  q?: string | string[]; // General search term(s), can be array
+  keyword?: string | string[]; // Arbitrary keywords, can be array
+  author?: string | string[]; // Arbitrary author names, can be array
   methodology_type?: string | string[]; // Changed from methodology to match backend
   min_citations?: number;
   year_from?: number;
   year_to?: number;
   journal?: string;
-  keyword_logic?: 'and' | 'or'; // Add keyword logic parameter
+  keyword_logic?: 'and' | 'or'; // Logic for keyword matching
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; // Allow additional filter parameters
 }
