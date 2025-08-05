@@ -195,9 +195,8 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = ResearchPaper.objects.all().order_by('-publication_year', '-created_at', 'id')
-        
         # Get query parameters
-        q = self.request.query_params.get('q', None)
+        q = self.request.query_params.getlist('q', [])
         keywords = self.request.query_params.getlist('keyword', [])
         authors = self.request.query_params.getlist('author', [])
         methodology_types = self.request.query_params.getlist('methodology_type', [])
@@ -208,62 +207,49 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         journal = self.request.query_params.get('journal', None)
         sort = self.request.query_params.get('sort', None)
         keyword_logic = self.request.query_params.get('keyword_logic', 'or').lower()
-        
-        # Full-text search
-        if q:
-            # Create search vectors for various fields
-            search_vector = (
-                SearchVector('title', weight='A') +
-                SearchVector('abstract', weight='B') +
-                SearchVector('authors__name', weight='C') +
-                SearchVector('keywords__name', weight='C') +
-                SearchVector('journal', weight='D')
-            )
-            search_query = SearchQuery(q)
-            
-            # Apply search vector, query and rank
-            queryset = queryset.annotate(
-                search=search_vector,
-                rank=SearchRank(search_vector, search_query)
-            ).filter(search=search_query)
-            
-            # If sort parameter is not provided or is 'relevance', order by search rank
-            if not sort or sort == 'relevance':
-                queryset = queryset.order_by('-rank')
-        
-        # Apply filters
-        if keywords:
-            if keyword_logic == 'and' and len(keywords) > 1:
-                # Papers must have ALL selected keywords (AND logic)
-                for keyword_name in keywords:
-                    queryset = queryset.filter(keywords__name__icontains=keyword_name)
-            else:
-                # Default OR logic (any keyword matches)
-                queryset = queryset.filter(keywords__name__in=keywords)
 
+        # Arbitrary word matching (OR logic)
+        word_filters = []
+        for word in q + keywords:
+            if word:
+                word_filters.append(
+                    Q(title__icontains=word) |
+                    Q(abstract__icontains=word) |
+                    Q(authors__name__icontains=word) |
+                    Q(keywords__name__icontains=word) |
+                    Q(journal__icontains=word)
+                )
+        if word_filters:
+            combined_filter = word_filters[0]
+            for f in word_filters[1:]:
+                combined_filter |= f
+            queryset = queryset.filter(combined_filter)
+
+        # Authors
         if authors:
             queryset = queryset.filter(authors__name__in=authors)
 
+        # Methodology types
         if methodology_types:
             queryset = queryset.filter(methodology_type__in=methodology_types)
 
+        # Citations
         if min_citations is not None:
             queryset = queryset.filter(citation_count__gte=int(min_citations))
-
         if max_citations is not None:
             queryset = queryset.filter(citation_count__lte=int(max_citations))
 
-        # Handle year filtering with better error handling
+        # Year filtering
         if year_from is not None:
             queryset = queryset.filter(publication_year__gte=str(year_from))
-
         if year_to is not None:
             queryset = queryset.filter(publication_year__lte=str(year_to))
 
+        # Journal
         if journal:
             queryset = queryset.filter(journal__icontains=journal)
-        
-        # Apply sorting if specified (and not already sorted by relevance)
+
+        # Sorting
         if sort and sort != 'relevance':
             if sort == 'date_newest':
                 queryset = queryset.order_by('-publication_year')

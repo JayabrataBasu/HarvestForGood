@@ -12,6 +12,7 @@ export const ResearchPapersPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savedPaperIds, setSavedPaperIds] = useState<string[]>([]);
+  const [searchWords] = useState<string[]>([]);
 
   // Load saved papers from localStorage
   useEffect(() => {
@@ -38,8 +39,11 @@ export const ResearchPapersPage: React.FC = () => {
       try {
         console.log("Fetching initial data..."); // Debug log
 
-        // Fetch papers from your Django API with empty filters to get all papers
-        const papersResponse = await researchAPI.fetchPapers({}, 1);
+        // Send arbitrary words/keywords to API
+        const papersResponse = await researchAPI.fetchPapers(
+          { q: searchWords, keyword: searchWords, keyword_logic: "or" },
+          1
+        );
         if (!papersResponse.success) {
           throw new Error(papersResponse.message || "Failed to fetch papers");
         }
@@ -76,7 +80,7 @@ export const ResearchPapersPage: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [searchWords]);
 
   return (
     <div className="container mx-auto px-4 py-8">

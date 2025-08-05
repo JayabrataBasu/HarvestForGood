@@ -20,36 +20,31 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
   savedPaperIds = [],
   onSavePaper = () => {},
 }) => {
-  // Remove local filtering state - API handles filtering server-side
   const [currentPage, setCurrentPage] = useState(1);
   const [isGridView, setIsGridView] = useState(true);
 
-  // Remove the useEffect that was doing client-side filtering
-  // The papers prop already contains filtered results from the API
-
-  // Handle keyword click from PaperCard - this should trigger parent component to update API filters
-  const handleKeywordClick = (keyword: Keyword) => {
-    // This should be handled by parent component to update server-side filters
-    console.log("Keyword clicked:", keyword.name);
-    // TODO: Implement proper keyword filter communication with parent component
-  };
-
-  // Use papers directly since they're already filtered by the API
   const totalPapers = papers.length;
   const totalPages = Math.ceil(totalPapers / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalPapers);
   const currentPagePapers = papers.slice(startIndex, endIndex);
 
-  // Reset to page 1 when papers change (new API results)
   useEffect(() => {
     setCurrentPage(1);
   }, [papers]);
 
-  // Toggle between grid and list views
   const toggleViewMode = () => {
     setIsGridView((prev) => !prev);
   };
+
+  function handleKeywordClick(keyword: Keyword): void {
+    // Scroll to top and highlight papers with the clicked keyword
+    // (Assumes server-side filtering, so just scroll and optionally show a message)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Optionally, you could trigger a callback or show a toast/snackbar here
+    // For now, just log the keyword
+    console.log("Keyword clicked:", keyword);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow">

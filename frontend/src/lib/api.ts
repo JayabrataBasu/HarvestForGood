@@ -154,13 +154,17 @@ export const researchAPI = {
    */
   fetchPapers: async (params = {}, page = 1, pageSize = 10) => {
     try {
-      // Construct query parameters
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString(),
-        ...params
+      // Flatten arrays for query params
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+      queryParams.append('page_size', pageSize.toString());
+      Object.entries(params).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((v) => queryParams.append(key, String(v)));
+        } else if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
       });
-
       const response = await fetchAPI(`/research/papers/?${queryParams.toString()}`);
       return { success: true, data: response };
     } catch (error) {
