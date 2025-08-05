@@ -1,10 +1,10 @@
 import { ResearchPaper } from "../types/paper.types";
 
 /**
- * Optimized partial keyword matching filter function
+ * Optimized partial keyword matching filter function with AND logic
  * 1. The user selects a list of keywords (chosenKeywords).
  * 2. Each item has a list of keywords (itemKeywords).
- * 3. An item should pass the filter if it contains ALL chosen keywords, but it can have extra keywords.
+ * 3. An item should pass the filter if it contains ALL chosen keywords (AND logic), but it can have extra keywords.
  * 4. Matching should ignore order and treat keywords as case-insensitive.
  * 5. If chosenKeywords is empty, return true (no filtering applied).
  * 6. Optimize for large datasets by using Sets for lookups.
@@ -20,7 +20,7 @@ function matchesKeywords(itemKeywords: string[], chosenKeywords: string[]): bool
     itemKeywords.map(keyword => keyword.toLowerCase().trim())
   );
 
-  // Check if ALL chosen keywords are present in item keywords
+  // Check if ALL chosen keywords are present in item keywords (AND logic)
   return chosenKeywords.every(chosenKeyword => 
     itemKeywordSet.has(chosenKeyword.toLowerCase().trim())
   );

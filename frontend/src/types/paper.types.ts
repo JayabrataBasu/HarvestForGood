@@ -60,7 +60,7 @@ export interface PaperFilterParams {
   year_from?: number;
   year_to?: number;
   journal?: string;
-  keyword_logic?: 'and' | 'or'; // Logic for keyword matching
+  keyword_logic?: 'and' | 'or'; // Default to 'and' logic for keyword matching
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; // Allow additional filter parameters
 }

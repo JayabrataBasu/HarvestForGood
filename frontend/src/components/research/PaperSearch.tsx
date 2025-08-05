@@ -69,7 +69,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
       backendFilters.methodology_type = apiFilters.methodology_type;
     if (apiFilters.keyword) {
       backendFilters.keyword = apiFilters.keyword;
-      backendFilters.keyword_logic = apiFilters.keyword_logic || "or";
+      backendFilters.keyword_logic = apiFilters.keyword_logic || "and"; // Changed default from "or" to "and"
     }
 
     console.log("Applying filters:", backendFilters); // Debug log

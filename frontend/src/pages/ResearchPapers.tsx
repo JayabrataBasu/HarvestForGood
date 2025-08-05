@@ -51,7 +51,7 @@ export const ResearchPapersPage: React.FC = () => {
         console.log("Fetching initial data...");
 
         const papersResponse = await researchAPI.fetchPapers(
-          { q: searchWords, keyword: searchWords, keyword_logic: "or" },
+          { q: searchWords, keyword: searchWords, keyword_logic: "and" }, // Changed from "or" to "and"
           1
         );
         if (!papersResponse.success) {
