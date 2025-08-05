@@ -21,22 +21,24 @@ export function filter<T>(
         return true;
       }
 
-      const itemValue = (item as unknown as Record<string, unknown>)[key];
+      const itemValue = (item as Record<string, unknown>)[key];
 
       // Partial match for keywords - must include all chosen keywords (order doesn't matter, extras allowed)
       if (key === keywordField && Array.isArray(itemValue) && Array.isArray(value)) {
-        const itemKeywords = itemValue.map((k: string | { name?: string }) =>
-          typeof k === 'string' ? k : (k?.name || String(k))
+        // Support both [{name: string}] and [string]
+        const itemKeywords = (itemValue as (string | { name: string })[]).map((k) =>
+          typeof k === 'string' ? k : (k && typeof k.name === 'string' ? k.name : '')
         );
-        const chosenKeywords = value;
-
-        // Must include all chosen keywords (order doesn't matter, extras allowed)
-        return chosenKeywords.every((kw: string) => itemKeywords.includes(kw));
+        const chosenKeywords = value as string[];
+        // Only match if every chosen keyword is present in itemKeywords
+        return chosenKeywords.every((kw) =>
+          itemKeywords.includes(kw)
+        );
       }
 
       // Handle other array comparisons (partial match)
       if (Array.isArray(itemValue) && Array.isArray(value)) {
-        return value.every((v) => itemValue.includes(v));
+        return (value as (string | number)[]).every((v) => itemValue.includes(v));
       }
 
       // Handle date ranges
@@ -50,7 +52,7 @@ export function filter<T>(
       ) {
         let itemDate: Date | null = null;
         if (typeof itemValue === "string" || typeof itemValue === "number" || itemValue instanceof Date) {
-          itemDate = new Date(itemValue);
+          itemDate = new Date(itemValue as string);
         }
         if (!itemDate || isNaN(itemDate.getTime())) {
           return false;
