@@ -5,14 +5,17 @@ interface FilterOptions {
   methodology_types: string[];
   year_range: { min: number; max: number };
   years_available: number[];
-  region_keywords: Array<{ id: number; name: string }>;
-  general_keywords: Array<{ id: number; name: string }>;
   keyword_categories: Array<{
-    id: number;
+    id: string | number;
     name: string;
     description: string;
     keywords: Array<{ id: number; name: string }>;
   }>;
+  stats: {
+    total_papers: number;
+    total_categories: number;
+    total_keywords: number;
+  };
 }
 
 interface DynamicFilterPanelProps {
@@ -60,6 +63,7 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
     searchTerm: "",
   });
 
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedSections, setExpandedSections] = useState<string[]>(
     currentFilters.expandedSections || ["years", "methodology"]
   );
@@ -87,6 +91,14 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
       prev.includes(section)
         ? prev.filter((s) => s !== section)
         : [...prev, section]
+    );
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
@@ -179,10 +191,6 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
     });
     onFilterApply({});
   };
-
-  const filteredKeywords = filterOptions.general_keywords.filter((keyword) =>
-    keyword.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
-  );
 
   // Only use keywords from the "Region" category for the Regions filter
   const regionCategory = filterOptions.keyword_categories.find(
@@ -352,9 +360,8 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
         </div>
       )}
 
-      {/* Keywords */}
+      {/* Keywords by Categories */}
       <div className="space-y-3">
-        {/* Keyword logic toggle */}
         <div className="flex items-center mb-2">
           <span className="text-xs text-gray-500 mr-2">Keyword Match:</span>
           <button
@@ -380,11 +387,14 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
             ANY
           </button>
         </div>
+
         <button
           onClick={() => toggleSection("keywords")}
           className="flex justify-between items-center w-full text-left"
         >
-          <h3 className="font-medium text-gray-900">Keywords</h3>
+          <h3 className="font-medium text-gray-900">
+            Keywords by Category ({filters.keywords.length} selected)
+          </h3>
           <svg
             className={`h-5 w-5 transition-transform ${
               expandedSections.includes("keywords") ? "rotate-180" : ""
@@ -411,19 +421,107 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
             />
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {filteredKeywords.map((keyword) => (
-                <label key={keyword.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.keywords.includes(keyword.name)}
-                    onChange={() => handleKeywordToggle(keyword.name)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{keyword.name}</span>
-                </label>
-              ))}
+
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {filterOptions.keyword_categories.map((category) => {
+                const filteredKeywords = category.keywords.filter((keyword) =>
+                  keyword.name
+                    .toLowerCase()
+                    .includes(filters.searchTerm.toLowerCase())
+                );
+
+                if (filteredKeywords.length === 0 && filters.searchTerm)
+                  return null;
+
+                return (
+                  <div
+                    key={category.id}
+                    className="border border-gray-200 rounded-md"
+                  >
+                    <button
+                      onClick={() => toggleCategory(String(category.id))}
+                      className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 text-left rounded-t-md"
+                    >
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          {category.name}
+                        </span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({filteredKeywords.length} keywords)
+                        </span>
+                      </div>
+                      <svg
+                        className={`h-4 w-4 transition-transform ${
+                          expandedCategories.includes(String(category.id))
+                            ? "rotate-180"
+                            : ""
+                        }`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    {expandedCategories.includes(String(category.id)) && (
+                      <div className="p-3 border-t border-gray-200 bg-white rounded-b-md">
+                        <div className="grid grid-cols-1 gap-2">
+                          {filteredKeywords.map((keyword) => (
+                            <label
+                              key={keyword.id}
+                              className="flex items-center space-x-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={filters.keywords.includes(
+                                  keyword.name
+                                )}
+                                onChange={() =>
+                                  handleKeywordToggle(keyword.name)
+                                }
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {keyword.name}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Selected Keywords Summary */}
+            {filters.keywords.length > 0 && (
+              <div className="border-t pt-3">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Selected Keywords ({filters.keywords.length}):
+                </h4>
+                <div className="flex flex-wrap gap-1">
+                  {filters.keywords.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                    >
+                      {keyword}
+                      <button
+                        onClick={() => handleKeywordToggle(keyword)}
+                        className="ml-1 text-blue-600 hover:text-blue-800"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -434,6 +532,12 @@ const DynamicFilterPanel: React.FC<DynamicFilterPanelProps> = ({
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
       >
         Apply Filters
+        {(filters.keywords.length > 0 ||
+          filters.methodology_types.length > 0) && (
+          <span className="ml-2 bg-blue-500 px-2 py-1 rounded-full text-xs">
+            {filters.keywords.length + filters.methodology_types.length}
+          </span>
+        )}
       </button>
 
       {/* Custom CSS for dual range slider */}

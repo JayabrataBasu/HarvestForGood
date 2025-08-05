@@ -93,8 +93,19 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   };
 
   const handleFilterApply = (newFilters: unknown) => {
-    // Convert the filter UI state to API parameters
-    setFilters(newFilters as PaperFilterParams);
+    // Convert the filter UI state to API parameters with proper keyword logic
+    const apiFilters = newFilters as Record<string, unknown>;
+
+    // Add keyword_logic parameter if keywords are selected
+    if (
+      apiFilters.keyword &&
+      Array.isArray(apiFilters.keyword) &&
+      apiFilters.keyword.length > 0
+    ) {
+      apiFilters.keyword_logic = apiFilters.keyword_logic || "or";
+    }
+
+    setFilters(apiFilters as PaperFilterParams);
     setPage(1);
   };
 
