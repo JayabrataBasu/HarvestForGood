@@ -1,14 +1,34 @@
 import { ResearchPaper } from "../types/paper.types";
 
-// Capital case utility
-function toCapitalCase(str: string): string {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+/**
+ * Optimized partial keyword matching filter function
+ * 1. The user selects a list of keywords (chosenKeywords).
+ * 2. Each item has a list of keywords (itemKeywords).
+ * 3. An item should pass the filter if it contains ALL chosen keywords, but it can have extra keywords.
+ * 4. Matching should ignore order and treat keywords as case-insensitive.
+ * 5. If chosenKeywords is empty, return true (no filtering applied).
+ * 6. Optimize for large datasets by using Sets for lookups.
+ */
+function matchesKeywords(itemKeywords: string[], chosenKeywords: string[]): boolean {
+  // If no keywords chosen, no filtering applied
+  if (chosenKeywords.length === 0) {
+    return true;
+  }
+
+  // Convert item keywords to lowercase Set for fast lookup
+  const itemKeywordSet = new Set(
+    itemKeywords.map(keyword => keyword.toLowerCase().trim())
+  );
+
+  // Check if ALL chosen keywords are present in item keywords
+  return chosenKeywords.every(chosenKeyword => 
+    itemKeywordSet.has(chosenKeyword.toLowerCase().trim())
+  );
 }
 
 /**
  * Generic filter function that applies criteria to data array
- * For keywords, uses partial matching - must include all chosen keywords (extras allowed)
+ * Optimized for keyword filtering with Set-based lookups
  */
 export function filter<T>(
   data: T[],
@@ -29,22 +49,16 @@ export function filter<T>(
 
       const itemValue = (item as Record<string, unknown>)[key];
 
-      // Partial match for keywords - must include all chosen keywords (order doesn't matter, extras allowed)
+      // Optimized keyword matching with Sets
       if (key === keywordField && Array.isArray(itemValue) && Array.isArray(value)) {
-        // Support both [{name: string}] and [string]
-        const itemKeywords = (itemValue as (string | { name: string })[]).map((k) =>
-          toCapitalCase(typeof k === 'string' ? k : (k && typeof k.name === 'string' ? k.name : ''))
-        );
-        const chosenKeywords = (value as string[]).map(toCapitalCase);
-        // Only match if every chosen keyword is present in itemKeywords
-        return chosenKeywords.every((kw) =>
-          itemKeywords.includes(kw)
-        );
-      }
-
-      // Handle other array comparisons (partial match)
-      if (Array.isArray(itemValue) && Array.isArray(value)) {
-        return (value as (string | number)[]).every((v) => itemValue.includes(v));
+        // Extract keyword names from objects or use strings directly
+        const itemKeywords = (itemValue as (string | { name: string })[])
+          .map((k) => typeof k === 'string' ? k : (k?.name || ''))
+          .filter(Boolean); // Remove empty strings
+        
+        const chosenKeywords = value as string[];
+        
+        return matchesKeywords(itemKeywords, chosenKeywords);
       }
 
       // Handle date ranges
@@ -52,19 +66,32 @@ export function filter<T>(
         value &&
         typeof value === 'object' &&
         'startDate' in value &&
-        'endDate' in value &&
-        value.startDate &&
-        value.endDate
+        'endDate' in value
       ) {
+        const dateRange = value as { startDate: Date | null; endDate: Date | null };
+        
+        if (!dateRange.startDate && !dateRange.endDate) {
+          return true; // No date filtering if both are null
+        }
+
         let itemDate: Date | null = null;
         if (typeof itemValue === "string" || typeof itemValue === "number" || itemValue instanceof Date) {
           itemDate = new Date(itemValue as string);
         }
+        
         if (!itemDate || isNaN(itemDate.getTime())) {
           return false;
         }
-        return itemDate >= (value as { startDate: Date; endDate: Date }).startDate &&
-               itemDate <= (value as { startDate: Date; endDate: Date }).endDate;
+
+        if (dateRange.startDate && itemDate < dateRange.startDate) {
+          return false;
+        }
+        
+        if (dateRange.endDate && itemDate > dateRange.endDate) {
+          return false;
+        }
+        
+        return true;
       }
 
       // Handle minimum number comparisons
@@ -72,7 +99,7 @@ export function filter<T>(
         return itemValue >= value;
       }
 
-      // Direct comparison
+      // Direct comparison for other types
       return itemValue === value;
     });
   });
@@ -85,22 +112,14 @@ export function filterPapers(
   papers: ResearchPaper[],
   criteria: {
     keywords?: string[];
-    methodologyTypes?: string[];
     dateRange?: { startDate: Date | null; endDate: Date | null };
     minCitations?: number;
   }
 ): ResearchPaper[] {
-  const filterCriteria: Record<
-    string,
-    string[] | { startDate: Date | null; endDate: Date | null } | number | undefined
-  > = {};
+  const filterCriteria: Record<string, unknown> = {};
 
   if (criteria.keywords && criteria.keywords.length > 0) {
     filterCriteria.keywords = criteria.keywords;
-  }
-
-  if (criteria.methodologyTypes && criteria.methodologyTypes.length > 0) {
-    filterCriteria.methodologyType = criteria.methodologyTypes;
   }
 
   if (criteria.dateRange && (criteria.dateRange.startDate || criteria.dateRange.endDate)) {
