@@ -125,52 +125,44 @@ def filter_options(request):
             continue
     valid_years.sort()
 
-    # 3. Smart keyword categorization
-    all_keywords = Keyword.objects.all().order_by('name')
-    
-    # Define region patterns for auto-detection
-    region_patterns = [
-        'AFRICA', 'ASIA', 'INDIA', 'EUROPE', 'AMERICA', 'AUSTRALIA', 
-        'BRAZIL', 'CHINA', 'USA', 'UK', 'CANADA', 'MEXICO',
-        'NORTH AMERICA', 'SOUTH AMERICA', 'LATIN AMERICA',
-        'MIDDLE EAST', 'SOUTHEAST ASIA', 'EAST ASIA'
-    ]
-    
-    region_keywords = []
-    general_keywords = []
-    
-    for keyword in all_keywords:
-        # Check if keyword matches region patterns
-        is_region = any(
-            region.lower() in keyword.name.lower() or 
-            keyword.name.upper() in region_patterns
-            for region in region_patterns
-        )
-        
-        if is_region:
-            region_keywords.append({
-                "id": keyword.id, 
-                "name": keyword.name
-            })
-        else:
-            general_keywords.append({
-                "id": keyword.id, 
-                "name": keyword.name
-            })
-
-    # 4. Get keyword categories (existing structure)
+    # 3. Get keyword categories with their keywords
     categories = KeywordCategory.objects.prefetch_related('keywords').all().order_by('name')
     keyword_categories = []
+    all_categorized_keywords = set()
+    
     for category in categories:
-        keyword_list = [
-            {"id": kw.id, "name": kw.name}
-            for kw in category.keywords.all().order_by('name')
-        ]
+        keywords_in_category = []
+        for keyword in category.keywords.all().order_by('name'):
+            keywords_in_category.append({
+                "id": keyword.id,
+                "name": keyword.name
+            })
+            all_categorized_keywords.add(keyword.id)
+        
+        if keywords_in_category:  # Only include categories that have keywords
+            keyword_categories.append({
+                "id": category.id,
+                "name": category.name,
+                "description": category.description,
+                "keywords": keywords_in_category
+            })
+
+    # 4. Get uncategorized keywords
+    uncategorized_keywords = []
+    uncategorized_qs = Keyword.objects.exclude(id__in=all_categorized_keywords).order_by('name')
+    for keyword in uncategorized_qs:
+        uncategorized_keywords.append({
+            "id": keyword.id,
+            "name": keyword.name
+        })
+    
+    # Add uncategorized as a special category if there are any
+    if uncategorized_keywords:
         keyword_categories.append({
-            "id": category.id,
-            "name": category.name,
-            "description": category.description,
-            "keywords": keyword_list
+            "id": "uncategorized",
+            "name": "Other Keywords",
+            "description": "Keywords not assigned to any specific category",
+            "keywords": uncategorized_keywords
         })
 
     return Response({
@@ -178,12 +170,10 @@ def filter_options(request):
         "year_range": {"min": 1900, "max": 2025},
         "years_available": valid_years,
         "keyword_categories": keyword_categories,
-        "region_keywords": region_keywords,
-        "general_keywords": general_keywords,
         "stats": {
             "total_papers": ResearchPaper.objects.count(),
-            "total_regions": len(region_keywords),
-            "total_general_keywords": len(general_keywords)
+            "total_categories": len(keyword_categories),
+            "total_keywords": Keyword.objects.count()
         }
     })
     
@@ -217,7 +207,7 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         year_to = parse_year_param(self.request.query_params.get('year_to'))
         journal = self.request.query_params.get('journal', None)
         sort = self.request.query_params.get('sort', None)
-        keyword_logic = self.request.query_params.get('keyword_logic', 'and').lower()
+        keyword_logic = self.request.query_params.get('keyword_logic', 'or').lower()
         
         # Full-text search
         if q:
@@ -244,9 +234,9 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
         # Apply filters
         if keywords:
             if keyword_logic == 'and' and len(keywords) > 1:
-                # Papers must have ALL selected keywords
-                for kw in keywords:
-                    queryset = queryset.filter(keywords__name=kw)
+                # Papers must have ALL selected keywords (AND logic)
+                for keyword_name in keywords:
+                    queryset = queryset.filter(keywords__name__icontains=keyword_name)
             else:
                 # Default OR logic (any keyword matches)
                 queryset = queryset.filter(keywords__name__in=keywords)

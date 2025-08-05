@@ -15,10 +15,10 @@ export interface Keyword {
 }
 
 export interface KeywordCategory {
-  id: string;
+  id: string | number;
   name: string;
   description?: string;
-  keywords?: Keyword[];
+  keywords: Keyword[];
   created_at?: string;
   updated_at?: string;
 }

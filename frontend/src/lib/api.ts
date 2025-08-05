@@ -396,8 +396,8 @@ export const researchAPI = {
   },
 
   /**
-   * Fetch dynamic filter options with smart keyword categorization
-   * @returns Promise with filter options data
+   * Fetch dynamic filter options with keyword categories
+   * @returns Promise with filter options data including categorized keywords
    */
   fetchFilterOptions: async () => {
     try {
