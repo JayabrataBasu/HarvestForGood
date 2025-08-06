@@ -225,6 +225,16 @@ class ResearchPaperViewSet(viewsets.ModelViewSet):
                 combined_filter |= f
             queryset = queryset.filter(combined_filter)
 
+        # Implements AND/OR keyword filtering based on keyword_logic param
+        if keywords:
+            if keyword_logic == 'and':
+                # AND logic: All keywords must be present in each paper
+                for keyword in keywords:
+                    queryset = queryset.filter(keywords__name__iexact=keyword)
+            else:
+                # OR logic: Any keyword can be present (default behavior)
+                queryset = queryset.filter(keywords__name__in=keywords)
+
         # Authors
         if authors:
             queryset = queryset.filter(authors__name__in=authors)

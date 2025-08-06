@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import PaperFilter from "../components/research/PaperFilter";
 import PaperGrid from "../components/research/PaperGrid";
-import { filterPapers } from "../utils/filter";
+// Client-side filtering removed to prevent double-filtering.
+// filterPapers import removed - backend handles all filtering
 import { researchAPI } from "../lib/api";
 import {
   Keyword,
@@ -90,15 +91,9 @@ export const ResearchPapersPage: React.FC = () => {
     fetchData();
   }, [searchWords]);
 
-  // Apply client-side filtering to papers from API
-  const filteredPapers = React.useMemo(() => {
-    return filterPapers(papers, {
-      keywords: filters.keywords,
-
-      dateRange: filters.dateRange,
-      minCitations: filters.minCitations,
-    });
-  }, [papers, filters]);
+  // Client-side filtering removed to prevent double-filtering.
+  // Papers are displayed exactly as received from backend API
+  const displayPapers = papers;
 
   const handleFilterChange = (newFilters: PaperFilterOptions) => {
     setFilters(newFilters);
@@ -175,7 +170,7 @@ export const ResearchPapersPage: React.FC = () => {
           </div>
           <div className="w-3/4">
             <PaperGrid
-              papers={filteredPapers}
+              papers={displayPapers}
               availableKeywords={keywords}
               isLoading={false}
               selectedKeywords={filters.keywords}

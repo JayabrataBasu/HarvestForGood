@@ -14,6 +14,7 @@ interface PaperSearchProps {
 }
 
 export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
+  // All filtering is now backend-driven. Client filtering removed for consistency.
   const [papers, setPapers] = useState<ResearchPaper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // New state for filter options
+  // Filter options state
   const [filterOptions, setFilterOptions] = useState(null);
   const [filterOptionsLoading, setFilterOptionsLoading] = useState(true);
 
@@ -55,61 +56,62 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   };
 
   const handleFilterApply = (newFilters: unknown) => {
-    // Convert the filter UI state to API parameters with proper keyword logic
+    // PaperSearch.tsx is now the single source of filter parameters
+    // Map UI filters directly to backend parameters
     const apiFilters = newFilters as Record<string, unknown>;
-
-    // Fix: Ensure proper parameter mapping for the backend API
     const backendFilters: Record<string, unknown> = {};
 
-    // Map frontend filter names to backend parameter names
+    // Direct mapping of frontend filter names to backend parameter names
     if (apiFilters.q) backendFilters.q = apiFilters.q;
     if (apiFilters.year_from) backendFilters.year_from = apiFilters.year_from;
     if (apiFilters.year_to) backendFilters.year_to = apiFilters.year_to;
     if (apiFilters.methodology_type)
       backendFilters.methodology_type = apiFilters.methodology_type;
+
+    // Keyword filtering with AND logic by default
     if (apiFilters.keyword) {
       backendFilters.keyword = apiFilters.keyword;
-      backendFilters.keyword_logic = apiFilters.keyword_logic || "and"; // Changed default from "or" to "and"
+      backendFilters.keyword_logic = apiFilters.keyword_logic || "and";
     }
 
-    console.log("Applying filters:", backendFilters); // Debug log
+    console.log("Applying backend filters:", backendFilters);
 
     setFilters(backendFilters as PaperFilterParams);
     setPage(1);
   };
 
-  // Load papers when filters or page changes
+  // Load papers when filters or page changes - all filtering is backend-driven
   useEffect(() => {
     async function loadPapers() {
       setLoading(true);
       setError(null);
 
       try {
-        console.log("Fetching papers with filters:", filters, "page:", page); // Debug log
+        console.log(
+          "Fetching papers with backend filters:",
+          filters,
+          "page:",
+          page
+        );
         const result = await researchAPI.fetchPapers(filters, page);
 
         if (result.success) {
           const responseData = result.data as PaginatedResponse<ResearchPaper>;
-          console.log("API Response:", responseData); // Debug log
+          console.log("Backend API Response:", responseData);
 
-          // Remove potential duplicates based on paper ID
-          const uniquePapers = responseData.results.filter(
-            (paper, index, self) =>
-              index === self.findIndex((p) => p.id === paper.id)
-          );
-
-          setPapers(uniquePapers);
+          // Backend returns pre-filtered results - no client-side filtering needed
+          setPapers(responseData.results);
           setTotalCount(responseData.count);
 
           // Calculate total pages (assuming default pageSize of 10)
           const pageSize = 10;
           setTotalPages(Math.ceil(responseData.count / pageSize));
         } else {
-          console.error("API Error:", result.message); // Debug log
+          console.error("Backend API Error:", result.message);
           setError(result.message || "Failed to load papers");
         }
       } catch (err) {
-        console.error("Fetch Error:", err); // Debug log
+        console.error("Backend Fetch Error:", err);
         setError("An error occurred while fetching the papers");
       } finally {
         setLoading(false);
@@ -189,7 +191,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
         <div className="text-gray-500">
           {loading
             ? "Loading results..."
-            : `Showing ${papers.length} of ${totalCount} results`}
+            : `Showing ${papers.length} of ${totalCount} results (backend-filtered)`}
         </div>
 
         {/* Error message */}
@@ -206,7 +208,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
           </div>
         )}
 
-        {/* Results list */}
+        {/* Results list - all papers are pre-filtered by backend */}
         {!loading && papers.length === 0 ? (
           <div className="p-8 text-center bg-gray-50 rounded-lg">
             <p className="text-lg text-gray-500">
