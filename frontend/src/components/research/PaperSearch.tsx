@@ -191,7 +191,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
         <div className="text-gray-500">
           {loading
             ? "Loading results..."
-            : `Showing ${papers.length} of ${totalCount} results (backend-filtered)`}
+            : `Showing ${papers.length} of ${totalCount} results`}
         </div>
 
         {/* Error message */}
