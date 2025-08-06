@@ -178,8 +178,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     username: string;
   }) => {
     try {
+      // Remove this line to prevent logging sensitive user data
+      // console.log("Attempting to register user with data:", userData);
+      // ...existing code...
       // Update to the correct registration endpoint based on backend URLs
-      console.log("Attempting to register user with data:", userData);
       // Make sure password2 is included in the request
       // If it's not provided, use the same value as password
       const registrationData = {
