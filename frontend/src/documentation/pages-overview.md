@@ -26,7 +26,8 @@
 - Responsive grid layout for paper cards
 - Handles pagination or infinite scroll
 - Manages layout responsiveness
-- Optimizes rendering for large datasets
+- **Client-side filtering removed to prevent double-filtering**
+- Displays papers exactly as received from backend API
 
 ### 2. Pages
 
@@ -34,6 +35,8 @@
 
 - Main container page for research paper browsing
 - Integrates PaperFilter, PaperGrid, and Search components
+- **Client-side filtering removed to prevent double-filtering**
+- Backend API handles all filtering server-side
 - Manages state for:
   - Current filter settings
   - Search queries
@@ -67,22 +70,27 @@
 
 - PaperFilter → ResearchPapers: Emits filter changes
 - Search → ResearchPapers: Provides search results  
-- ResearchPapers → PaperGrid: Passes filtered/searched paper data
+- ResearchPapers → API: Sends filter parameters to backend
+- API → ResearchPapers: Returns pre-filtered paper data
+- ResearchPapers → PaperGrid: Passes pre-filtered paper data directly
 - PaperCard ↔ ResearchPapers: Handles paper selection and interactions
 
 ## Data Flow
 
 1. User initiates search or applies filters
-2. ResearchPapers component coordinates data fetching
-3. Updated data flows to PaperGrid
-4. Individual PaperCards render with new data
+2. ResearchPapers component sends filter parameters to backend API
+3. Backend API returns pre-filtered results
+4. Pre-filtered data flows directly to PaperGrid without additional client filtering
+5. Individual PaperCards render with backend-filtered data
 
 ## Performance Considerations
 
+- **Server-side filtering eliminates double-filtering performance issues**
 - Pagination/infinite scroll for large datasets
 - Debounced search and filter operations
 - Optimized re-rendering strategies
 - Caching of frequently accessed data
+- Backend handles all complex filtering logic for optimal performance
 
 ## Debugging Guide
 
@@ -92,10 +100,10 @@ When "No papers found" appears:
 3. Ensure backend API returns proper data structure
 4. Check for type mismatches in date/year fields
 5. Verify keyword and methodology field mappings
-6. **CRITICAL**: Ensure PaperGrid.tsx is NOT doing client-side filtering on already server-filtered results
+6. **RESOLVED**: Client-side filtering in PaperGrid removed to prevent double filtering
    - The API handles all filtering server-side and returns filtered results
-   - Client-side filtering in PaperGrid can cause double filtering, resulting in empty results
-   - PaperGrid should display papers as-is from the API response
+   - PaperGrid now displays papers exactly as received from API
+   - No additional client-side filtering is performed
 7. Check console logs for "Applying filters" and "API Response" to see filter flow
 8. Verify that filter parameters match exactly between frontend requests and backend expectations
    - Keywords should match case sensitivity

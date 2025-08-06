@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ResearchPaper, Keyword } from "../../types/paper.types";
 import PaperCard from "./PaperCard";
-import { filterPapers } from "../../utils/filter";
 
 interface PaperGridProps {
   papers: ResearchPaper[];
@@ -11,7 +10,7 @@ interface PaperGridProps {
   savedPaperIds?: string[];
   onSavePaper?: (paperId: string, isSaving: boolean) => void;
   selectedKeywords?: string[];
-  onKeywordSelect?: (keyword: string) => void; // Add callback for keyword selection
+  onKeywordSelect?: (keyword: string) => void;
 }
 
 export const PaperGrid: React.FC<PaperGridProps> = ({
@@ -27,32 +26,16 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isGridView, setIsGridView] = useState(true);
-  const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>(papers);
 
-  // Apply filtering when papers or selectedKeywords change
-  useEffect(() => {
-    try {
-      if (selectedKeywords.length > 0) {
-        const filtered = filterPapers(papers, {
-          keywords: selectedKeywords,
-        });
-        setFilteredPapers(filtered);
-      } else {
-        setFilteredPapers(papers);
-      }
-      setCurrentPage(1); // Reset to first page when filtering changes
-    } catch (error) {
-      console.error("Error filtering papers:", error);
-      // Fallback to showing all papers if filtering fails
-      setFilteredPapers(papers);
-    }
-  }, [papers, selectedKeywords]);
+  // Client-side filtering removed to prevent double-filtering.
+  // Papers are displayed exactly as received from backend API
+  const displayPapers = papers;
 
-  const totalPapers = filteredPapers.length;
+  const totalPapers = displayPapers.length;
   const totalPages = Math.ceil(totalPapers / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, totalPapers);
-  const currentPagePapers = filteredPapers.slice(startIndex, endIndex);
+  const currentPagePapers = displayPapers.slice(startIndex, endIndex);
 
   const toggleViewMode = () => {
     setIsGridView((prev) => !prev);
@@ -154,7 +137,7 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
       )}
 
       {/* Empty state */}
-      {!isLoading && filteredPapers.length === 0 && (
+      {!isLoading && displayPapers.length === 0 && (
         <div className="text-center py-12 px-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -184,7 +167,7 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
       )}
 
       {/* Papers grid/list */}
-      {!isLoading && filteredPapers.length > 0 && (
+      {!isLoading && displayPapers.length > 0 && (
         <div
           className={
             isGridView
@@ -348,4 +331,5 @@ export const PaperGrid: React.FC<PaperGridProps> = ({
     </div>
   );
 };
+
 export default PaperGrid;
