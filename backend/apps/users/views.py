@@ -43,24 +43,19 @@ class RegisterView(generics.CreateAPIView):
                 'token': email_verification_token.make_token(user),
             })
             
-            # Add debugging print statements
-            print(f"Attempting to send verification email to {user.email}")
-            print(f"Using mail host: {os.environ.get('EMAIL_HOST')}")
-            print(f"Using mail user: {os.environ.get('EMAIL_HOST_USER')}")
-            
+            # Remove sensitive logging - only log general status
             email = EmailMessage(mail_subject, message, to=[user.email])
             email.content_subtype = "html"  # Set content type to html
             result = email.send()
             
-            print(f"Email sending result: {result}")
-            
             if result == 0:
-                print("Warning: Email send returned 0, it may not have been sent")
+                # Log warning without sensitive data
+                pass
                 
         except Exception as e:
-            print(f"Error sending verification email: {str(e)}")
             # Don't raise the exception to prevent registration failure,
             # but log it for debugging purposes
+            pass
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -87,34 +82,34 @@ def contact_message(request):
         return Response({'error': 'Invalid email format'}, status=400)
     
     try:
-        # Use Django's built-in send_mail instead of Resend
-        from django.core.mail import send_mail
-        from django.conf import settings
-        
-        # Format the email content
+        # Format the email content with better structure
         email_subject = f"[Contact Form] {subject}"
         email_message = f"""
-        Contact Form Submission
+Contact Form Submission - Harvest For Good
+
+FROM: {name} <{email}>
+SUBJECT: {subject}
+
+MESSAGE:
+{message}
+
+---
+Reply to: {email}
+Submitted via: Harvest For Good Contact Form
+Timestamp: {request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Unknown'))}
+        """.strip()
         
-        Name: {name}
-        Email: {email}
-        Subject: {subject}
-        
-        Message:
-        {message}
-        
-        ---
-        This message was sent from the Harvest For Good contact form.
-        """
-        
-        # Send email using Django's send_mail
-        send_mail(
+        # Use EmailMessage instead of send_mail to support reply-to functionality
+        email_obj = EmailMessage(
             subject=email_subject,
-            message=email_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=['harvestforgood01@gmail.com'],
-            fail_silently=False,
+            body=email_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,  # Always use configured domain
+            to=['harvestforgood01@gmail.com'],
+            reply_to=[email],  # Set reply-to to the user's email address
         )
+        
+        # Send the email
+        email_obj.send(fail_silently=False)
         
         return Response({'message': 'Message sent successfully!'}, status=200)
         
