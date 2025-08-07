@@ -8,11 +8,12 @@ function ResetPasswordForm() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(""); // Enhanced success state
   const [error, setError] = useState("");
   const [uidb64, setUidb64] = useState("");
   const [token, setToken] = useState("");
   const [isValidLink, setIsValidLink] = useState(true);
+  const [redirectCountdown, setRedirectCountdown] = useState(0); // Added countdown
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -31,6 +32,18 @@ function ResetPasswordForm() {
     }
   }, [searchParams]);
 
+  // Enhanced redirect effect with countdown
+  useEffect(() => {
+    if (success && redirectCountdown > 0) {
+      const timer = setTimeout(() => {
+        setRedirectCountdown(redirectCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (success && redirectCountdown === 0) {
+      router.push("/login");
+    }
+  }, [success, redirectCountdown, router]);
+
   const validatePassword = (password: string): string | null => {
     if (password.length < 8) {
       return "Password must be at least 8 characters long";
@@ -45,7 +58,7 @@ function ResetPasswordForm() {
     e.preventDefault();
 
     // Clear previous messages
-    setMessage("");
+    setSuccess("");
     setError("");
 
     // Validate inputs
@@ -99,24 +112,28 @@ function ResetPasswordForm() {
       );
 
       if (response.ok) {
-        setMessage(
-          "Your password has been reset successfully! You can now sign in with your new password."
+        // Enhanced success handling
+        setSuccess(
+          "Password reset successful! You can now sign in with your new password."
         );
         setNewPassword("");
         setConfirmPassword("");
-
-        // Redirect to login page after 3 seconds
-        setTimeout(() => {
-          router.push("/login");
-        }, 3000);
+        setRedirectCountdown(3); // Start 3-second countdown
       } else {
         const data = await response.json();
 
+        // Enhanced error handling for different scenarios
         if (response.status === 400) {
           setError(
             data.error ||
               "Invalid or expired reset link. Please request a new password reset."
           );
+        } else if (response.status === 404) {
+          setError(
+            "Reset link not found. Please request a new password reset."
+          );
+        } else if (response.status === 429) {
+          setError("Too many attempts. Please try again later.");
         } else {
           setError(
             data.error || data.message || "An error occurred. Please try again."
@@ -244,7 +261,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                 placeholder="Enter new password"
-                disabled={isLoading}
+                disabled={isLoading || !!success}
               />
             </div>
 
@@ -265,7 +282,7 @@ function ResetPasswordForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                 placeholder="Confirm new password"
-                disabled={isLoading}
+                disabled={isLoading || !!success}
               />
             </div>
           </div>
@@ -279,8 +296,9 @@ function ResetPasswordForm() {
             </ul>
           </div>
 
+          {/* Enhanced error message styling */}
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-md bg-red-50 border border-red-200 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg
@@ -296,14 +314,15 @@ function ResetPasswordForm() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-red-800">{error}</p>
+                  <p className="text-sm font-medium text-red-800">{error}</p>
                 </div>
               </div>
             </div>
           )}
 
-          {message && (
-            <div className="rounded-md bg-green-50 p-4">
+          {/* Enhanced success message with countdown */}
+          {success && (
+            <div className="rounded-md bg-green-50 border border-green-200 p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg
@@ -319,10 +338,15 @@ function ResetPasswordForm() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-green-800">{message}</p>
-                  <p className="text-xs text-green-600 mt-1">
-                    Redirecting to login page...
+                  <p className="text-sm font-medium text-green-800">
+                    {success}
                   </p>
+                  {redirectCountdown > 0 && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Redirecting to login page in {redirectCountdown} second
+                      {redirectCountdown !== 1 ? "s" : ""}...
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -331,7 +355,7 @@ function ResetPasswordForm() {
           <div>
             <button
               type="submit"
-              disabled={isLoading || !!message}
+              disabled={isLoading || !!success}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
@@ -358,7 +382,7 @@ function ResetPasswordForm() {
                   </svg>
                   Resetting Password...
                 </div>
-              ) : message ? (
+              ) : success ? (
                 "Password Reset Successfully!"
               ) : (
                 "Reset Password"
