@@ -21,6 +21,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
 from .utils.email import is_valid_email
+from .utils.validation import validate_contact_fields, validate_password_reset_fields
 
 
 class RegisterView(generics.CreateAPIView):
@@ -69,17 +70,15 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def contact_message(request):
+    # Use the new validation utility
+    validation_error = validate_contact_fields(request.data)
+    if validation_error:
+        return validation_error
+    
     name = request.data.get('name')
     email = request.data.get('email')
     subject = request.data.get('subject')
     message = request.data.get('message')
-    
-    if not all([name, email, subject, message]):
-        return Response({'message': 'All fields are required.'}, status=400)
-    
-    # Use the reusable email validation utility
-    if not is_valid_email(email):
-        return Response({'error': 'Invalid email format'}, status=400)
     
     try:
         # Format the email content with better structure
@@ -124,14 +123,12 @@ Timestamp: {request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_AD
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):
-    email = request.data.get('email')
+    # Use the new validation utility
+    validation_error = validate_password_reset_fields(request.data)
+    if validation_error:
+        return validation_error
     
-    # Use the reusable email validation utility
-    if not is_valid_email(email):
-        return Response(
-            {'error': 'Invalid email format.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    email = request.data.get('email')
     
     if User.objects.filter(email=email).exists():
         user = User.objects.get(email=email)
@@ -299,3 +296,4 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+           
