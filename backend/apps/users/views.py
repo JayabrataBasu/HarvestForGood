@@ -20,6 +20,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
+from .utils.email import is_valid_email
 
 
 class RegisterView(generics.CreateAPIView):
@@ -81,6 +82,10 @@ def contact_message(request):
     if not all([name, email, subject, message]):
         return Response({'message': 'All fields are required.'}, status=400)
     
+    # Use the reusable email validation utility
+    if not is_valid_email(email):
+        return Response({'error': 'Invalid email format'}, status=400)
+    
     try:
         # Use Django's built-in send_mail instead of Resend
         from django.core.mail import send_mail
@@ -114,7 +119,6 @@ def contact_message(request):
         return Response({'message': 'Message sent successfully!'}, status=200)
         
     except Exception as e:
-        print(f"Error sending contact email: {str(e)}")
         return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
 
 # ...existing code...
@@ -126,6 +130,14 @@ def contact_message(request):
 @permission_classes([AllowAny])
 def password_reset_request(request):
     email = request.data.get('email')
+    
+    # Use the reusable email validation utility
+    if not is_valid_email(email):
+        return Response(
+            {'error': 'Invalid email format.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
     if User.objects.filter(email=email).exists():
         user = User.objects.get(email=email)
         current_site = get_current_site(request)
@@ -243,6 +255,14 @@ def send_welcome_email(request):
     """
     try:
         email = request.data.get('email')
+        
+        # Use the reusable email validation utility
+        if not is_valid_email(email):
+            return Response(
+                {'error': 'Invalid email format.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         user = User.objects.get(email=email)
         
         # Generate verification token
@@ -261,13 +281,8 @@ def send_welcome_email(request):
         email_message = EmailMessage(mail_subject, message, to=[email])
         email_message.content_subtype = "html"
         
-        # Add debug logs
-        print(f"Attempting to send welcome email to {email}")
-        
         # Try sending the email and capture the result
         send_result = email_message.send()
-        
-        print(f"Email send result: {send_result}")
         
         if send_result > 0:
             return Response(
@@ -285,7 +300,6 @@ def send_welcome_email(request):
             status=status.HTTP_404_NOT_FOUND
         )
     except Exception as e:
-        print(f"Error sending welcome email: {str(e)}")
         return Response(
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
