@@ -296,4 +296,3 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-           
