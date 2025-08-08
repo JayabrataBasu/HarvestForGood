@@ -367,7 +367,7 @@ if IS_RAILWAY or not DEBUG:
     CORS_ALLOWED_ORIGINS = [
         'https://harvestforgood.vercel.app',
         'https://harvestforgood.com',
-        'https://www.harvestforgood.com',
+        #'https://www.harvestforgood.com',
         # Add more domains if needed
     ]
     
