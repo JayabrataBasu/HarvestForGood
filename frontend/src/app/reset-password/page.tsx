@@ -104,6 +104,7 @@ function ResetPasswordForm() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify({
             new_password: newPassword,
@@ -112,17 +113,16 @@ function ResetPasswordForm() {
       );
 
       if (response.ok) {
-        // Enhanced success handling
+        const data = await response.json();
         setSuccess(
           "Password reset successful! You can now sign in with your new password."
         );
         setNewPassword("");
         setConfirmPassword("");
-        setRedirectCountdown(3); // Start 3-second countdown
+        setRedirectCountdown(3);
       } else {
         const data = await response.json();
 
-        // Enhanced error handling for different scenarios
         if (response.status === 400) {
           setError(
             data.error ||
@@ -140,7 +140,8 @@ function ResetPasswordForm() {
           );
         }
       }
-    } catch {
+    } catch (error) {
+      console.error("Network error:", error);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);

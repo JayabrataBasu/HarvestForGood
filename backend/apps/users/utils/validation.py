@@ -147,6 +147,55 @@ def validate_password_reset_fields(data: dict) -> Optional[Response]:
     return validate_fields(data, field_specs)
 
 
+def validate_password_reset_confirm_fields(data: dict) -> Optional[Response]:
+    """
+    Validate password reset confirmation fields.
+    
+    Args:
+        data (dict): Dictionary containing password reset confirmation data
+        
+    Returns:
+        Optional[Response]: DRF Response with 400 error if validation fails, None if valid
+    """
+    field_specs = {
+        'new_password': {'required': True}
+    }
+    
+    # Basic validation
+    basic_validation = validate_fields(data, field_specs)
+    if basic_validation:
+        return basic_validation
+    
+    # Password strength validation
+    password = data.get('new_password', '')
+    
+    if len(password) < 8:
+        return Response(
+            {'error': 'Password must be at least 8 characters long'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not any(c.isupper() for c in password):
+        return Response(
+            {'error': 'Password must contain at least one uppercase letter'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not any(c.islower() for c in password):
+        return Response(
+            {'error': 'Password must contain at least one lowercase letter'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not any(c.isdigit() for c in password):
+        return Response(
+            {'error': 'Password must contain at least one number'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    return None
+
+
 def validate_guest_fields(data: dict, required_fields: list = None) -> Optional[Response]:
     """
     Validate guest user fields for forum posts/comments.

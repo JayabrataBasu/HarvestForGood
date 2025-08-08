@@ -232,6 +232,10 @@ Once your backend is deployed, you can access the full Django admin panel at:
 https://your-backend-domain.com/admin/
 ```
 
+**Important Configuration:**
+- Set the `FRONTEND_URL` environment variable to your frontend domain (e.g., `https://harvestforgood.vercel.app`)
+- This ensures password reset emails link to your frontend instead of the backend
+
 **Features Available:**
 
 1. **User Management**

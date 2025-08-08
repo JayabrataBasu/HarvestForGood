@@ -22,6 +22,8 @@ from rest_framework.response import Response
 from django.conf import settings
 from .utils.email import is_valid_email
 from .utils.validation import validate_contact_fields, validate_password_reset_fields
+from rest_framework.throttling import ScopedRateThrottle
+import logging
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -118,38 +120,69 @@ Timestamp: {request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_AD
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):
-    """Custom password reset request handler - THIS IS THE ACTIVE VIEW"""
-    # Use the new validation utility
-    validation_error = validate_password_reset_fields(request.data)
-    if validation_error:
-        return validation_error
-    
-    email = request.data.get('email')
-    
-    if User.objects.filter(email=email).exists():
-        user = User.objects.get(email=email)
+    """Custom password reset request handler with proper error handling"""
+    try:
+        # Use the validation utility
+        validation_error = validate_password_reset_fields(request.data)
+        if validation_error:
+            return validation_error
         
-        # Generate frontend reset link
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        reset_link = f"https://harvestforgood.vercel.app/reset-password?uid={uid}&token={token}"
+        email = request.data.get('email')
         
-        mail_subject = 'Password Reset Request'
-        message = render_to_string('users/password_reset_email.html', {
-            'user': user,
-            'reset_link': reset_link,
-        })
-        email_obj = EmailMessage(mail_subject, message, to=[email])
-        email_obj.content_subtype = "html"
-        email_obj.send()
+        # Always return success to prevent email enumeration attacks
+        try:
+            user = User.objects.get(email=email)
+            
+            # Generate frontend reset link using configurable FRONTEND_URL
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+            
+            # Debug logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Password reset link being sent: {reset_link}")
+            
+            mail_subject = 'Password Reset Request - Harvest For Good'
+            
+            # Use the correct template path with reset_link
+            try:
+                message_html = render_to_string('users/password_reset_email.html', {
+                    'user': user,
+                    'reset_link': reset_link,
+                    'current_year': 2025,
+                })
+                
+                email_obj = EmailMessage(
+                    subject=mail_subject, 
+                    body=message_html, 
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[email]
+                )
+                email_obj.content_subtype = "html"
+                email_obj.send(fail_silently=False)
+                
+            except Exception as email_error:
+                # Log the error but don't expose it to the user
+                print(f"Email sending failed: {email_error}")
+                # Still return success to prevent information disclosure
+                
+        except User.DoesNotExist:
+            # User doesn't exist, but don't reveal this information
+            pass
+        
+        # Always return success message regardless of whether user exists
         return Response(
-            {'message': 'Password reset email has been sent.'},
+            {'message': 'If an account with this email exists, a password reset link has been sent.'},
             status=status.HTTP_200_OK
         )
-    return Response(
-        {'error': 'Email address not found.'},
-        status=status.HTTP_404_NOT_FOUND
-    )
+        
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Password reset request error: {e}")
+        return Response(
+            {'error': 'An error occurred processing your request. Please try again later.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -297,4 +330,3 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-            

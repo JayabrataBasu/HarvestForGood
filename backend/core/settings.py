@@ -286,6 +286,7 @@ REST_FRAMEWORK = {
         'forum_posts': '200/hour',
         'auth_attempts': '20/hour',
         'dj_rest_auth': '20/min',
+        'password_reset': '10/hour',  # Add rate limiting for password reset
     }
 }
 
@@ -421,6 +422,9 @@ else:
         "http://localhost:8000",
         "http://127.0.0.1:8000",
     ]
+
+# Frontend URL configuration
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://harvestforgood.vercel.app')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
