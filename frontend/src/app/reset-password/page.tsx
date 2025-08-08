@@ -113,7 +113,6 @@ function ResetPasswordForm() {
       );
 
       if (response.ok) {
-        const data = await response.json();
         setSuccess(
           "Password reset successful! You can now sign in with your new password."
         );
