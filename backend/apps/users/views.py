@@ -31,25 +31,27 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        self.send_verification_email(user)
+        # self.send_verification_email(user)  # Disabled verification
         return user
 
     def send_verification_email(self, user):
-        try:
-            current_site = get_current_site(self.request)
-            mail_subject = 'Welcome to Harvest For Good – Verify Your Account'
-            # Use new HTML template
-            message = render_to_string('users/account_verification_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user),
-            })
-            email = EmailMessage(mail_subject, message, to=[user.email])
-            email.content_subtype = "html"
-            email.send()
-        except Exception:
-            pass
+        # Verification disabled - this method is commented out
+        pass
+        # try:
+        #     current_site = get_current_site(self.request)
+        #     mail_subject = 'Welcome to Harvest For Good – Verify Your Account'
+        #     # Use new HTML template
+        #     message = render_to_string('users/account_verification_email.html', {
+        #         'user': user,
+        #         'domain': current_site.domain,
+        #         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        #         'token': default_token_generator.make_token(user),
+        #     })
+        #     email = EmailMessage(mail_subject, message, to=[user.email])
+        #     email.content_subtype = "html"
+        #     email.send()
+        # except Exception:
+        #     pass
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
