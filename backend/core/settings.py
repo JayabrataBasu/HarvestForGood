@@ -425,6 +425,8 @@ else:
 
 # Frontend URL configuration
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://harvestforgood.vercel.app')
+if FRONTEND_URL.endswith('/'):
+    FRONTEND_URL = FRONTEND_URL.rstrip('/')
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

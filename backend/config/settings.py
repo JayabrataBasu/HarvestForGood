@@ -28,6 +28,15 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER if EMAIL_HOST_USER else 'noreply@harvestfor
 # Debug setting - make sure it's defined
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+# Add this after your DEFAULT_FROM_EMAIL setting (around line 27)
+
+# Frontend URL configuration for password reset links
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://harvestforgood.vercel.app')
+
+# Ensure proper URL format (remove trailing slash if present)
+if FRONTEND_URL.endswith('/'):
+    FRONTEND_URL = FRONTEND_URL.rstrip('/')
+
 # Add logging configuration for SMTP
 if DEBUG:
     LOGGING = {

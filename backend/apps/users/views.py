@@ -68,59 +68,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
 #this is for contact us functionality
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def contact_message(request):
-    # Use the new validation utility
-    validation_error = validate_contact_fields(request.data)
-    if validation_error:
-        return validation_error
-    
-    name = request.data.get('name')
-    email = request.data.get('email')
-    subject = request.data.get('subject')
-    message = request.data.get('message')
-    
-    try:
-        # Format the email content with better structure
-        email_subject = f"[Contact Form] {subject}"
-        email_message = f"""
-Contact Form Submission - Harvest For Good
+# Replace the entire password_reset_request function (around line 117)
 
-FROM: {name} <{email}>
-SUBJECT: {subject}
-
-MESSAGE:
-{message}
-
----
-Reply to: {email}
-Submitted via: Harvest For Good Contact Form
-Timestamp: {request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Unknown'))}
-        """.strip()
-        
-        # Use EmailMessage instead of send_mail to support reply-to functionality
-        email_obj = EmailMessage(
-            subject=email_subject,
-            body=email_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,  # Always use configured domain
-            to=['harvestforgood01@gmail.com'],
-            reply_to=[email],  # Set reply-to to the user's email address
-        )
-        
-        # Send the email
-        email_obj.send(fail_silently=False)
-        
-        return Response({'message': 'Message sent successfully!'}, status=200)
-        
-    except Exception as e:
-        return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
-
-# Password reset functionality - ACTIVE VIEW
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):
     """Custom password reset request handler with proper error handling"""
+    import logging
+    
     try:
         # Use the validation utility
         validation_error = validate_password_reset_fields(request.data)
@@ -128,6 +83,7 @@ def password_reset_request(request):
             return validation_error
         
         email = request.data.get('email')
+        logger = logging.getLogger(__name__)
         
         # Always return success to prevent email enumeration attacks
         try:
@@ -136,15 +92,17 @@ def password_reset_request(request):
             # Generate frontend reset link using configurable FRONTEND_URL
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            reset_link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
             
-            # Debug logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Password reset link being sent: {reset_link}")
+            # Get FRONTEND_URL from settings
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://harvestforgood.vercel.app')
+            reset_link = f"{frontend_url}/reset-password?uid={uid}&token={token}"
+            
+            # Log for debugging (remove in production)
+            logger.info(f"Generated reset link: {reset_link}")
             
             mail_subject = 'Password Reset Request - Harvest For Good'
             
-            # Use the correct template path with reset_link
+            # Render email template
             try:
                 message_html = render_to_string('users/password_reset_email.html', {
                     'user': user,
@@ -159,21 +117,35 @@ def password_reset_request(request):
                     to=[email]
                 )
                 email_obj.content_subtype = "html"
-                email_obj.send(fail_silently=False)
+                
+                # Send email with proper error handling
+                send_result = email_obj.send(fail_silently=False)
+                
+                if send_result == 1:
+                    logger.info(f"Password reset email sent successfully to {email}")
+                else:
+                    logger.error(f"Email failed to send to {email} - send_result: {send_result}")
                 
             except Exception as email_error:
-                # Log the error but don't expose it to the user
-                print(f"Email sending failed: {email_error}")
-                # Still return success to prevent information disclosure
+                logger.error(f"Email sending error for {email}: {str(email_error)}")
+                # Continue to return success to prevent information disclosure
                 
         except User.DoesNotExist:
             # User doesn't exist, but don't reveal this information
+            logger.info(f"Password reset requested for non-existent email: {email}")
             pass
         
-        # Always return success message regardless of whether user exists
+        # Always return success message
         return Response(
             {'message': 'If an account with this email exists, a password reset link has been sent.'},
             status=status.HTTP_200_OK
+        )
+        
+    except Exception as e:
+        logger.error(f"Password reset request error: {str(e)}")
+        return Response(
+            {'error': 'An error occurred processing your request. Please try again later.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
         
     except Exception as e:

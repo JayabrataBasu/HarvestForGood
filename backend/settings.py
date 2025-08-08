@@ -17,6 +17,7 @@ from .serializers import (
 import django_filters
 from apps.utils.fields import YearField
 from rest_framework.throttling import ScopedRateThrottle
+import logging
 
 # Custom filter for YearField
 class YearFieldFilter(django_filters.NumberFilter):
