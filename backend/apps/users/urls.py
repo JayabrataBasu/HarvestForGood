@@ -2,7 +2,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, RegisterView, MeView, password_reset_request, password_reset_confirm
 from . import views
-from .views import contact_message
 
 router = DefaultRouter()
 router.register(r'', UserViewSet)
@@ -10,7 +9,6 @@ router.register(r'', UserViewSet)
 urlpatterns = [
     # Authentication and user management endpoints
     path('me/', MeView.as_view(), name='me'),
-    path('contact/', contact_message, name='contact-message'),
     path('register/', RegisterView.as_view(), name='register'),
     
     # Custom password reset endpoints - these handle the frontend requests
