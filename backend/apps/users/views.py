@@ -132,16 +132,20 @@ def password_reset_request(request):
     
     if User.objects.filter(email=email).exists():
         user = User.objects.get(email=email)
-        current_site = get_current_site(request)
+        
+        # Generate frontend reset link
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_link = f"https://harvestforgood.vercel.app/reset-password?uid={uid}&token={token}"
+        
         mail_subject = 'Password Reset Request'
         message = render_to_string('users/password_reset_email.html', {
             'user': user,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': default_token_generator.make_token(user),
+            'reset_link': reset_link,
         })
-        email = EmailMessage(mail_subject, message, to=[email])
-        email.send()
+        email_obj = EmailMessage(mail_subject, message, to=[email])
+        email_obj.content_subtype = "html"
+        email_obj.send()
         return Response(
             {'message': 'Password reset email has been sent.'},
             status=status.HTTP_200_OK
