@@ -1,8 +1,9 @@
+<!-- filepath: c:\Users\jayab\HarvestForGood\backend\apps\users\templates\users\account_verification_email.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Verify Your Account – Harvest For Good</title>
+    <title>Welcome to Harvest For Good!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
@@ -53,11 +54,11 @@
         margin: 24px 0 12px 0;
         letter-spacing: 0.5px;
       }
-      .fallback {
-        font-size: 0.95rem;
+      .content {
+        font-size: 1rem;
         color: #555;
-        margin-top: 16px;
-        word-break: break-all;
+        line-height: 1.6;
+        margin: 16px 0;
         text-align: center;
       }
       @media (max-width: 600px) {
@@ -81,22 +82,19 @@
       />
       <div class="title">Welcome to Harvest For Good!</div>
       <div class="subtitle">
-        Thank you for signing up.<br />
-        Please verify your account to get started.
+        Thank you for joining our community!<br />
+        Your account is ready to use.
       </div>
-      <a
-        class="button"
-        href="https://harvestforgood.vercel.app/verify-email?uid={{ uid }}&token={{ token }}"
-      >
-        Verify My Account
+      <div class="content">
+        We're excited to have you on board. Harvest For Good connects farmers
+        with food banks and community organizations to reduce food waste and
+        increase access to fresh produce for those in need.
+      </div>
+      <a class="button" href="https://harvestforgood.vercel.app/login">
+        Start Exploring
       </a>
-      <div class="fallback">
-        If the button doesn't work, copy and paste this link into your
-        browser:<br />
-        <span style="font-family: monospace"
-          >https://harvestforgood.vercel.app/verify-email?uid={{ uid }}&token={{
-          token }}</span
-        >
+      <div class="content">
+        You can now log in and start making a difference in your community!
       </div>
       <div
         style="

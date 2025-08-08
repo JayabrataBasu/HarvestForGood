@@ -16,7 +16,7 @@ urlpatterns = [
     path('password/reset/confirm/<uidb64>/<token>/', password_reset_confirm, name='custom_password_reset_confirm'),
     
     # Email verification endpoints
-    path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    # path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     path('resend-verification-email/', 
          views.resend_verification_email, 
          name='resend-verification-email'),
