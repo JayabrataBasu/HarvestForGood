@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify Your Account – Harvest For Good</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        background: #fff;
+        color: #222;
+        font-family: "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 480px;
+        margin: 32px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(76, 175, 80, 0.08);
+        padding: 32px 24px;
+      }
+      .logo {
+        display: block;
+        margin: 0 auto 24px auto;
+        width: 64px;
+        height: 64px;
+      }
+      .title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 12px;
+        text-align: center;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: #444;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+      .button {
+        display: block;
+        width: 100%;
+        background: #4caf50;
+        color: #fff !important;
+        text-align: center;
+        padding: 16px 0;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-decoration: none;
+        margin: 24px 0 12px 0;
+        letter-spacing: 0.5px;
+      }
+      .fallback {
+        font-size: 0.95rem;
+        color: #555;
+        margin-top: 16px;
+        word-break: break-all;
+        text-align: center;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 18px 4vw;
+        }
+        .logo {
+          width: 48px;
+          height: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Logo SVG or image -->
+      <img
+        src="https://harvestforgood.vercel.app/logo.svg"
+        alt="Harvest For Good Logo"
+        class="logo"
+      />
+      <div class="title">Welcome to Harvest For Good!</div>
+      <div class="subtitle">
+        Thank you for signing up.<br />
+        Please verify your account to get started.
+      </div>
+      <a
+        class="button"
+        href="https://harvestforgood.vercel.app/verify-email?uid={{ uid }}&token={{ token }}"
+      >
+        Verify My Account
+      </a>
+      <div class="fallback">
+        If the button doesn't work, copy and paste this link into your
+        browser:<br />
+        <span style="font-family: monospace"
+          >https://harvestforgood.vercel.app/verify-email?uid={{ uid }}&token={{
+          token }}</span
+        >
+      </div>
+      <div
+        style="
+          margin-top: 32px;
+          color: #888;
+          font-size: 0.9rem;
+          text-align: center;
+        "
+      >
+        &copy; {{ current_year|default:2025 }} Harvest For Good
+      </div>
+    </div>
+  </body>
+</html>
