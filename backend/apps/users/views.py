@@ -37,26 +37,18 @@ class RegisterView(generics.CreateAPIView):
     def send_verification_email(self, user):
         try:
             current_site = get_current_site(self.request)
-            mail_subject = 'Verify your email address'
-            message = render_to_string('users/email_verification.html', {
+            mail_subject = 'Welcome to Harvest For Good – Verify Your Account'
+            # Use new HTML template
+            message = render_to_string('users/account_verification_email.html', {
                 'user': user,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': email_verification_token.make_token(user),
+                'token': default_token_generator.make_token(user),
             })
-            
-            # Remove sensitive logging - only log general status
             email = EmailMessage(mail_subject, message, to=[user.email])
-            email.content_subtype = "html"  # Set content type to html
-            result = email.send()
-            
-            if result == 0:
-                # Log warning without sensitive data
-                pass
-                
-        except Exception as e:
-            # Don't raise the exception to prevent registration failure,
-            # but log it for debugging purposes
+            email.content_subtype = "html"
+            email.send()
+        except Exception:
             pass
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -187,23 +179,22 @@ def password_reset_confirm(request, uidb64, token):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def verify_email(request, uidb64, token):
+    """
+    API endpoint to verify user email.
+    """
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
+        from .models import User
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
+        return Response({'detail': 'Invalid link.'}, status=400)
 
-    if user is not None and email_verification_token.check_token(user, token):
+    if default_token_generator.check_token(user, token):
         user.email_verified = True
+        user.is_active = True
         user.save()
-        return Response(
-            {'message': 'Email verified successfully.'},
-            status=status.HTTP_200_OK
-        )
-    return Response(
-        {'error': 'Invalid verification link.'},
-        status=status.HTTP_400_BAD_REQUEST
-    )
+        return Response({'detail': 'success'})
+    return Response({'detail': 'Invalid or expired verification link.'}, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -293,6 +284,15 @@ def send_welcome_email(request):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     except User.DoesNotExist:
+        return Response(
+            {'error': 'User with this email does not exist.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Failed to send welcome email: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         return Response(
             {'error': 'User with this email does not exist.'},
             status=status.HTTP_404_NOT_FOUND
