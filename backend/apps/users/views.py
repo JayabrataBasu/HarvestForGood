@@ -182,19 +182,25 @@ def verify_email(request, uidb64, token):
     """
     API endpoint to verify user email.
     """
+    debug_info = {}
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
+        debug_info["uid"] = uid
         from .models import User
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        return Response({'detail': 'Invalid link.'}, status=400)
+        debug_info["user_found"] = True
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        debug_info["user_found"] = False
+        debug_info["exception"] = str(e)
+        return Response({'detail': 'Invalid or expired verification link.', 'debug': debug_info}, status=400)
 
     if default_token_generator.check_token(user, token):
         user.email_verified = True
         user.is_active = True
         user.save()
-        return Response({'detail': 'success'})
-    return Response({'detail': 'Invalid or expired verification link.'}, status=400)
+        return Response({'detail': 'success', 'debug': debug_info})
+    debug_info["token_valid"] = False
+    return Response({'detail': 'Invalid or expired verification link.', 'debug': debug_info}, status=400)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

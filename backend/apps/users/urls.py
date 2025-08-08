@@ -27,4 +27,3 @@ urlpatterns = [
     # Include the router URLs at the end to avoid conflicts
     path('', include(router.urls)),
 ]
-    
