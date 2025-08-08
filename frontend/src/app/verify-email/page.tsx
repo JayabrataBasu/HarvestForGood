@@ -21,9 +21,7 @@ function VerifyEmailInner() {
     }
     const verify = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/verify-email/${uid}/${token}/`
-        );
+        const res = await fetch(`/api/users/verify-email/${uid}/${token}/`);
         const data = await res.json();
         if (res.ok && data.detail === "success") {
           setStatus("success");
