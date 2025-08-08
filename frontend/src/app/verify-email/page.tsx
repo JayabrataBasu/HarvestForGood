@@ -1,24 +1,45 @@
-/*"use client";
+"use client";
 
-import { useEffect, useState, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
-function VerifyEmailInner() {
-  const params = useSearchParams();
-  const uid = params?.get("uid");
-  const token = params?.get("token");
+export default function VerifyEmailPage() {
+  const searchParams = useSearchParams();
+  const uid = searchParams ? searchParams.get("uid") : null;
+  const token = searchParams ? searchParams.get("token") : null;
 
+  if (uid && token) {
+    return <VerifyEmailInner uid={uid} token={token} />;
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full flex flex-col items-center">
+        <h1 className="text-2xl font-bold mb-2 text-gray-800">
+          Account Ready!
+        </h1>
+        <div className="mt-4 text-center text-lg text-green-700">
+          Your account is already active and ready to use. No verification
+          needed!
+        </div>
+        <a
+          href="/login"
+          className="mt-6 px-6 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition"
+        >
+          Go to Login
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function VerifyEmailInner({ uid, token }: { uid: string; token: string }) {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>("");
 
   useEffect(() => {
-    if (!uid || !token) {
-      setStatus("error");
-      setMessage("Invalid verification link.");
-      return;
-    }
     const verify = async () => {
       try {
         const res = await fetch(`/api/users/verify-email/${uid}/${token}/`);
@@ -71,12 +92,3 @@ function VerifyEmailInner() {
     </div>
   );
 }
-
-export default function VerifyEmailPage() {
-  return (
-    <Suspense>
-      <VerifyEmailInner />
-    </Suspense>
-  );
-}
-*/
