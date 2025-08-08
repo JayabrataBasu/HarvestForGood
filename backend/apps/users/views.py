@@ -23,7 +23,6 @@ from django.conf import settings
 from .utils.email import is_valid_email
 from .utils.validation import validate_contact_fields, validate_password_reset_fields
 
-
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
@@ -115,14 +114,11 @@ Timestamp: {request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_AD
     except Exception as e:
         return Response({'message': f'Failed to send message: {str(e)}'}, status=500)
 
-# ...existing code...
-
-
-
-#this is for password reset functionality
+# Password reset functionality - ACTIVE VIEW
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_request(request):
+    """Custom password reset request handler - THIS IS THE ACTIVE VIEW"""
     # Use the new validation utility
     validation_error = validate_password_reset_fields(request.data)
     if validation_error:
@@ -158,6 +154,7 @@ def password_reset_request(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def password_reset_confirm(request, uidb64, token):
+    """Custom password reset confirm handler - THIS IS THE ACTIVE VIEW"""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
@@ -300,3 +297,4 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+            

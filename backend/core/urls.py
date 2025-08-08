@@ -38,6 +38,7 @@ def api_root(request):
             'research_papers': '/api/research/papers/',
             'admin': '/admin/',
             'auth': '/api/auth/',
+            'password_reset': '/api/users/password/reset/',  # Add this line
         }
     })
 
