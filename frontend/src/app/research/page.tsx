@@ -1,8 +1,12 @@
 "use client";
 import React from "react";
 import PaperSearch from "@/components/research/PaperSearch";
+import { useSearchParams } from "next/navigation";
 
 export default function ResearchPage() {
+  const searchParams = useSearchParams();
+  const keyword = searchParams?.get("keyword") || "";
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Multi-color farm-to-sunset gradient background */}
@@ -69,7 +73,7 @@ export default function ResearchPage() {
 
             {/* Content container */}
             <div className="relative backdrop-blur-lg rounded-3xl border border-white/30 p-8 lg:p-12">
-              <PaperSearch />
+              <PaperSearch initialKeyword={keyword} />
             </div>
           </div>
         </div>
