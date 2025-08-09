@@ -33,41 +33,45 @@ export const useLike = (
     return guestId;
   }, []);
 
-  // Fetch like state from backend for authenticated users
+  // Fetch like state from backend for absolutely everyone
   const fetchLikeStateFromBackend = useCallback(async () => {
-    if (!user || !postId) {
+    if (!postId) {
       setHasInitiallyLoaded(true);
       return;
     }
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        console.log('No access token found for like status fetch');
-        setHasInitiallyLoaded(true);
-        return;
-      }
-
       console.log('Fetching like status from:', `${API_BASE_URL}/forum/posts/${postId}/like-status/`);
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add auth header only if user is authenticated
+      if (user) {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
       
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like-status/`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       console.log('Like status response:', response.status);
 
       if (response.ok) {
         const data = await response.json();
-        setIsLiked(data.is_liked || false);
+        // Only set isLiked for authenticated users
+        setIsLiked(user ? (data.is_liked || false) : false);
+        // Always set likes count for everyone
         setLikesCount(data.likes_count || 0);
       } else {
         console.error('Failed to fetch like status:', response.status);
-        // Fallback to initial values
+        // Always try to show the initial likes count even on error
         setIsLiked(false);
         setLikesCount(initialLikesCount);
       }
@@ -76,7 +80,7 @@ export const useLike = (
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         console.error('Backend connection failed for like status');
       }
-      // Fallback to initial values
+      // Always fallback to initial values but still show count
       setIsLiked(false);
       setLikesCount(initialLikesCount);
     } finally {
@@ -85,20 +89,13 @@ export const useLike = (
     }
   }, [user, postId, initialLikesCount]);
 
-  // Load like state - only for authenticated users
+  // Load like state - for absolutely everyone (authenticated, guests, anonymous)
   useEffect(() => {
     if (!postId || typeof window === 'undefined') return;
 
-    if (user) {
-      // For authenticated users, always fetch from backend
-      fetchLikeStateFromBackend();
-    } else {
-      // For guest users, just set initial values and mark as loaded
-      setIsLiked(false);
-      setLikesCount(initialLikesCount);
-      setHasInitiallyLoaded(true);
-    }
-  }, [postId, user, fetchLikeStateFromBackend, initialLikesCount]);
+    // Always fetch like status to get like counts for everyone
+    fetchLikeStateFromBackend();
+  }, [postId, fetchLikeStateFromBackend]);
 
   // Save like state to localStorage (only for guest users)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

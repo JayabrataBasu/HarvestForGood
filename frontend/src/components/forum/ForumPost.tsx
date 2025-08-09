@@ -238,7 +238,7 @@ export default function ForumPost({
               <span className="flex items-center">
                 <span className="mr-1">By</span>
                 <span className={`font-medium ${isGuest ? "italic" : ""}`}>
-                  {author}
+                  {author || "Unknown Author"}
                 </span>
                 {isGuest && <span className="ml-1 text-xs">(Guest)</span>}
               </span>

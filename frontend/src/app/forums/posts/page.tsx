@@ -13,14 +13,20 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  author: string;
+  author:
+    | string
+    | {
+        username?: string;
+        first_name?: string;
+        last_name?: string;
+      };
   author_name?: string;
   guest_name?: string;
   guest_affiliation?: string;
   created_at: string;
   comments_count: number;
   tags?: Array<{ name: string; usage_count: number }>;
-  pinned?: boolean; // <-- Add this line
+  pinned?: boolean;
 }
 
 interface PaginationInfo {
@@ -288,19 +294,29 @@ export default function ForumPage() {
             <div className="space-y-8">
               {posts.map((post) => {
                 const tagNames = post.tags?.map((tag) => tag.name) || [];
+                // Better author name handling
+                const authorName =
+                  post.author_name ||
+                  post.guest_name ||
+                  (post.author && typeof post.author === "object"
+                    ? `${post.author.first_name || ""} ${
+                        post.author.last_name || ""
+                      }`.trim() || post.author.username
+                    : post.author) ||
+                  "Anonymous";
+
                 return (
                   <ForumPost
                     key={post.id}
                     id={post.id}
                     title={post.title}
                     content={post.content}
-                    author={post.author_name || post.guest_name || "Anonymous"}
+                    author={authorName}
+                    tags={tagNames}
                     createdAt={post.created_at}
                     commentCount={post.comments_count || 0}
-                    tags={tagNames}
-                    isGuest={!!post.guest_name}
-                    onPin={handlePin}
                     pinned={post.pinned}
+                    onPin={handlePin}
                   />
                 );
               })}
@@ -321,15 +337,15 @@ export default function ForumPage() {
             )}
           </>
         )}
-      </div>
 
-      {/* Guest authentication modal */}
-      <GuestAuthModal
-        isOpen={showGuestAuthModal}
-        onClose={() => setShowGuestAuthModal(false)}
-        onSubmit={handleGuestAuth}
-        mode="post"
-      />
+        {/* Guest authentication modal */}
+        <GuestAuthModal
+          isOpen={showGuestAuthModal}
+          onClose={() => setShowGuestAuthModal(false)}
+          onSubmit={handleGuestAuth}
+          mode="post"
+        />
+      </div>
     </div>
   );
 }
