@@ -249,7 +249,7 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
                   <span>
                     {paper.publicationDate
                       ? formatDate(new Date(paper.publicationDate))
-                      : "N/A"}
+                      : ""}
                   </span>
                 </div>
 
