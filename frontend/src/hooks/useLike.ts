@@ -92,6 +92,7 @@ export const useLike = (
   }, [postId, user, fetchLikeStateFromBackend, initialLikesCount]);
 
   // Save like state to localStorage (only for guest users)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const saveLikeState = useCallback((liked: boolean) => {
     if (typeof window === 'undefined' || user) return; // Don't save for authenticated users
 
@@ -190,41 +191,7 @@ export const clearUserLikeStates = (userId: string) => {
     console.error('Error clearing like states:', error);
   }
 };
-export const clearAllLikeStates = () => {
-  if (typeof window === 'undefined') return;
-  try {
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.startsWith('like_')) {
-        localStorage.removeItem(key);
-      }
-    });
-  } catch (error) {
-    console.error('Error clearing all like states:', error);
-  }
-};
-    isLiked,
-    likesCount,
-    isLoading,
-    handleLike,
-  };
-};
 
-// Utility function to clear like states on logout
-export const clearUserLikeStates = (userId: string) => {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.includes(`_user_${userId}`)) {
-        localStorage.removeItem(key);
-      }
-    });
-  } catch (error) {
-    console.error('Error clearing like states:', error);
-  }
-};
 export const clearAllLikeStates = () => {
   if (typeof window === 'undefined') return;
   try {
