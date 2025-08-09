@@ -15,7 +15,7 @@ export const useLike = (
   initialIsLiked: boolean = false
 ): UseLikeReturn => {
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [isLiked, setIsLiked] = useState(false); // Always start with false
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [isLoading, setIsLoading] = useState(false);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
@@ -34,12 +34,18 @@ export const useLike = (
 
   // Fetch like state from backend for authenticated users
   const fetchLikeStateFromBackend = useCallback(async () => {
-    if (!user || !postId) return;
+    if (!user || !postId) {
+      setHasInitiallyLoaded(true);
+      return;
+    }
 
     setIsLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      if (!token) return;
+      if (!token) {
+        setHasInitiallyLoaded(true);
+        return;
+      }
 
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like-status/`, {
         method: 'GET',
@@ -52,41 +58,38 @@ export const useLike = (
       if (response.ok) {
         const data = await response.json();
         setIsLiked(data.is_liked || false);
-        setLikesCount(data.likes_count || initialLikesCount);
+        setLikesCount(data.likes_count || 0);
       } else {
         console.error('Failed to fetch like status:', response.status);
+        // Fallback to initial values
+        setIsLiked(initialIsLiked);
+        setLikesCount(initialLikesCount);
       }
     } catch (error) {
       console.error('Error fetching like state from backend:', error);
+      // Fallback to initial values
+      setIsLiked(initialIsLiked);
+      setLikesCount(initialLikesCount);
     } finally {
       setIsLoading(false);
       setHasInitiallyLoaded(true);
     }
-  }, [user, postId, initialLikesCount]);
+  }, [user, postId, initialLikesCount, initialIsLiked]);
 
-  // Load like state - from backend for authenticated users, localStorage for guests
+  // Load like state - only for authenticated users
   useEffect(() => {
     if (!postId || typeof window === 'undefined') return;
 
     if (user) {
-      // For authenticated users, fetch from backend
+      // For authenticated users, always fetch from backend
       fetchLikeStateFromBackend();
     } else {
-      // For guest users, load from localStorage
-      try {
-        const storageKey = `like_${postId}_guest_${getGuestIdentifier()}`;
-        const savedState = localStorage.getItem(storageKey);
-        if (savedState) {
-          const { isLiked: savedIsLiked } = JSON.parse(savedState);
-          setIsLiked(savedIsLiked);
-        }
-      } catch (error) {
-        console.error('Error loading like state:', error);
-      } finally {
-        setHasInitiallyLoaded(true);
-      }
+      // For guest users, just set initial values and mark as loaded
+      setIsLiked(false);
+      setLikesCount(initialLikesCount);
+      setHasInitiallyLoaded(true);
     }
-  }, [postId, user, getGuestIdentifier, fetchLikeStateFromBackend]);
+  }, [postId, user, fetchLikeStateFromBackend, initialLikesCount]);
 
   // Save like state to localStorage (only for guest users)
   const saveLikeState = useCallback((liked: boolean) => {
@@ -106,75 +109,55 @@ export const useLike = (
   const handleLike = useCallback(async (): Promise<void> => {
     if (isLoading || !postId || !hasInitiallyLoaded) return;
 
+    // Only allow authenticated users to like posts
+    if (!user) {
+      throw new Error('Please log in to like posts');
+    }
+
     setIsLoading(true);
     const originalIsLiked = isLiked;
     const originalCount = likesCount;
 
-    // Optimistic UI update
-    const newIsLiked = !isLiked;
-    setIsLiked(newIsLiked);
-    setLikesCount(prev => newIsLiked ? prev + 1 : prev - 1);
-
     try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('Please log in to like posts');
+      }
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       };
 
-      if (user) {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-      }
-
-      interface LikeRequestBody {
-        guest_identifier?: string;
-        guest_name?: string;
-      }
-      const body: LikeRequestBody = {};
-
-      if (!user) {
-        const guestInfo = localStorage.getItem('guestInfo');
-        const guestId = getGuestIdentifier();
-        if (guestId !== null) {
-          body.guest_identifier = guestId;
-        }
-        if (guestInfo) {
-          try {
-            const parsed = JSON.parse(guestInfo);
-            body.guest_name = parsed.name || 'Anonymous Guest';
-          } catch {
-            body.guest_name = 'Anonymous Guest';
-          }
-        } else {
-          body.guest_name = 'Anonymous Guest';
-        }
-      }
-
-      // Send request to backend
+      // Send request to backend (no body needed for authenticated users)
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like/`, {
         method: 'POST',
         headers,
-        body: JSON.stringify(body),
+        body: JSON.stringify({}),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const serverIsLiked = data.action === 'liked';
+        const serverIsLiked = data.is_liked;
         const serverLikesCount = data.likes_count || 0;
 
         setIsLiked(serverIsLiked);
         setLikesCount(serverLikesCount);
-        saveLikeState(serverIsLiked);
       } else {
+        // Revert to original state on error
         setIsLiked(originalIsLiked);
         setLikesCount(originalCount);
 
         const errorText = await response.text();
         console.error('Like API error:', response.status, errorText);
-        throw new Error(`Failed to ${newIsLiked ? 'like' : 'unlike'} post`);
+        
+        if (response.status === 401) {
+          throw new Error('Please log in to like posts');
+        }
+        throw new Error(`Failed to ${!originalIsLiked ? 'like' : 'unlike'} post`);
       }
     } catch (error) {
+      // Revert to original state on error
       setIsLiked(originalIsLiked);
       setLikesCount(originalCount);
       console.error('Error handling like:', error);
@@ -182,9 +165,44 @@ export const useLike = (
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, postId, isLiked, likesCount, user, getGuestIdentifier, saveLikeState, hasInitiallyLoaded]);
+  }, [isLoading, postId, isLiked, likesCount, user, hasInitiallyLoaded]);
 
   return {
+    isLiked,
+    likesCount,
+    isLoading,
+    handleLike,
+  };
+};
+
+// Utility function to clear like states on logout
+export const clearUserLikeStates = (userId: string) => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.includes(`_user_${userId}`)) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.error('Error clearing like states:', error);
+  }
+};
+export const clearAllLikeStates = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('like_')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.error('Error clearing all like states:', error);
+  }
+};
     isLiked,
     likesCount,
     isLoading,

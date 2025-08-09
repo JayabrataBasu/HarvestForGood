@@ -249,47 +249,55 @@ export default function ForumPost({
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Enhanced quick like button with proper state management */}
-              <button
-                onClick={handleQuickLike}
-                disabled={isLikeLoading}
-                className={`
-                  flex items-center space-x-1 transition-all duration-200 relative px-2 py-1 rounded-lg
-                  ${
-                    isLikeLoading
-                      ? "cursor-not-allowed opacity-70"
-                      : "hover:bg-white/50"
-                  }
-                  ${
-                    isLiked
-                      ? "text-red-500 hover:text-red-600"
-                      : "text-[#A0C49D] hover:text-[#78B86B]"
-                  }
-                `}
-              >
-                <div className="relative">
-                  <span
-                    className={`text-lg ${
-                      isLikeLoading ? "animate-pulse" : ""
-                    }`}
-                  >
-                    {isLiked ? "❤️" : "🤍"}
+              {/* Like button - only functional for authenticated users */}
+              {user ? (
+                <button
+                  onClick={handleQuickLike}
+                  disabled={isLikeLoading}
+                  className={`
+                    flex items-center space-x-1 transition-all duration-200 relative px-3 py-1 rounded-lg border
+                    ${
+                      isLikeLoading
+                        ? "cursor-not-allowed opacity-70"
+                        : "hover:scale-105 active:scale-95"
+                    }
+                    ${
+                      isLiked
+                        ? "bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+                        : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }
+                  `}
+                >
+                  <div className="relative flex items-center">
+                    {isLikeLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span
+                        className={`text-base transition-transform duration-200 ${
+                          isLiked ? "scale-110" : "scale-100"
+                        }`}
+                      >
+                        {isLiked ? "❤️" : "🤍"}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium">{likesCount}</span>
+                </button>
+              ) : (
+                <div className="flex items-center space-x-1 px-3 py-1 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+                  <span className="text-base">🤍</span>
+                  <span className="text-sm font-medium">{likesCount}</span>
+                  <span className="text-xs text-gray-400 ml-1">
+                    (Login to like)
                   </span>
-
-                  {isLikeLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
                 </div>
-                <span className="text-xs font-medium">{likesCount}</span>
-              </button>
+              )}
 
               {/* Enhanced comments link */}
               <Link href={`/forums/posts/${id}`}>
-                <span className="flex items-center text-[#3D9A50] hover:text-[#368442] transition-colors px-2 py-1 rounded-lg hover:bg-white/50">
+                <span className="flex items-center text-[#3D9A50] hover:text-[#368442] transition-colors px-3 py-1 rounded-lg hover:bg-white/50 border border-transparent hover:border-green-200">
                   <span className="font-medium">{commentCount}</span>
-                  <span className="ml-1">
+                  <span className="ml-1 text-sm">
                     {commentCount === 1 ? "comment" : "comments"}
                   </span>
                 </span>
