@@ -30,7 +30,9 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
+      console.log("Starting login process...");
       const result = await loginUser(username, password);
+      console.log("Login result:", result);
 
       if (result.success) {
         // Redirect to the intended page or dashboard
@@ -40,7 +42,9 @@ function LoginForm() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("An error occurred during login");
+      setError(
+        "Network error: Cannot connect to server. Please check if the backend is running."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +79,18 @@ function LoginForm() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded">
-              {error}
+              <div className="font-semibold mb-1">Login Failed</div>
+              <div className="text-sm whitespace-pre-line">{error}</div>
+              <details className="mt-2 text-xs">
+                <summary className="cursor-pointer">Technical Details</summary>
+                <div className="mt-1 p-2 bg-red-100 rounded text-xs font-mono">
+                  API URL: {process.env.NEXT_PUBLIC_API_BASE_URL || "Not set"}
+                  <br />
+                  Environment: {process.env.NODE_ENV}
+                  <br />
+                  Check browser console for more details
+                </div>
+              </details>
             </div>
           )}
 

@@ -6,6 +6,15 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||
     ? "https://harvestforgood-production.up.railway.app/api"
     : "http://localhost:8000/api");
 
+// Add debugging function
+export function debugApiConnection() {
+  console.log('=== API DEBUG INFO ===');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('NEXT_PUBLIC_API_BASE_URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+  console.log('Final API_BASE_URL:', API_BASE_URL);
+  console.log('=====================');
+}
+
 /**
  * Check if a user is authenticated by looking for tokens
  */
@@ -22,6 +31,10 @@ export function isAuthenticated() {
  */
 export async function loginUser(username: string, password: string) {
   try {
+    // Add debugging
+    debugApiConnection();
+    console.log('Attempting login to:', `${API_BASE_URL}/token/`);
+    
     const response = await fetch(`${API_BASE_URL}/token/`, {
       method: 'POST',
       headers: {
@@ -29,6 +42,9 @@ export async function loginUser(username: string, password: string) {
       },
       body: JSON.stringify({ username, password }),
     });
+
+    console.log('Login response status:', response.status);
+    console.log('Login response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -45,7 +61,22 @@ export async function loginUser(username: string, password: string) {
     
     return { success: true };
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error details:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.error('Network connection failed. Possible causes:');
+      console.error('1. Backend server is not running');
+      console.error('2. CORS is not configured');
+      console.error('3. Wrong API URL');
+      console.error('4. Network connectivity issues');
+      
+      return { 
+        success: false, 
+        message: `Cannot connect to server. Please check:\n1. Is the backend server running?\n2. API URL: ${API_BASE_URL}\n3. Check browser console for CORS errors` 
+      };
+    }
+    
     return { success: false, message: 'An error occurred during login' };
   }
 }
