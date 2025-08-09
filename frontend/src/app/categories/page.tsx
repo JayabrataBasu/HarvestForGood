@@ -335,10 +335,12 @@ export default function CategoriesPage() {
 
   const resourceTypes = [
     "All",
-    "Reports",
-    "Government Documents",
     "Interview",
+    "News",
+    "Opinions",
+    "Report",
     "Research Paper",
+    "Website",
   ];
 
   const handleResourceTypeClick = (type: string) => {
