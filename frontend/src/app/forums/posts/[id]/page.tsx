@@ -18,7 +18,7 @@ interface Author {
 interface Comment {
   id: number;
   content: string;
-  author: Author;
+  author: Author | null; // Allow null for guest comments
   created_at: string;
   updated_at: string;
 }
@@ -27,7 +27,7 @@ interface Post {
   id: number;
   title: string;
   content: string;
-  author: Author;
+  author: Author | null; // Allow null for guest posts
   created_at: string;
   updated_at: string;
   likes_count: number;
@@ -341,8 +341,9 @@ export default function ForumPostPage({
               </h1>
               <div className="flex items-center text-sm text-gray-500 mb-6">
                 <span className="font-medium text-primary-dark">
-                  Posted by {post.author.username} •{" "}
-                  {formatDate(post.created_at)}
+                  Posted by{" "}
+                  {post.author?.username || post.author?.first_name || "Guest"}{" "}
+                  • {formatDate(post.created_at)}
                 </span>
               </div>
 
@@ -497,7 +498,11 @@ export default function ForumPostPage({
                   >
                     <div className="flex items-center mb-2">
                       <div className="font-medium text-primary-dark">
-                        {comment.author.first_name} {comment.author.last_name}
+                        {comment.author?.username ||
+                          (comment.author?.first_name &&
+                          comment.author?.last_name
+                            ? `${comment.author.first_name} ${comment.author.last_name}`
+                            : "Guest")}
                       </div>
                       <span className="mx-2 text-gray-300">•</span>
                       <div className="text-sm text-gray-500">
