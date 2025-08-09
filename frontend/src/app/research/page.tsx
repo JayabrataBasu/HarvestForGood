@@ -3,10 +3,14 @@ import React, { Suspense } from "react";
 import PaperSearch from "@/components/research/PaperSearch";
 import { useSearchParams } from "next/navigation";
 
-export default function ResearchPage() {
+// Inner client component for Suspense boundary
+function PaperSearchWithKeyword() {
   const searchParams = useSearchParams();
   const keyword = searchParams?.get("keyword") || "";
+  return <PaperSearch initialKeyword={keyword} />;
+}
 
+export default function ResearchPage() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Multi-color farm-to-sunset gradient background */}
@@ -74,7 +78,7 @@ export default function ResearchPage() {
             {/* Content container */}
             <div className="relative backdrop-blur-lg rounded-3xl border border-white/30 p-8 lg:p-12">
               <Suspense fallback={<div>Loading search...</div>}>
-                <PaperSearch initialKeyword={keyword} />
+                <PaperSearchWithKeyword />
               </Suspense>
             </div>
           </div>
