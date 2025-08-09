@@ -15,24 +15,30 @@ interface Author {
   email: string;
 }
 
-interface Comment {
-  id: number;
-  content: string;
-  author: Author | null; // Allow null for guest comments
-  created_at: string;
-  updated_at: string;
-}
-
 interface Post {
   id: number;
   title: string;
   content: string;
   author: Author | null; // Allow null for guest posts
+  author_name?: string; // Add this field from backend
+  guest_name?: string; // Add this field from backend
+  guest_affiliation?: string; // Add this field from backend
   created_at: string;
   updated_at: string;
   likes_count: number;
   comments: Comment[];
   is_liked?: boolean;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  author: Author | null; // Allow null for guest comments
+  author_name?: string; // Add this field from backend
+  guest_name?: string; // Add this field from backend
+  guest_affiliation?: string; // Add this field from backend
+  created_at: string;
+  updated_at: string;
 }
 
 export default function ForumPostPage({
@@ -268,6 +274,35 @@ export default function ForumPostPage({
     localStorage.setItem("guestInfo", JSON.stringify(info));
   };
 
+  // Helper function to get display name for author
+  const getAuthorDisplayName = (item: Post | Comment) => {
+    // First check if there's an author_name from backend
+    if (item.author_name) {
+      return item.author_name;
+    }
+
+    // Then check for guest_name
+    if (item.guest_name) {
+      return item.guest_name;
+    }
+
+    // Then check authenticated user data
+    if (item.author) {
+      if (item.author.username) {
+        return item.author.username;
+      }
+      if (item.author.first_name && item.author.last_name) {
+        return `${item.author.first_name} ${item.author.last_name}`;
+      }
+      if (item.author.first_name) {
+        return item.author.first_name;
+      }
+    }
+
+    // Fallback
+    return "Anonymous";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-gray-50 p-6">
@@ -341,9 +376,8 @@ export default function ForumPostPage({
               </h1>
               <div className="flex items-center text-sm text-gray-500 mb-6">
                 <span className="font-medium text-primary-dark">
-                  Posted by{" "}
-                  {post.author?.username || post.author?.first_name || "Guest"}{" "}
-                  • {formatDate(post.created_at)}
+                  Posted by {getAuthorDisplayName(post)} •{" "}
+                  {formatDate(post.created_at)}
                 </span>
               </div>
 
@@ -498,11 +532,7 @@ export default function ForumPostPage({
                   >
                     <div className="flex items-center mb-2">
                       <div className="font-medium text-primary-dark">
-                        {comment.author?.username ||
-                          (comment.author?.first_name &&
-                          comment.author?.last_name
-                            ? `${comment.author.first_name} ${comment.author.last_name}`
-                            : "Guest")}
+                        {getAuthorDisplayName(comment)}
                       </div>
                       <span className="mx-2 text-gray-300">•</span>
                       <div className="text-sm text-gray-500">
