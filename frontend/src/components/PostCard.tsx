@@ -63,7 +63,9 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <h3 className="text-xl font-semibold text-gray-800 mb-2">
           {post.title}
         </h3>
-        <p className="text-sm text-gray-500">By {post.author_name}</p>
+        <p className="text-sm text-gray-500">
+          By {post.author_name || "Unknown Author"}
+        </p>
       </div>
 
       <p className="text-gray-700 mb-4 line-clamp-3">{linkify(post.content)}</p>
