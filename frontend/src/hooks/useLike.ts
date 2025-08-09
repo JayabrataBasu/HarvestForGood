@@ -12,6 +12,7 @@ interface UseLikeReturn {
 export const useLike = (
   postId: string, 
   initialLikesCount: number = 0, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   initialIsLiked: boolean = false
 ): UseLikeReturn => {
   const { user } = useAuth();
@@ -43,10 +44,13 @@ export const useLike = (
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {
+        console.log('No access token found for like status fetch');
         setHasInitiallyLoaded(true);
         return;
       }
 
+      console.log('Fetching like status from:', `${API_BASE_URL}/forum/posts/${postId}/like-status/`);
+      
       const response = await fetch(`${API_BASE_URL}/forum/posts/${postId}/like-status/`, {
         method: 'GET',
         headers: {
@@ -55,6 +59,8 @@ export const useLike = (
         },
       });
 
+      console.log('Like status response:', response.status);
+
       if (response.ok) {
         const data = await response.json();
         setIsLiked(data.is_liked || false);
@@ -62,19 +68,22 @@ export const useLike = (
       } else {
         console.error('Failed to fetch like status:', response.status);
         // Fallback to initial values
-        setIsLiked(initialIsLiked);
+        setIsLiked(false);
         setLikesCount(initialLikesCount);
       }
     } catch (error) {
       console.error('Error fetching like state from backend:', error);
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        console.error('Backend connection failed for like status');
+      }
       // Fallback to initial values
-      setIsLiked(initialIsLiked);
+      setIsLiked(false);
       setLikesCount(initialLikesCount);
     } finally {
       setIsLoading(false);
       setHasInitiallyLoaded(true);
     }
-  }, [user, postId, initialLikesCount, initialIsLiked]);
+  }, [user, postId, initialLikesCount]);
 
   // Load like state - only for authenticated users
   useEffect(() => {
@@ -125,6 +134,8 @@ export const useLike = (
         throw new Error('Please log in to like posts');
       }
 
+      console.log('Attempting to like/unlike post:', `${API_BASE_URL}/forum/posts/${postId}/like/`);
+
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -136,6 +147,8 @@ export const useLike = (
         headers,
         body: JSON.stringify({}),
       });
+
+      console.log('Like response status:', response.status);
 
       if (response.ok) {
         const data = await response.json();
@@ -154,14 +167,20 @@ export const useLike = (
         
         if (response.status === 401) {
           throw new Error('Please log in to like posts');
+        } else if (response.status === 0) {
+          throw new Error('Network error - cannot connect to server');
         }
-        throw new Error(`Failed to ${!originalIsLiked ? 'like' : 'unlike'} post`);
+        throw new Error(`Server error: ${response.status}`);
       }
     } catch (error) {
       // Revert to original state on error
       setIsLiked(originalIsLiked);
       setLikesCount(originalCount);
       console.error('Error handling like:', error);
+      
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to server. Please check if the backend is running.');
+      }
       throw error;
     } finally {
       setIsLoading(false);
