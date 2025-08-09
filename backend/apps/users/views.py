@@ -31,27 +31,24 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        # self.send_verification_email(user)  # Disabled verification
+        self.send_verification_email(user)  # Re-enabled welcome email
         return user
 
     def send_verification_email(self, user):
-        # Verification disabled - this method is commented out
-        pass
-        # try:
-        #     current_site = get_current_site(self.request)
-        #     mail_subject = 'Welcome to Harvest For Good – Verify Your Account'
-        #     # Use new HTML template
-        #     message = render_to_string('users/account_verification_email.html', {
-        #         'user': user,
-        #         'domain': current_site.domain,
-        #         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        #         'token': default_token_generator.make_token(user),
-        #     })
-        #     email = EmailMessage(mail_subject, message, to=[user.email])
-        #     email.content_subtype = "html"
-        #     email.send()
-        # except Exception:
-        #     pass
+        try:
+            current_site = get_current_site(self.request)
+            mail_subject = 'Welcome to Harvest For Good!'
+            # Use the welcome message template (no verification link)
+            message = render_to_string('users/account_verification_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'current_year': 2025,
+            })
+            email = EmailMessage(mail_subject, message, to=[user.email])
+            email.content_subtype = "html"
+            email.send()
+        except Exception:
+            pass
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -310,3 +307,4 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+            
