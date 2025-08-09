@@ -341,7 +341,7 @@ export default function ForumPostPage({
               </h1>
               <div className="flex items-center text-sm text-gray-500 mb-6">
                 <span className="font-medium text-primary-dark">
-                  Posted by {post.author.first_name} {post.author.last_name} •{" "}
+                  Posted by {post.author.username} •{" "}
                   {formatDate(post.created_at)}
                 </span>
               </div>
