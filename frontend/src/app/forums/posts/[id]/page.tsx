@@ -121,6 +121,7 @@ export default function ForumPostPage({
 
     try {
       await handleLike();
+      // No need to update local state - hook handles everything
     } catch (error) {
       console.error("Error liking post:", error);
     }

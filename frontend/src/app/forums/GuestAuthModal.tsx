@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useRouter } from "next/navigation";
 
 interface GuestAuthModalProps {
   isOpen: boolean;
