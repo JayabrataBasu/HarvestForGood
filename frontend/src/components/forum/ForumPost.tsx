@@ -3,7 +3,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 interface ForumPostProps {
   id: string;
@@ -75,6 +75,7 @@ export default function ForumPost({
     isLoading: isLikeLoading,
     handleLike,
   } = useLike(id, 0, false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isSuperuser = user?.isSuperuser;
 
   const formattedDate = new Date(createdAt);
