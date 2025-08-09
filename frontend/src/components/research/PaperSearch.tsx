@@ -82,6 +82,14 @@ export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
     setPage(1);
   };
 
+  // Auto-trigger fetch when filters change (not for search bar)
+  useEffect(() => {
+    setPage(1);
+    // The [filters, page] effect below will fetch papers automatically
+    // No need to call loadPapers here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
   // Load papers when filters or page changes - all filtering is backend-driven
   useEffect(() => {
     async function loadPapers() {
