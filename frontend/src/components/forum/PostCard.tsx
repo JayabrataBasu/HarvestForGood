@@ -24,7 +24,6 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
 
-  // Remove local like state management - use centralized hook instead
   const {
     isLiked,
     likesCount,
@@ -42,7 +41,7 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
 
     try {
       await handleLike();
-      // Call parent function for any additional handling
+      // Optional: Call parent function for any additional handling if needed
       onLike(post.id);
     } catch (error) {
       console.error("Error liking post:", error);

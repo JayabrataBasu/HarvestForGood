@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { FaThumbtack } from "react-icons/fa";
+import { useLike } from "@/hooks/useLike"; // Import the useLike hook
 
 interface ForumPostProps {
   id: string;
@@ -69,9 +70,13 @@ export default function ForumPost({
   onPin,
   pinned,
 }: ForumPostProps) {
-  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
   const { user } = useAuth();
+  const {
+    isLiked,
+    likesCount,
+    isLoading: isLikeLoading,
+    handleLike,
+  } = useLike(id, 0, false);
   const isSuperuser = user?.isSuperuser;
 
   const formattedDate = new Date(createdAt);
@@ -84,19 +89,16 @@ export default function ForumPost({
     e.preventDefault();
     e.stopPropagation();
 
-    if (isLikeAnimating) return;
-
-    setIsLikeAnimating(true);
-    setLikesCount((prev) => prev + 1);
-
-    setTimeout(() => {
-      setIsLikeAnimating(false);
-    }, 600);
+    try {
+      await handleLike();
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
   };
 
   const handlePinClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (onPin) onPin(id, !pinned); // <-- Pass both arguments
+    if (onPin) onPin(id, !pinned);
   };
 
   const urls = extractUrls(content);
@@ -271,23 +273,34 @@ export default function ForumPost({
               {/* Enhanced quick like button */}
               <button
                 onClick={handleQuickLike}
+                disabled={isLikeLoading}
                 className={`
-                  flex items-center space-x-1 text-[#A0C49D] hover:text-[#78B86B] 
-                  transition-all duration-200 relative px-2 py-1 rounded-lg hover:bg-white/50
-                  ${isLikeAnimating ? "text-[#78B86B]" : ""}
+                  flex items-center space-x-1 transition-all duration-200 relative px-2 py-1 rounded-lg
+                  ${
+                    isLikeLoading
+                      ? "cursor-not-allowed opacity-70"
+                      : "hover:bg-white/50"
+                  }
+                  ${
+                    isLiked
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-[#A0C49D] hover:text-[#78B86L]"
+                  }
                 `}
               >
                 <div className="relative">
                   <span
                     className={`text-lg ${
-                      isLikeAnimating ? "mini-heart-pop" : ""
+                      isLikeLoading ? "animate-pulse" : ""
                     }`}
                   >
-                    {isLikeAnimating ? "❤️" : "🤍"}
+                    {isLiked ? "❤️" : "🤍"}
                   </span>
 
-                  {isLikeAnimating && (
-                    <span className="absolute top-0 left-0 mini-float">❤️</span>
+                  {isLikeLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+                    </div>
                   )}
                 </div>
                 <span className="text-xs font-medium">{likesCount}</span>

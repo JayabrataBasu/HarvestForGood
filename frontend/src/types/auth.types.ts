@@ -18,6 +18,7 @@ export interface User {
   last_name: string;
   is_verified: boolean;
   date_joined: string;
+  isSuperuser: boolean;
 }
 
 export interface LoginResponse {

@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { parseCookies } from "nookies";
 import { ResearchPaper } from '@/types/paper.types';
 import { handleApiError } from './errorHandler';
 

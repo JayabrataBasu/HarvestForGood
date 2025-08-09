@@ -97,7 +97,6 @@ export default function KeywordManagement() {
     e.preventDefault();
     if (!keywordName.trim()) return;
 
-    setLoading(true);
     try {
       if (isEditing && selectedKeyword) {
         // Update existing keyword
@@ -132,8 +131,6 @@ export default function KeywordManagement() {
     } catch (err) {
       console.error("Error saving keyword:", err);
       setError("Failed to save keyword. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -142,7 +139,6 @@ export default function KeywordManagement() {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
 
-    setLoading(true);
     try {
       // In a real app, you would call an API method like:
       // const result = await researchAPI.createKeywordCategory({ name: newCategoryName });
@@ -164,8 +160,6 @@ export default function KeywordManagement() {
     } catch (err) {
       console.error("Error saving category:", err);
       setError("Failed to save category. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -179,7 +173,6 @@ export default function KeywordManagement() {
       return;
     }
 
-    setLoading(true);
     try {
       // In a real app, you would call an API method like:
       // await researchAPI.deleteKeyword(keyword.id);
@@ -191,8 +184,6 @@ export default function KeywordManagement() {
     } catch (err) {
       console.error("Error deleting keyword:", err);
       setError("Failed to delete keyword. Please try again.");
-    } finally {
-      setLoading(false);
     }
   };
 

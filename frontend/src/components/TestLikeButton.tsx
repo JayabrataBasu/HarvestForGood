@@ -22,8 +22,8 @@ const TestLikeButton: React.FC<TestLikeButtonProps> = ({
     try {
       await handleLike();
     } catch (error) {
+      // Hook handles all error logging and state management
       console.error("Error handling like:", error);
-      // Error is already handled in the hook, no need for additional UI feedback here
     }
   };
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ForumPostProps {
   id: string;
@@ -67,7 +68,14 @@ export default function ForumPost({
   latestCommenter,
   pinned,
 }: ForumPostProps) {
-  const { isLiked, likesCount, isLoading, handleLike } = useLike(id, 0, false);
+  const { user } = useAuth();
+  const {
+    isLiked,
+    likesCount,
+    isLoading: isLikeLoading,
+    handleLike,
+  } = useLike(id, 0, false);
+  const isSuperuser = user?.isSuperuser;
 
   const formattedDate = new Date(createdAt);
   const timeAgo = formatDistanceToNow(formattedDate, { addSuffix: true });
@@ -243,11 +251,11 @@ export default function ForumPost({
               {/* Enhanced quick like button with proper state management */}
               <button
                 onClick={handleQuickLike}
-                disabled={isLoading}
+                disabled={isLikeLoading}
                 className={`
                   flex items-center space-x-1 transition-all duration-200 relative px-2 py-1 rounded-lg
                   ${
-                    isLoading
+                    isLikeLoading
                       ? "cursor-not-allowed opacity-70"
                       : "hover:bg-white/50"
                   }
@@ -260,12 +268,14 @@ export default function ForumPost({
               >
                 <div className="relative">
                   <span
-                    className={`text-lg ${isLoading ? "animate-pulse" : ""}`}
+                    className={`text-lg ${
+                      isLikeLoading ? "animate-pulse" : ""
+                    }`}
                   >
                     {isLiked ? "❤️" : "🤍"}
                   </span>
 
-                  {isLoading && (
+                  {isLikeLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
                     </div>
