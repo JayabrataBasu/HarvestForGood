@@ -67,66 +67,70 @@ class ForumPostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['post'], permission_classes=[AllowAny], url_path='like')
-    def like(self, request, pk=None):
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny], url_path='like-status')
+    def like_status(self, request, pk=None):
         """
-        Like/unlike a forum post (works for both authenticated and guest users)
+        Get the current like status for a post (only for authenticated users)
         """
         try:
             post = self.get_object()
             
-            # Determine user or guest identifier
             if request.user and request.user.is_authenticated:
-                user = request.user
-                guest_identifier = None
-                guest_name = None
+                is_liked = post.is_liked_by_user(request.user)
+                likes_count = post.get_likes_count()
             else:
-                user = None
-                # Create or get session key for guests
-                if not request.session.session_key:
-                    request.session.create()
-                guest_identifier = request.session.session_key or request.META.get('REMOTE_ADDR')
-                guest_name = request.data.get('guest_name', 'Anonymous Guest')
-                
-                if not guest_identifier:
-                    return Response(
-                        {'error': 'Unable to identify guest user'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+                # For non-authenticated users, return false and actual count
+                is_liked = False
+                likes_count = post.get_likes_count()
             
-            # Check if already liked
-            if user:
-                like_exists = Like.objects.filter(post=post, user=user).exists()
-                if like_exists:
-                    # Unlike - delete the like
-                    Like.objects.filter(post=post, user=user).delete()
-                    action_taken = 'unliked'
-                else:
-                    # Like - create new like
-                    Like.objects.create(post=post, user=user)
-                    action_taken = 'liked'
+            return Response({
+                'is_liked': is_liked,
+                'likes_count': likes_count
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error getting like status for post {pk}: {str(e)}")
+            return Response(
+                {'error': 'Failed to get like status'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'], permission_classes=[AllowAny], url_path='like')
+    def like(self, request, pk=None):
+        """
+        Like/unlike a forum post (only stores likes for authenticated users)
+        """
+        try:
+            post = self.get_object()
+            
+            # Only allow authenticated users to store likes in backend
+            if not (request.user and request.user.is_authenticated):
+                return Response(
+                    {'error': 'Authentication required to like posts'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+            
+            user = request.user
+            
+            # Check if already liked and toggle
+            like_obj = Like.objects.filter(post=post, user=user).first()
+            if like_obj:
+                # Unlike - delete the like
+                like_obj.delete()
+                action_taken = 'unliked'
             else:
-                like_exists = Like.objects.filter(post=post, guest_identifier=guest_identifier).exists()
-                if like_exists:
-                    # Unlike - delete the like
-                    Like.objects.filter(post=post, guest_identifier=guest_identifier).delete()
-                    action_taken = 'unliked'
-                else:
-                    # Like - create new like
-                    Like.objects.create(
-                        post=post, 
-                        guest_identifier=guest_identifier,
-                        guest_name=guest_name
-                    )
-                    action_taken = 'liked'
+                # Like - create new like
+                Like.objects.create(post=post, user=user)
+                action_taken = 'liked'
             
-            # Return updated post data
-            serializer = self.get_serializer(post)
+            # Get fresh counts (only authenticated user likes)
+            likes_count = post.get_likes_count()
+            is_liked = post.is_liked_by_user(user)
+            
             return Response({
                 'action': action_taken,
-                'likes_count': post.get_likes_count(),
-                'is_liked': post.is_liked_by_user(user) if user else post.is_liked_by_guest(guest_identifier),
-                'post': serializer.data
+                'likes_count': likes_count,
+                'is_liked': is_liked
             }, status=status.HTTP_200_OK)
             
         except Exception as e:
@@ -272,62 +276,37 @@ class CommentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[AllowAny], url_path='like')
     def like(self, request, pk=None):
         """
-        Like/unlike a comment (works for both authenticated and guest users)
+        Like/unlike a comment (only stores likes for authenticated users)
         """
         try:
             comment = self.get_object()
             
-            # Determine user or guest identifier
-            if request.user and request.user.is_authenticated:
-                user = request.user
-                guest_identifier = None
-                guest_name = None
-            else:
-                user = None
-                # Create or get session key for guests
-                if not request.session.session_key:
-                    request.session.create()
-                guest_identifier = request.session.session_key or request.META.get('REMOTE_ADDR')
-                guest_name = request.data.get('guest_name', 'Anonymous Guest')
-                
-                if not guest_identifier:
-                    return Response(
-                        {'error': 'Unable to identify guest user'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+            # Only allow authenticated users to store likes in backend
+            if not (request.user and request.user.is_authenticated):
+                return Response(
+                    {'error': 'Authentication required to like comments'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
             
-            # Check if already liked
-            if user:
-                like_exists = Like.objects.filter(comment=comment, user=user).exists()
-                if like_exists:
-                    # Unlike - delete the like
-                    Like.objects.filter(comment=comment, user=user).delete()
-                    action_taken = 'unliked'
-                else:
-                    # Like - create new like
-                    Like.objects.create(comment=comment, user=user)
-                    action_taken = 'liked'
+            user = request.user
+            
+            # Check if already liked and toggle
+            like_obj = Like.objects.filter(comment=comment, user=user).first()
+            if like_obj:
+                # Unlike - delete the like
+                like_obj.delete()
+                action_taken = 'unliked'
             else:
-                like_exists = Like.objects.filter(comment=comment, guest_identifier=guest_identifier).exists()
-                if like_exists:
-                    # Unlike - delete the like
-                    Like.objects.filter(comment=comment, guest_identifier=guest_identifier).delete()
-                    action_taken = 'unliked'
-                else:
-                    # Like - create new like
-                    Like.objects.create(
-                        comment=comment, 
-                        guest_identifier=guest_identifier,
-                        guest_name=guest_name
-                    )
-                    action_taken = 'liked'
+                # Like - create new like
+                Like.objects.create(comment=comment, user=user)
+                action_taken = 'liked'
             
             # Return updated comment data
             serializer = self.get_serializer(comment)
             return Response({
                 'action': action_taken,
                 'likes_count': comment.get_likes_count(),
-                'is_liked': comment.is_liked_by_user(user) if user else comment.is_liked_by_guest(guest_identifier),
+                'is_liked': comment.is_liked_by_user(user),
                 'comment': serializer.data
             }, status=status.HTTP_200_OK)
             
@@ -350,6 +329,59 @@ class ForumTagViewSet(viewsets.ReadOnlyModelViewSet):
         
         search = self.request.query_params.get('search', '').strip()
         if search:
+            clean_search = search.lower().lstrip('#')
+            queryset = queryset.filter(name__icontains=clean_search)
+        
+        # Only return tags with usage > 0
+        min_usage = int(self.request.query_params.get('min_usage', 0))
+        queryset = queryset.filter(usage_count__gte=min_usage)
+        
+        return queryset.order_by('-usage_count', 'name')
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_guest_post(request):
+    """Create a forum post as a guest with tags"""
+    serializer = GuestPostSerializer(data=request.data)
+    if serializer.is_valid():
+        tag_names = request.data.get('tag_names', [])
+        guest_name = serializer.validated_data.get('guest_name')
+        guest_affiliation = serializer.validated_data.get('guest_affiliation')
+        guest_email = serializer.validated_data.get('guest_email', None)
+        # Remove guest fields from validated_data before creating post
+        post_data = serializer.validated_data.copy()
+        post_data.pop('guest_name', None)
+        post_data.pop('guest_affiliation', None)
+        post_data.pop('guest_email', None)
+        post = ForumPost.objects.create(
+            **post_data,
+            author=None,
+            guest_name=guest_name,
+            guest_affiliation=guest_affiliation,
+            guest_email=guest_email
+        )
+        # Add tags if provided
+        if tag_names:
+            tag_instances = []
+            for tag_name in tag_names:
+                tag_obj, _ = ForumTag.objects.get_or_create(name=tag_name.lower().lstrip('#'))
+                tag_instances.append(tag_obj)
+            post.tags.set(tag_instances)
+        # Return the created post data
+        return Response(
+            ForumPostSerializer(post).data,
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_popular_tags(request):
+    """Get most popular forum tags"""
+    limit = int(request.query_params.get('limit', 20))
+    tags = ForumTag.objects.filter(usage_count__gt=0)[:limit]
+    serializer = ForumTagSerializer(tags, many=True)
+    return Response(serializer.data)
             clean_search = search.lower().lstrip('#')
             queryset = queryset.filter(name__icontains=clean_search)
         

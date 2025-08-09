@@ -60,7 +60,6 @@ class ForumPost(SafeQueryMixin, models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes_count = models.IntegerField(default=0)
     pinned = models.BooleanField(default=False)  # New pinned field
     
     # Guest user fields
@@ -77,20 +76,18 @@ class ForumPost(SafeQueryMixin, models.Model):
     )
     
     def get_likes_count(self):
-        """Get the actual count of likes for this post"""
-        return self.post_likes.count()
+        """Get the count of likes from authenticated users only"""
+        return self.post_likes.filter(user__isnull=False).count()
 
     def is_liked_by_user(self, user):
-        """Check if this post is liked by a specific user"""
+        """Check if this post is liked by a specific authenticated user"""
         if not user or not user.is_authenticated:
             return False
         return self.post_likes.filter(user=user).exists()
 
     def is_liked_by_guest(self, guest_identifier):
-        """Check if this post is liked by a specific guest identifier"""
-        if not guest_identifier:
-            return False
-        return self.post_likes.filter(guest_identifier=guest_identifier).exists()
+        """Deprecated - we no longer store guest likes in backend"""
+        return False
 
     def __str__(self):
         if self.author:
@@ -129,20 +126,18 @@ class Comment(SafeQueryMixin, models.Model):
     guest_email = models.EmailField(null=True, blank=True)
     
     def get_likes_count(self):
-        """Get the actual count of likes for this comment"""
-        return self.comment_likes.count()
+        """Get the count of likes from authenticated users only"""
+        return self.comment_likes.filter(user__isnull=False).count()
 
     def is_liked_by_user(self, user):
-        """Check if this comment is liked by a specific user"""
+        """Check if this comment is liked by a specific authenticated user"""
         if not user or not user.is_authenticated:
             return False
         return self.comment_likes.filter(user=user).exists()
 
     def is_liked_by_guest(self, guest_identifier):
-        """Check if this comment is liked by a specific guest identifier"""
-        if not guest_identifier:
-            return False
-        return self.comment_likes.filter(guest_identifier=guest_identifier).exists()
+        """Deprecated - we no longer store guest likes in backend"""
+        return False
     
     def __str__(self):
         author_name = self.author.username if self.author else (self.guest_name or "Anonymous")
@@ -232,4 +227,9 @@ class ForumPostTag(models.Model):
     
     class Meta:
         db_table = 'forum_post_tag'
+        unique_together = ('post', 'tag')
+        unique_together = ('post', 'tag')
+    class Meta:
+        db_table = 'forum_post_tag'
+        unique_together = ('post', 'tag')
         unique_together = ('post', 'tag')
