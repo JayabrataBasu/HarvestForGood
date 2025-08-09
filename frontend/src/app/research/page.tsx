@@ -7,7 +7,12 @@ import { useSearchParams } from "next/navigation";
 function PaperSearchWithKeyword() {
   const searchParams = useSearchParams();
   const keyword = searchParams?.get("keyword") || "";
-  return <PaperSearch initialKeyword={keyword} />;
+  return (
+    <PaperSearch
+      initialKeyword={keyword}
+      initialFilters={keyword ? { keyword: [keyword] } : {}}
+    />
+  );
 }
 
 export default function ResearchPage() {

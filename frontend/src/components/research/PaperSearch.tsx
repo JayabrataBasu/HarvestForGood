@@ -14,18 +14,14 @@ interface PaperSearchProps {
   initialKeyword?: string;
 }
 
-export default function PaperSearch({
-  initialFilters = {},
-  initialKeyword = "",
-}: PaperSearchProps) {
+export default function PaperSearch({ initialFilters = {} }: PaperSearchProps) {
   // All filtering is now backend-driven. Client filtering removed for consistency.
   const [papers, setPapers] = useState<ResearchPaper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Only use initialFilters for non-keyword filters
   const [filters, setFilters] = useState<PaperFilterParams>(initialFilters);
-  const [searchTerm, setSearchTerm] = useState(
-    initialKeyword || initialFilters.q || ""
-  );
+  const [searchTerm, setSearchTerm] = useState(initialFilters.q || "");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -54,12 +50,6 @@ export default function PaperSearch({
 
     loadFilterOptions();
   }, []);
-
-  useEffect(() => {
-    if (initialKeyword) {
-      setSearchTerm(initialKeyword);
-    }
-  }, [initialKeyword]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
