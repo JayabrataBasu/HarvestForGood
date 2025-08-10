@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, RegisterView, MeView, password_reset_request, password_reset_confirm
-from .views import contact
+from .views import contact, CustomTokenObtainPairView
 from . import views
 
 router = DefaultRouter()
@@ -27,6 +27,9 @@ urlpatterns = [
     
     # Contact endpoint
     path('contact/', contact, name='contact'),
+
+    # Token endpoint
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 
     # Include the router URLs at the end to avoid conflicts
     path('', include(router.urls)),
