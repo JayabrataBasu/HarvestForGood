@@ -12,6 +12,9 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
     path('register/', RegisterView.as_view(), name='register'),
     
+    # Custom token endpoint
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    
     # Custom password reset endpoints - these handle the frontend requests
     path('password/reset/', password_reset_request, name='custom_password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/', password_reset_confirm, name='custom_password_reset_confirm'),
@@ -27,9 +30,6 @@ urlpatterns = [
     
     # Contact endpoint
     path('contact/', contact, name='contact'),
-
-    # Token endpoint
-    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 
     # Include the router URLs at the end to avoid conflicts
     path('', include(router.urls)),
