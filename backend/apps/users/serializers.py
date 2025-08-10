@@ -65,7 +65,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         password = attrs.get("password")
 
         if not login or not password:
-            raise serializers.ValidationError(_("Must include 'login' or 'email' and 'password'."))
+            raise serializers.ValidationError(_("Must include 'login', 'email', or 'username' and 'password'."))
 
         user = None
         # Try authenticating with username
@@ -86,6 +86,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError(_("User account is disabled."))
 
         # Call parent validate with the found user's username
+        # The parent serializer expects 'username' field.
         data = super().validate({'username': user.username, 'password': password})
         update_last_login(None, user)
         return data
