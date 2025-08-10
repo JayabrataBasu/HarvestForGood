@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>New Contact Form Submission</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        color: #222;
+        background: #f9f9f9;
+      }
+      .container {
+        background: #fff;
+        border-radius: 8px;
+        padding: 24px;
+        margin: 24px auto;
+        max-width: 600px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        font-size: 1.2rem;
+        color: #16a34a;
+        margin-bottom: 16px;
+      }
+      .label {
+        font-weight: bold;
+      }
+      .footer {
+        margin-top: 32px;
+        font-size: 0.9rem;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">New Contact Form Submission</div>
+      <p><span class="label">Name:</span> {{ name }}</p>
+      <p><span class="label">Email:</span> {{ email }}</p>
+      <p><span class="label">Message:</span></p>
+      <div
+        style="
+          background: #f3f3f3;
+          padding: 12px;
+          border-radius: 6px;
+          margin-bottom: 16px;
+        "
+      >
+        {{ message|linebreaksbr }}
+      </div>
+      <div class="footer">
+        &copy; {{ current_year|default:2025 }} Harvest For Good
+      </div>
+    </div>
+  </body>
+</html>
