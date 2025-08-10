@@ -4,6 +4,10 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueValidator
 from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import update_last_login
+from django.utils.translation import gettext_lazy as _
 
 class UserSerializer(serializers.ModelSerializer):
     isSuperuser = serializers.BooleanField(source='is_superuser', read_only=True)
@@ -47,3 +51,31 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = User.USERNAME_FIELD
+
+    def validate(self, attrs):
+        login = attrs.get("login") or attrs.get("username") or attrs.get("email")
+        password = attrs.get("password")
+
+        if not login or not password:
+            raise serializers.ValidationError("Must include 'login' and 'password'.")
+
+        user = None
+        # Try username
+        user = authenticate(username=login, password=password)
+        if not user:
+            # Try email
+            try:
+                user_obj = User.objects.get(email__iexact=login)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+
+        if not user:
+            raise serializers.ValidationError("No active account found with the given credentials")
+
+        data = super().validate({'username': user.username, 'password': password})
+        update_last_login(None, user)
+        return data

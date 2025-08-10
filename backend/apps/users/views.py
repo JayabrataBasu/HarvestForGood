@@ -24,6 +24,8 @@ from .utils.email import is_valid_email
 from .utils.validation import validate_contact_fields, validate_password_reset_fields
 from rest_framework.throttling import ScopedRateThrottle
 import logging
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
@@ -368,12 +370,6 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-        return Response(
-            {'error': 'User with this email does not exist.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception as e:
-        return Response(
-            {'error': f'Failed to send welcome email: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
