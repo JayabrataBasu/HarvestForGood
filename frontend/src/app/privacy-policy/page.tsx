@@ -110,12 +110,6 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Placeholder note */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-2">
-              Note: Content Placeholder
-            </h3>
-            <p className="text-green-700"></p>
-          </div>
         </div>
       </div>
     </div>
