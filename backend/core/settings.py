@@ -140,12 +140,12 @@ else:
     DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 # Authentication settings
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow login with username OR email
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Changed to optional for easier testing
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'  # Changed from ACCOUNT_LOGIN_METHODS
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 
 AUTH_USER_MODEL = 'users.User'
 
