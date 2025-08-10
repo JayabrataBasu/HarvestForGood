@@ -42,7 +42,12 @@ export default function ContactPage() {
       const data = await response.json();
       setSubmitStatus({
         success: response.ok,
-        message: data.message || "Message sent successfully!",
+        message:
+          data.message ||
+          data.error ||
+          (response.ok
+            ? "Message sent successfully!"
+            : "There was an error sending your message. Please try again."),
       });
       if (response.ok)
         setFormData({ name: "", email: "", subject: "", message: "" });
