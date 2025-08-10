@@ -31,7 +31,6 @@ export function isAuthenticated() {
  */
 export async function loginUser(username: string, password: string) {
   try {
-    // Add debugging
     debugApiConnection();
     console.log('Attempting login to:', `${API_BASE_URL}/token/`);
     
@@ -40,7 +39,7 @@ export async function loginUser(username: string, password: string) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ login: username, password }),
+      body: JSON.stringify({ username, password }),
     });
 
     console.log('Login response status:', response.status);
@@ -479,4 +478,5 @@ export async function getPaperById(paperId: string): Promise<ResearchPaper> {
   }
 }
 
+// Removed re-export from utils/api.ts because it is not a module
 // Removed re-export from utils/api.ts because it is not a module
