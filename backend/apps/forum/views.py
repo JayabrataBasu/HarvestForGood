@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticate
 import logging
 from rest_framework.throttling import ScopedRateThrottle
 from django.db import IntegrityError
+from rest_framework import serializers  # Add this import
 
 logger = logging.getLogger(__name__)
 

@@ -59,6 +59,67 @@ class UserViewSet(viewsets.ModelViewSet):
 
 #this is for contact us functionality
 
+# Make sure your contact view looks like this:
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def contact(request):
+    """
+    Handle contact form submissions
+    """
+    try:
+        # Validate and extract fields from request
+        validation_error = validate_contact_fields(request.data)
+        if validation_error:
+            return validation_error
+        
+        name = request.data.get('name')
+        email = request.data.get('email')
+        message = request.data.get('message')
+        
+        # Log the contact request (ensure sensitive data like message content is not logged in production)
+        logger = logging.getLogger(__name__)
+        logger.info(f"Contact request from {name} <{email}>: {message[:100]}")  # Log first 100 chars of message
+        
+        # Send email to site admins
+        mail_subject = 'New Contact Form Submission'
+        try:
+            message_html = render_to_string('users/contact_email.html', {
+                'name': name,
+                'email': email,
+                'message': message,
+                'current_year': 2025,
+            })
+            
+            email_obj = EmailMessage(
+                subject=mail_subject, 
+                body=message_html, 
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL]  # Send to site admin's email
+            )
+            email_obj.content_subtype = "html"
+            email_obj.send(fail_silently=False)
+            
+            logger.info(f"Contact email sent successfully to {settings.CONTACT_EMAIL}")
+            
+        except Exception as email_error:
+            logger.error(f"Error sending contact email: {str(email_error)}")
+            return Response(
+                {'error': 'Failed to send your message. Please try again later.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        return Response(
+            {'message': 'Your message has been sent successfully.'},
+            status=status.HTTP_200_OK
+        )
+        
+    except Exception as e:
+        logger.error(f"Contact form submission error: {str(e)}")
+        return Response(
+            {'error': 'An error occurred processing your request. Please try again later.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
 # Replace the entire password_reset_request function (around line 117)
 
 @api_view(['POST'])
@@ -307,4 +368,3 @@ def send_welcome_email(request):
             {'error': f'Failed to send welcome email: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-            

@@ -61,6 +61,7 @@ class ForumPost(SafeQueryMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     pinned = models.BooleanField(default=False)  # New pinned field
+    likes_count = models.IntegerField(default=0)  # Add this line
     
     # Guest user fields
     guest_name = models.CharField(max_length=100, null=True, blank=True)

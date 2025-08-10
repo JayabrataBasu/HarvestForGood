@@ -262,17 +262,25 @@ class ForumPostSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         tag_names = validated_data.pop('tag_names', [])
+        validated_data['likes_count'] = 0  # Ensure likes_count is always set
         try:
+            # Defensive: Ensure tag_names is a list of strings
+            if tag_names is None:
+                tag_names = []
+            if not isinstance(tag_names, list):
+                raise serializers.ValidationError("tag_names must be a list of strings")
             post = ForumPost.objects.create(**validated_data)
             tags = []
             for name in tag_names:
+                if not isinstance(name, str):
+                    raise serializers.ValidationError("Each tag name must be a string")
                 tag, _ = ForumTag.objects.get_or_create(name=name)
                 tags.append(tag)
             post.tags.set(tags)
             return post
         except Exception as e:
             logger.error(f"Error creating ForumPost: {str(e)}")
-            raise serializers.ValidationError("Failed to create forum post.")
+            raise serializers.ValidationError(f"Failed to create forum post: {str(e)}")
     
     def update(self, instance, validated_data):
         """Update post and handle tag changes"""
