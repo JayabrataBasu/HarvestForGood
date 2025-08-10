@@ -35,15 +35,15 @@
   <body>
     <div class="container">
       <div class="header">New Contact Form Submission</div>
-      <p><span class="label">Name:</span> {{ name }}</p>
-      <p><span class="label">Email:</span> {{ email }}</p>
-      <p><span class="label">Message:</span></p>
-      <div
-        style="
-          background: #f3f3f3;
-          padding: 12px;
-          border-radius: 6px;
-          margin-bottom: 16px;
+      <p><strong>Name:</strong> {{ name }}</p>
+      <p><strong>Email:</strong> {{ email }}</p>
+      <p><strong>Message:</strong></p>
+      <div>{{ message|linebreaksbr }}</div>
+      <hr />
+      <small>&copy; {{ current_year|default:2025 }} Harvest For Good</small>
+    </div>
+  </body>
+</html>
         "
       >
         {{ message|linebreaksbr }}

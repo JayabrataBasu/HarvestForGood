@@ -89,34 +89,43 @@ def contact(request):
                 'message': message,
                 'current_year': 2025,
             })
-            
+
+            # Use CONTACT_EMAIL from settings, fallback to DEFAULT_FROM_EMAIL if missing
+            contact_email = getattr(settings, 'CONTACT_EMAIL', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+            if not contact_email:
+                logger.error("CONTACT_EMAIL and DEFAULT_FROM_EMAIL are not set in settings.")
+                return Response(
+                    {'error': 'Contact email is not configured on the server.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
             email_obj = EmailMessage(
-                subject=mail_subject, 
-                body=message_html, 
+                subject=mail_subject,
+                body=message_html,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[settings.CONTACT_EMAIL]  # Send to site admin's email
+                to=[contact_email]
             )
             email_obj.content_subtype = "html"
             email_obj.send(fail_silently=False)
-            
-            logger.info(f"Contact email sent successfully to {settings.CONTACT_EMAIL}")
-            
+
+            logger.info(f"Contact email sent successfully to {contact_email}")
+
         except Exception as email_error:
             logger.error(f"Error sending contact email: {str(email_error)}")
             return Response(
-                {'error': 'Failed to send your message. Please try again later.'},
+                {'error': f'Failed to send your message: {str(email_error)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
         return Response(
             {'message': 'Your message has been sent successfully.'},
             status=status.HTTP_200_OK
         )
-        
+
     except Exception as e:
         logger.error(f"Contact form submission error: {str(e)}")
         return Response(
-            {'error': 'An error occurred processing your request. Please try again later.'},
+            {'error': f'An error occurred processing your request: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 

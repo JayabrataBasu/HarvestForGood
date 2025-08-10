@@ -469,3 +469,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Contact form recipient
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'harvestforgood01@gmail.com')
