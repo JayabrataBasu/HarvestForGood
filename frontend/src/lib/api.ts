@@ -40,7 +40,7 @@ export async function loginUser(username: string, password: string) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ login: username, password }),
     });
 
     console.log('Login response status:', response.status);
