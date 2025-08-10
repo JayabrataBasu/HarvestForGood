@@ -43,30 +43,38 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.create (
+        user = User.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
-            is_active=False  # Disabled - users are now active by default
+            is_active=True  # FIXED: Create users as active
         )
         user.set_password(validated_data['password'])
         user.save()
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = User.USERNAME_FIELD
+    username_field = 'login'  # Accept 'login' field
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add login field to accept either username or email
+        self.fields['login'] = serializers.CharField()
+        # Remove the default username field
+        del self.fields['username']
 
     def validate(self, attrs):
-        login = attrs.get("login") or attrs.get("username") or attrs.get("email")
+        login = attrs.get("login")
         password = attrs.get("password")
 
         if not login or not password:
-            raise serializers.ValidationError("Must include 'login' and 'password'.")
+            raise serializers.ValidationError(_("Must include 'login' and 'password'."))
 
         user = None
-        # Try username
+        # Try authenticating with username
         user = authenticate(username=login, password=password)
+        
         if not user:
-            # Try email
+            # Try authenticating with email
             try:
                 user_obj = User.objects.get(email__iexact=login)
                 user = authenticate(username=user_obj.username, password=password)
@@ -74,8 +82,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 pass
 
         if not user:
-            raise serializers.ValidationError("No active account found with the given credentials")
+            raise serializers.ValidationError(_("No active account found with the given credentials"))
 
+        if not user.is_active:
+            raise serializers.ValidationError(_("User account is disabled."))
+
+        # Call parent validate with the found user's username
         data = super().validate({'username': user.username, 'password': password})
         update_last_login(None, user)
         return data
