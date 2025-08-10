@@ -53,17 +53,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'login'  # Accept 'login' field
+    login = serializers.CharField(write_only=True)
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add login field to accept either username or email
-        self.fields['login'] = serializers.CharField()
-        # Remove the default username field
-        del self.fields['username']
+    class Meta:
+        fields = ('login', 'password')
 
     def validate(self, attrs):
-        login = attrs.get("login")
+        login = attrs.get("login") or attrs.get("username")
         password = attrs.get("password")
 
         if not login or not password:
