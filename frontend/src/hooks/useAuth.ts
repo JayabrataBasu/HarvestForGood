@@ -10,7 +10,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { login: string; password: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -56,10 +56,10 @@ export function useAuthState() {
     }
   };
 
-  const login = async (credentials: { email: string; password: string }) => {
+  const login = async (credentials: { login: string; password: string }) => {
     setIsLoading(true);
     try {
-      // Use email for login
+      // Send login field instead of email
       const response = await fetch('/api/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
