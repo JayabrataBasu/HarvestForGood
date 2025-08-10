@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, RegisterView, MeView, password_reset_request, password_reset_confirm
+from .views import contact
 from . import views
 
 router = DefaultRouter()
@@ -24,6 +25,9 @@ urlpatterns = [
          views.send_welcome_email,
          name='send-welcome-email'),
     
+    # Contact endpoint
+    path('contact/', contact, name='contact'),
+
     # Include the router URLs at the end to avoid conflicts
     path('', include(router.urls)),
 ]
