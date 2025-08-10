@@ -114,11 +114,7 @@ export default function PrivacyPolicyPage() {
             <h3 className="text-lg font-semibold text-green-800 mb-2">
               Note: Content Placeholder
             </h3>
-            <p className="text-green-700">
-              This is placeholder content. The actual privacy policy content
-              (approximately 3,300 characters) will be inserted here as
-              mentioned in the requirements.
-            </p>
+            <p className="text-green-700"></p>
           </div>
         </div>
       </div>
