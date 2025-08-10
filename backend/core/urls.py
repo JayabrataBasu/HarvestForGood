@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from apps.users.views import CustomTokenObtainPairView
 
 # Customize admin site
 admin.site.site_header = "Harvest For Good Administration"
@@ -44,13 +45,16 @@ def api_root(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', api_root, name='api-root'),
+    
+    # Custom token endpoint
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    
+    # Other API endpoints
     path('api/users/', include('apps.users.urls')),
     path('api/forums/', include('apps.forums.urls')),  # plural version
     path('api/forum/', include('apps.forum.urls')),   # singular version - add this line
     path('api/academic/', include('apps.academic.urls')),
     path('api/research/', include('apps.research.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),

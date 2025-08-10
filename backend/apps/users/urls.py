@@ -12,7 +12,7 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
     path('register/', RegisterView.as_view(), name='register'),
     
-    # Custom token endpoint
+    # Custom token endpoint - MUST be first
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     
     # Custom password reset endpoints - these handle the frontend requests
