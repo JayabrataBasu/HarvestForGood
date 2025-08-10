@@ -43,11 +43,8 @@ export function useAuthState() {
 
   const checkAuthStatus = async () => {
     try {
-      // Replace with your actual auth check API call
       const token = localStorage.getItem('authToken');
       if (token) {
-        // Validate token and get user data
-        // This is a placeholder - implement your actual auth verification
         const userData = await verifyToken(token);
         setUser(userData);
       }
@@ -62,19 +59,37 @@ export function useAuthState() {
   const login = async (credentials: { username: string; password: string }) => {
     setIsLoading(true);
     try {
-      // Replace with your actual login API call
-      const response = await fetch('/api/auth/login', {
+      // Use username for login
+      const response = await fetch('/api/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       });
-      
+
       if (response.ok) {
-        const { token, user: userData } = await response.json();
-        localStorage.setItem('authToken', token);
-        setUser(userData);
+        const { access, refresh } = await response.json();
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('refresh_token', refresh);
+
+        // Fetch user info after login
+        const userResponse = await fetch('/api/users/me/', {
+          headers: { 'Authorization': `Bearer ${access}` },
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser({
+            id: userData.id,
+            username: userData.username || '',
+            email: userData.email,
+            isSuperuser: userData.is_superuser || false,
+            isAuthenticated: true,
+          });
+        } else {
+          setUser(null);
+        }
       } else {
-        throw new Error('Login failed');
+        const err = await response.json();
+        throw new Error(err.detail || 'Login failed');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -99,8 +114,7 @@ export function useAuthState() {
 
 // Placeholder function - replace with your actual token verification
 async function verifyToken(token: string): Promise<User> {
-  // This should make an actual API call to verify the token
-  const response = await fetch('/api/auth/verify', {
+  const response = await fetch('/api/users/me/', {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -117,7 +131,8 @@ async function verifyToken(token: string): Promise<User> {
     id: userData.id || '1',
     username: userData.username || 'user',
     email: userData.email || 'user@example.com',
-    isSuperuser: userData.isSuperuser || false,
+    isSuperuser: userData.is_superuser || false,
     isAuthenticated: true,
   };
 }
+    

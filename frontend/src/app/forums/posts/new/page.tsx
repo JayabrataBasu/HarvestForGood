@@ -58,14 +58,17 @@ export default function NewPost() {
     try {
       let response;
 
+      // Remove trailing slash from API_BASE_URL if present
+      const apiBase = API_BASE_URL.replace(/\/$/, "");
+
       if (user) {
         // Logged-in user post creation
         const token = localStorage.getItem("access_token");
-        response = await fetch(`${API_BASE_URL}/forum/posts/`, {
+        response = await fetch(`${apiBase}/forum/posts/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             title,
@@ -75,7 +78,7 @@ export default function NewPost() {
         });
       } else if (guestInfo) {
         // Guest post creation
-        response = await fetch(`${API_BASE_URL}/forum/guest/posts/`, {
+        response = await fetch(`${apiBase}/forum/guest/posts/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -103,9 +106,26 @@ export default function NewPost() {
         let errorMessage = "Failed to create post. Please try again.";
         try {
           const errorData = await response.json();
-          errorMessage = errorData.detail || errorMessage;
-        } catch (e) {
-          console.error("Error parsing error response:", e);
+          // Show detailed backend errors if available
+          if (typeof errorData === "object" && errorData !== null) {
+            if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (errorData.title) {
+              errorMessage = `Title: ${errorData.title}`;
+            } else if (errorData.content) {
+              errorMessage = `Content: ${errorData.content}`;
+            } else if (errorData.non_field_errors) {
+              errorMessage = errorData.non_field_errors.join(", ");
+            } else {
+              errorMessage = JSON.stringify(errorData);
+            }
+          }
+        } catch {
+          // fallback to text
+          try {
+            const text = await response.text();
+            if (text) errorMessage = text;
+          } catch {}
         }
         setError(errorMessage);
       }
