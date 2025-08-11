@@ -118,12 +118,14 @@
         <span class="header-icon">🌱</span>
         New Contact Form Submission
       </div>
-      <div class="info-block"><span class="label">Name:</span> {{ name }}</div>
       <div class="info-block">
-        <span class="label">Email:</span> {{ email }}
+        <strong class="label">Name:</strong> {{ name }}
+      </div>
+      <div class="info-block">
+        <strong class="label">Email:</strong> {{ email }}
       </div>
       <div class="message-block">
-        <span class="label">Message:</span><br />
+        <strong class="label">Message:</strong><br />
         {{ message|linebreaksbr }}
       </div>
       <hr />
