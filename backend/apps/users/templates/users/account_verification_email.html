@@ -7,59 +7,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
-        background: #fff;
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
         color: #222;
         font-family: "Segoe UI", Arial, sans-serif;
         margin: 0;
         padding: 0;
       }
       .container {
-        max-width: 480px;
-        margin: 32px auto;
+        max-width: 500px;
+        margin: 48px auto;
         background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 16px rgba(76, 175, 80, 0.08);
-        padding: 32px 24px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(22, 163, 74, 0.13),
+          0 2px 8px rgba(34, 211, 238, 0.07);
+        padding: 40px 32px 32px 32px;
+        position: relative;
+        overflow: hidden;
       }
       .logo {
         display: block;
-        margin: 0 auto 24px auto;
-        width: 64px;
-        height: 64px;
+        margin: 0 auto 18px auto;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);
+        background: #f0fdf4;
+        padding: 8px;
       }
       .title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #222;
-        margin-bottom: 12px;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #16a34a;
+        margin-bottom: 10px;
         text-align: center;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .title-icon {
+        font-size: 1.7rem;
+        background: linear-gradient(135deg, #16a34a 60%, #22d3ee 100%);
+        color: #fff;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);
       }
       .subtitle {
-        font-size: 1.1rem;
+        font-size: 1.13rem;
         color: #444;
-        margin-bottom: 24px;
+        margin-bottom: 22px;
         text-align: center;
+        font-weight: 500;
       }
       .button {
         display: block;
         width: 100%;
-        background: #4caf50;
+        background: linear-gradient(90deg, #16a34a 60%, #22d3ee 100%);
         color: #fff !important;
         text-align: center;
         padding: 16px 0;
-        border-radius: 6px;
-        font-size: 1.1rem;
+        border-radius: 8px;
+        font-size: 1.13rem;
         font-weight: bold;
         text-decoration: none;
-        margin: 24px 0 12px 0;
+        margin: 28px 0 14px 0;
         letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.1);
+        transition: background 0.2s;
+      }
+      .button:hover {
+        background: linear-gradient(90deg, #22d3ee 60%, #16a34a 100%);
       }
       .content {
-        font-size: 1rem;
+        font-size: 1.04rem;
         color: #555;
-        line-height: 1.6;
-        margin: 16px 0;
+        line-height: 1.7;
+        margin: 18px 0;
         text-align: center;
+      }
+      .leaf {
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 90px;
+        opacity: 0.13;
+        z-index: 0;
+      }
+      .wave {
+        position: absolute;
+        bottom: -18px;
+        left: -18px;
+        width: 110px;
+        opacity: 0.1;
+        z-index: 0;
+      }
+      .footer {
+        margin-top: 32px;
+        color: #888;
+        font-size: 0.97rem;
+        text-align: center;
+        letter-spacing: 0.5px;
       }
       @media (max-width: 600px) {
         .container {
@@ -74,13 +127,25 @@
   </head>
   <body>
     <div class="container">
-      <!-- Logo SVG or image -->
+      <img
+        class="leaf"
+        src="https://img.icons8.com/ios-filled/100/16a34a/leaf.png"
+        alt="Leaf"
+      />
+      <img
+        class="wave"
+        src="https://img.icons8.com/ios-filled/100/22d3ee/wave.png"
+        alt="Wave"
+      />
       <img
         src="https://harvestforgood.vercel.app/logo.svg"
         alt="Harvest For Good Logo"
         class="logo"
       />
-      <div class="title">Welcome to Harvest For Good!</div>
+      <div class="title">
+        <span class="title-icon">🌱</span>
+        Welcome to Harvest For Good!
+      </div>
       <div class="subtitle">
         Thank you for joining our community!<br />
         Your account is ready to use.
@@ -96,14 +161,7 @@
       <div class="content">
         You can now log in and start making a difference in your community!
       </div>
-      <div
-        style="
-          margin-top: 32px;
-          color: #888;
-          font-size: 0.9rem;
-          text-align: center;
-        "
-      >
+      <div class="footer">
         &copy; {{ current_year|default:2025 }} Harvest For Good
       </div>
     </div>
