@@ -1,27 +1,28 @@
 # Harvest For Good
 
-## Hosting Guide: Step by Step Instructions
+Harvest For Good is a platform dedicated to advancing sustainable agriculture, food security, and climate resilience. Our mission is to bring together stakeholders from business, policy, and research to foster innovation and drive positive change in the agri-food ecosystem.
 
-This guide explains how to deploy the Harvest For Good project using Vercel for the frontend and Hostinger for the backend.
+## Pillars of Impact
 
-### 1. Preparing Your Project
+### 1. Business 📈
 
-#### Frontend Preparation
+- Support economic models that balance profit and sustainability
+- Promote environmental stewardship in agri-business
 
-1. Ensure your environment variables are properly configured
+### 2. Policy Making 📜
 
-   ```
-   # In frontend/.env.production
-   NEXT_PUBLIC_API_URL=https://your-backend-domain.com
-   ```
+- Enable effective governance and incentives
+- Shape regulatory frameworks for sustainable practices
 
-2. Test your frontend build locally
+### 3. Research 🧪🌿
 
-   ```bash
+- Advance knowledge on food security and climate resilience
+- Promote ecosystem health through innovation
+
    cd frontend
    npm run build
    npm start
-   ```
+   ```bash
 
 #### Backend Preparation
 
