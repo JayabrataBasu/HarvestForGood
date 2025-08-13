@@ -161,17 +161,6 @@ export default function Home() {
       <section className="py-12">
         <div className="container mx-auto px-4">
           <HomeResearchSection />
-
-          <div className="min-h-screen w-full bg-[#020617] relative">
-            {/* Emerald Radial Glow Background */}
-            <div
-              className="absolute inset-0 z-0"
-              style={{
-                backgroundImage: `radial-gradient(circle 500px at 50% 300px, rgba(16,185,129,0.35), transparent)`,
-              }}
-            />
-            {/* Your Content/Components */}
-          </div>
         </div>
       </section>
     </div>
