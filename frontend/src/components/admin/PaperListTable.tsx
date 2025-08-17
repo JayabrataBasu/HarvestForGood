@@ -374,6 +374,7 @@ export default function PaperListTable() {
               <button
                 onClick={() => setSearch("")}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                title="Clear search"
               >
                 <svg
                   className="w-5 h-5"
@@ -546,6 +547,7 @@ export default function PaperListTable() {
                           papers.length > 0
                         }
                         onChange={handleSelectAll}
+                        title="Select all papers"
                       />
                     </div>
                   </th>
@@ -627,6 +629,7 @@ export default function PaperListTable() {
                         onChange={(e) =>
                           handleSelectPaper(paper.id, e.target.checked)
                         }
+                        title={`Select paper titled "${paper.title}"`}
                       />
                     </td>
                     {columns.map((column) => (
@@ -651,6 +654,7 @@ export default function PaperListTable() {
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
+                title="Previous page"
                 className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
                   page === 1
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -662,6 +666,7 @@ export default function PaperListTable() {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
+                title="Next page"
                 className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
                   page === totalPages
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
