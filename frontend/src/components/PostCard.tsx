@@ -1,5 +1,6 @@
 import React from "react";
 import TestLikeButton from "./TestLikeButton";
+import ReactMarkdown from "react-markdown"; // <-- Add this import
 
 interface PostCardProps {
   post: {
@@ -24,6 +25,7 @@ function extractUrls(text: string): string[] {
 }
 
 // Utility to convert URLs in text to clickable links
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function linkify(text: string): React.ReactNode[] {
   const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
   const parts = [];
@@ -68,7 +70,10 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         </p>
       </div>
 
-      <p className="text-gray-700 mb-4 line-clamp-3">{linkify(post.content)}</p>
+      {/* Render content as Markdown */}
+      <div className="mb-4 text-gray-700 line-clamp-3 text-sm">
+        <ReactMarkdown>{post.content}</ReactMarkdown>
+      </div>
 
       {/* Latest comment preview */}
       {post.latest_comment_snippet && (

@@ -284,6 +284,8 @@ export default function ImportPapers() {
             type="file"
             accept=".json"
             onChange={handleFileChange}
+            title="Upload a JSON file containing research papers"
+            placeholder="Choose a JSON file"
             className="block w-full text-sm text-gray-500
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-md file:border-0
