@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
 import { useAuth } from "../../hooks/useAuth";
+import ReactMarkdown from "react-markdown";
 
 interface ForumPostProps {
   id: string;
@@ -25,6 +26,7 @@ function extractUrls(text: string): string[] {
   return Array.from(new Set(text.match(urlRegex) || []));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function linkify(text: string): React.ReactNode[] {
   const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
   const parts = [];
@@ -187,9 +189,9 @@ export default function ForumPost({
             )}
           </div>
 
-          <p className="text-[#4B4B3B] mb-4 leading-relaxed">
-            {linkify(truncatedContent)}
-          </p>
+          <div className="mb-4 text-[#4B4B3B] leading-relaxed">
+            <ReactMarkdown>{truncatedContent}</ReactMarkdown>
+          </div>
 
           {/* Latest comment preview */}
           {latestCommentSnippet && (

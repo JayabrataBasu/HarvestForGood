@@ -6,6 +6,7 @@ import { API_BASE_URL } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import GuestAuthModal, { GuestInfo } from "../../GuestAuthModal";
 import { useLike } from "@/hooks/useLike";
+import ReactMarkdown from "react-markdown";
 
 interface Author {
   id: number;
@@ -382,11 +383,7 @@ export default function ForumPostPage({
               </div>
 
               <div className="prose max-w-none mb-6">
-                {post.content.split("\n").map((paragraph, idx) => (
-                  <p key={idx} className="mb-4 text-gray-700">
-                    {paragraph}
-                  </p>
-                ))}
+                <ReactMarkdown>{post.content}</ReactMarkdown>
               </div>
 
               <div className="flex items-center space-x-6 border-t border-gray-100 pt-4">
@@ -491,6 +488,12 @@ export default function ForumPostPage({
             {(user || isGuestUser) && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-3">Leave a Comment</h3>
+                <div className="text-xs text-gray-500 mb-2">
+                  <span>
+                    <strong>Tip:</strong> You can use <code>**bold**</code> and{" "}
+                    <code>*italic*</code> Markdown formatting.
+                  </span>
+                </div>
                 <form onSubmit={handleCommentSubmit}>
                   <div className="mb-4">
                     <textarea
@@ -540,11 +543,7 @@ export default function ForumPostPage({
                       </div>
                     </div>
                     <div className="text-gray-700">
-                      {comment.content.split("\n").map((paragraph, idx) => (
-                        <p key={idx} className="mb-2 last:mb-0">
-                          {paragraph}
-                        </p>
-                      ))}
+                      <ReactMarkdown>{comment.content}</ReactMarkdown>
                     </div>
                   </div>
                 ))

@@ -2,6 +2,7 @@ import React from "react";
 import { useApi } from "../hooks/useApi";
 import { apiService } from "../services/apiService";
 import { ForumPost, PaginatedResponse } from "../types/api";
+import ReactMarkdown from "react-markdown";
 
 const ForumPostsList: React.FC = () => {
   const { data, loading, error, refetch } = useApi<
@@ -106,17 +107,20 @@ const ForumPostsList: React.FC = () => {
               <h3 style={{ margin: "0 0 8px 0", color: "#007bff" }}>
                 {post.title}
               </h3>
-              <p
+              <div
                 style={{
                   margin: "0 0 12px 0",
                   color: "#6c757d",
                   lineHeight: "1.5",
+                  wordBreak: "break-word",
                 }}
               >
-                {post.content.length > 200
-                  ? `${post.content.substring(0, 200)}...`
-                  : post.content}
-              </p>
+                <ReactMarkdown>
+                  {post.content.length > 200
+                    ? `${post.content.substring(0, 200)}...`
+                    : post.content}
+                </ReactMarkdown>
+              </div>
               <div
                 style={{
                   display: "flex",

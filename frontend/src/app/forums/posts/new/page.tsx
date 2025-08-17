@@ -205,6 +205,12 @@ export default function NewPost() {
                 className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
                 required
               ></textarea>
+              <div className="text-xs text-gray-500 mt-2">
+                <span>
+                  <strong>Tip:</strong> You can use <code>**bold**</code> and{" "}
+                  <code>*italic*</code> Markdown formatting.
+                </span>
+              </div>
             </div>
 
             <div>
