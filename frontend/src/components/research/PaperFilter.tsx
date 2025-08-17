@@ -137,6 +137,8 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
           <input
             type="text"
             placeholder="Search for keywords..."
+            title="Search for keywords"
+            aria-label="Search for keywords"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-2 pl-8 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
@@ -162,15 +164,17 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
       <div className="space-y-4">
         {/* Citation threshold filter */}
         <div>
-          <h3 className="font-medium mb-2">
+          <h3 id="min-citations-label" className="font-medium mb-2">
             Minimum Citations: {filters.minCitations}
           </h3>
           <input
             type="range"
-            min="0"
-            max="1000000"
+            min={0}
+            max={1000000}
             value={filters.minCitations}
             onChange={(e) => handleCitationChange(Number(e.target.value))}
+            aria-labelledby="min-citations-label"
+            title="Minimum number of citations"
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
@@ -315,6 +319,8 @@ const PaperFilter: React.FC<PaperFilterProps> = ({
                     <button
                       onClick={() => handleKeywordChange(keywordName)}
                       className="ml-1.5 text-blue-600 hover:text-blue-800"
+                      title={`Remove keyword ${keywordName}`}
+                      aria-label={`Remove keyword ${keywordName}`}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
