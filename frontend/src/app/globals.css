@@ -171,6 +171,7 @@ main {
 header {
   border-bottom: 1px solid rgba(58, 130, 56, 0.08);
   background-color: rgba(249, 252, 247, 0.98); /* Tinted light green instead of pure white */
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -704,6 +705,7 @@ footer::after {
 /* New styles for enhanced visual elements */
 .glass-card {
   background: rgba(249, 252, 247, 0.8); /* Tinted light green glass */
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: var(--shadow-md);
