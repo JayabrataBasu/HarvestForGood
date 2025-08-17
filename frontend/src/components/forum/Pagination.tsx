@@ -83,8 +83,11 @@ const Pagination: React.FC<PaginationProps> = ({
           </p>
 
           <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-700">Show:</label>
+            <label htmlFor="pageSize" className="text-sm text-gray-700">
+              Show:
+            </label>
             <select
+              id="pageSize"
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
               className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
