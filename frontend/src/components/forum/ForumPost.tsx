@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { FaThumbtack } from "react-icons/fa";
@@ -79,6 +79,7 @@ export default function ForumPost({
   } = useLike(id, 0, false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isSuperuser = user?.isSuperuser;
+  const [animate, setAnimate] = useState(false);
 
   const formattedDate = new Date(createdAt);
   const timeAgo = formatDistanceToNow(formattedDate, { addSuffix: true });
@@ -89,11 +90,13 @@ export default function ForumPost({
   const handleQuickLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
+    setAnimate(true);
     try {
       await handleLike();
     } catch (error) {
       console.error("Error liking post:", error);
+    } finally {
+      setTimeout(() => setAnimate(false), 600);
     }
   };
 
@@ -147,6 +150,37 @@ export default function ForumPost({
 
         .fade-in {
           animation: fadeIn 0.5s ease-out;
+        }
+
+        .heart-animate {
+          animation: miniHeartPop 0.3s ease-out;
+        }
+        .count-bounce {
+          animation: countBounce 0.4s ease-out;
+        }
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -14px;
+          transform: translateX(-50%);
+          font-size: 1.1rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
         }
       `}</style>
 
@@ -271,19 +305,26 @@ export default function ForumPost({
                   `}
                 >
                   <div className="relative flex items-center">
-                    {isLikeLoading ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span
-                        className={`text-base transition-transform duration-200 ${
-                          isLiked ? "scale-110" : "scale-100"
-                        }`}
-                      >
-                        {isLiked ? "❤️" : "🤍"}
-                      </span>
+                    <span
+                      className={`text-base transition-transform duration-200 ${
+                        isLiked && animate
+                          ? "scale-110 heart-animate"
+                          : "scale-100"
+                      }`}
+                    >
+                      {isLiked ? "❤️" : "🤍"}
+                    </span>
+                    {animate && isLiked && (
+                      <span className="emoji-burst">💖</span>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{likesCount}</span>
+                  <span
+                    className={`text-sm font-medium ${
+                      animate ? "count-bounce" : ""
+                    }`}
+                  >
+                    {likesCount}
+                  </span>
                 </button>
               ) : (
                 <div className="flex items-center space-x-1 px-3 py-1 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">

@@ -22,16 +22,13 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
   const handleClick = async () => {
     if (disabled || isAnimating) return;
-
-    console.log("LikeButton clicked");
     setIsAnimating(true);
-
     try {
       await onLike();
     } catch (error) {
       console.error("Failed to like:", error);
     } finally {
-      setTimeout(() => setIsAnimating(false), 800);
+      setTimeout(() => setIsAnimating(false), 600);
     }
   };
 
@@ -48,60 +45,107 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={disabled || isAnimating}
-      className={`
-        flex items-center gap-2 rounded-full transition-all duration-300 transform
-        hover:bg-red-50 hover:scale-110 active:scale-95 relative
-        ${buttonSizeClasses[size]}
-        ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-        ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-400"}
-        ${isAnimating ? "animate-bounce" : ""}
-      `}
-    >
-      <div className="relative">
-        <Heart
-          className={`
-            ${sizeClasses[size]} transition-all duration-300 transform
-            ${isLiked ? "fill-current scale-110" : "scale-100"}
-            ${isAnimating ? "animate-pulse rotate-12" : "rotate-0"}
-          `}
-        />
-
-        {isAnimating && (
-          <div
+    <>
+      <style jsx>{`
+        .heart-animate {
+          animation: heartPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .count-animate {
+          animation: countBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -16px;
+          transform: translateX(-50%);
+          font-size: 1.2rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes heartPop {
+          0% {
+            transform: scale(1);
+          }
+          40% {
+            transform: scale(1.3);
+          }
+          60% {
+            transform: scale(0.95);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        @keyframes countBounce {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.25);
+          }
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
+        }
+      `}</style>
+      <button
+        onClick={handleClick}
+        disabled={disabled || isAnimating}
+        className={`
+          flex items-center gap-2 rounded-full transition-all duration-300 transform
+          hover:bg-red-50 hover:scale-110 active:scale-95 relative
+          ${buttonSizeClasses[size]}
+          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+          ${isLiked ? "text-red-500" : "text-gray-500 hover:text-red-400"}
+        `}
+      >
+        <div className="relative">
+          <Heart
             className={`
-              absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-              ${isLiked ? "bg-red-200" : "bg-gray-200"} 
-              rounded-full opacity-30 animate-ping
+              ${sizeClasses[size]} transition-all duration-300 transform
+              ${
+                isLiked && isAnimating
+                  ? "fill-current scale-110 heart-animate"
+                  : isLiked
+                  ? "fill-current scale-110"
+                  : "scale-100"
+              }
             `}
-            style={{
-              width: size === "sm" ? "24px" : size === "md" ? "32px" : "40px",
-              height: size === "sm" ? "24px" : size === "md" ? "32px" : "40px",
-            }}
           />
-        )}
-      </div>
-
-      {showCount && (
-        <span
-          className={`
-            font-medium transition-all duration-300 transform
-            ${isAnimating ? "animate-pulse scale-125" : "scale-100"}
-            ${isLiked ? "text-red-600" : "text-gray-600"}
-          `}
-        >
-          {likesCount}
-        </span>
-      )}
-
-      {isAnimating && isLiked && (
-        <div className="absolute -top-2 -right-2 text-lg animate-bounce">
-          💖
+          {isAnimating && isLiked && <span className="emoji-burst">💖</span>}
         </div>
-      )}
-    </button>
+        {showCount && (
+          <span
+            className={`
+              font-medium transition-all duration-300 transform
+              ${isAnimating ? "count-animate" : ""}
+              ${isLiked ? "text-red-600" : "text-gray-600"}
+            `}
+          >
+            {likesCount}
+          </span>
+        )}
+        {isAnimating && isLiked && (
+          <div className="absolute -top-2 -right-2 text-lg animate-bounce">
+            {/* Optionally, keep this for extra burst */}
+            {/* 💖 */}
+          </div>
+        )}
+      </button>
+    </>
   );
 };
 

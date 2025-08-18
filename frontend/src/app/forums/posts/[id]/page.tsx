@@ -56,6 +56,7 @@ export default function ForumPostPage({
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   const {
     isLiked,
@@ -125,12 +126,13 @@ export default function ForumPostPage({
 
   const handleLikeClick = async () => {
     if (!postId || isLikeLoading) return;
-
+    setAnimate(true);
     try {
       await handleLike();
-      // No need to update local state - hook handles everything
     } catch (error) {
       console.error("Error liking post:", error);
+    } finally {
+      setTimeout(() => setAnimate(false), 600);
     }
   };
 
@@ -405,7 +407,7 @@ export default function ForumPostPage({
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className={`h-6 w-6 transition-all duration-300 transform ${
-                        isLikeLoading ? "animate-pulse" : ""
+                        isLiked && animate ? "heart-animate" : ""
                       }`}
                       fill={isLiked ? "currentColor" : "none"}
                       viewBox="0 0 24 24"
@@ -418,17 +420,13 @@ export default function ForumPostPage({
                         d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                       />
                     </svg>
-
-                    {isLikeLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      </div>
+                    {animate && isLiked && (
+                      <span className="emoji-burst">💖</span>
                     )}
                   </div>
-
                   <span
                     className={`transition-all duration-300 ${
-                      isLikeLoading ? "animate-pulse" : ""
+                      animate ? "count-bounce" : ""
                     }`}
                   >
                     {likesCount} likes
@@ -560,6 +558,61 @@ export default function ForumPostPage({
           mode="comment"
         />
       )}
+      <style jsx>{`
+        .heart-animate {
+          animation: heartPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .count-bounce {
+          animation: countBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -18px;
+          transform: translateX(-50%);
+          font-size: 1.2rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes heartPop {
+          0% {
+            transform: scale(1);
+          }
+          40% {
+            transform: scale(1.3);
+          }
+          60% {
+            transform: scale(0.95);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        @keyframes countBounce {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.25);
+          }
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
+        }
+      `}</style>
     </>
   );
 }
