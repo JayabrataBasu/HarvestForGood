@@ -5,6 +5,7 @@ import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
 import { useAuth } from "../../hooks/useAuth";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ForumPostProps {
   id: string;
@@ -56,6 +57,19 @@ function linkify(text: string): React.ReactNode[] {
   }
   return parts;
 }
+
+const markdownComponents = {
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a
+      {...props}
+      className="text-blue-600 underline break-all hover:text-blue-800 pointer-events-auto"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {props.children}
+    </a>
+  ),
+};
 
 export default function ForumPost({
   id,
@@ -216,8 +230,14 @@ export default function ForumPost({
             )}
           </div>
 
-          <div className="mb-4 text-[#4B4B3B] leading-relaxed">
-            <ReactMarkdown>{truncatedContent}</ReactMarkdown>
+          {/* Markdown content preview with linkify */}
+          <div className="prose prose-sm max-w-none mb-4 text-[#4B4B3B] leading-relaxed">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {truncatedContent}
+            </ReactMarkdown>
           </div>
 
           {/* Latest comment preview */}
