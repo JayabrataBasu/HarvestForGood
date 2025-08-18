@@ -65,66 +65,69 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
           0% {
             transform: scale(1);
           }
-          25% {
-            transform: scale(1.2);
+          30% {
+            transform: scale(1.25);
           }
           50% {
-            transform: scale(1.1);
+            transform: scale(0.92);
+          }
+          70% {
+            transform: scale(1.12);
+          }
+          85% {
+            transform: scale(0.98);
           }
           100% {
             transform: scale(1);
           }
         }
-
-        @keyframes floatHeart {
-          0% {
-            transform: translateY(0) scale(0.8);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(-30px) scale(1.2);
-            opacity: 0;
-          }
-        }
-
         @keyframes countBounce {
           0%,
           100% {
             transform: scale(1);
           }
-          50% {
-            transform: scale(1.3);
+          40% {
+            transform: scale(1.18);
+          }
+          60% {
+            transform: scale(0.96);
+          }
+          80% {
+            transform: scale(1.08);
           }
         }
-
         .heart-animate {
-          animation: heartBeat 0.6s ease-out;
+          animation: heartBeat 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .count-bounce {
-          animation: countBounce 0.4s ease-out;
+          animation: countBounce 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .emoji-burst {
           position: absolute;
           left: 50%;
           top: -14px;
           transform: translateX(-50%);
-          font-size: 1.1rem;
+          font-size: 1.2rem;
           opacity: 0.85;
           pointer-events: none;
-          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: burst 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
         @keyframes burst {
           0% {
             opacity: 0;
             transform: translateX(-50%) scale(0.7);
           }
+          30% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.15);
+          }
           60% {
             opacity: 1;
-            transform: translateX(-50%) scale(1.2);
+            transform: translateX(-50%) scale(1.25);
           }
           100% {
             opacity: 0;
-            transform: translateX(-50%) scale(1.4);
+            transform: translateX(-50%) scale(1.5);
           }
         }
 
