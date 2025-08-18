@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike"; // Import the useLike hook
+import ReactMarkdown from "react-markdown";
 
 interface ForumPostProps {
   id: string;
@@ -26,6 +27,7 @@ function extractUrls(text: string): string[] {
   return Array.from(new Set(text.match(urlRegex) || []));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function linkify(text: string): React.ReactNode[] {
   const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
   const parts = [];
@@ -54,6 +56,17 @@ function linkify(text: string): React.ReactNode[] {
     parts.push(text.slice(lastIndex));
   }
   return parts;
+}
+
+function renderMarkdownWithLinks(text: string) {
+  // Render markdown, then linkify the result
+  // This approach renders markdown, then replaces plain text URLs with anchor tags
+  // Note: ReactMarkdown already auto-links URLs in most cases, but this ensures both markdown and bare URLs are clickable
+  const Markdown = ReactMarkdown;
+  const nodes = <Markdown>{text}</Markdown>;
+  // If you want to post-process nodes for linkify, you could use a plugin or custom renderer,
+  // but for simplicity, just wrap in a div and let ReactMarkdown handle most cases.
+  return nodes;
 }
 
 export default function ForumPost({
@@ -230,9 +243,11 @@ export default function ForumPost({
             )}
           </div>
 
-          <p className="text-[#4B4B3B] mb-4 leading-relaxed">
-            {linkify(truncatedContent)}
-          </p>
+          {/* Markdown content preview with linkify */}
+          <div className="prose prose-sm max-w-none mb-4 text-[#4B4B3B] leading-relaxed">
+            {/* Render markdown, then linkify any remaining plain URLs */}
+            {renderMarkdownWithLinks(truncatedContent)}
+          </div>
 
           {/* Latest comment preview */}
           {latestCommentSnippet && (

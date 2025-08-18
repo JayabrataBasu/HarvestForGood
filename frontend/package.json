@@ -26,7 +26,8 @@
     "react-dom": "^18.2.0",
     "react-error-boundary": "^5.0.0",
     "react-icons": "^5.5.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
