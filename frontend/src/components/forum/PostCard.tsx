@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
+import ReactMarkdown from "react-markdown";
 
 interface Post {
   id: string;
@@ -56,6 +57,11 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const handlePin = () => {
     if (onPin) onPin(post.id, !post.pinned);
   };
+
+  const truncatedContent =
+    post.content.length > 250
+      ? post.content.slice(0, 250) + "..."
+      : post.content;
 
   return (
     <>
@@ -146,71 +152,20 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
         }`}
       >
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-          <div className="flex items-center text-gray-500 text-sm">
-            {/* Pin icon and label */}
-            {post.pinned && (
-              <span className="flex items-center mr-3 text-yellow-600 font-semibold">
-                <FaThumbtack className="mr-1" />
-                Pinned
-              </span>
-            )}
-            <span className="mr-4 flex items-center">
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                ></path>
-              </svg>
-              {post.comments_count || 0} comments
-            </span>
-
-            {user || isGuestUser ? (
-              <button
-                onClick={handleLikeClick}
-                disabled={isLikeLoading}
-                className={`
-                  like-button flex items-center relative transition-all duration-200 p-2 rounded-full
-                  ${isLikeLoading ? "cursor-not-allowed opacity-70" : ""}
-                  ${
-                    isLiked
-                      ? "text-red-500"
-                      : "text-gray-500 hover:text-red-500"
-                  }
-                `}
-              >
-                <div className="relative">
-                  <svg
-                    className={`w-4 h-4 mr-1 transition-all duration-300 ${
-                      isLiked && animate ? "heart-animate" : ""
-                    }`}
-                    fill={isLiked ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    ></path>
-                  </svg>
-                  {animate && isLiked && (
-                    <span className="emoji-burst">💖</span>
-                  )}
-                </div>
-                <span className={animate ? "count-bounce" : ""}>
-                  {likesCount} likes
+          <div className="flex-1 min-w-0">
+            {/* Markdown content preview */}
+            <div className="mb-2 text-base text-gray-800 break-words">
+              <ReactMarkdown>{truncatedContent}</ReactMarkdown>
+            </div>
+            <div className="flex items-center text-gray-500 text-sm">
+              {/* Pin icon and label */}
+              {post.pinned && (
+                <span className="flex items-center mr-3 text-yellow-600 font-semibold">
+                  <FaThumbtack className="mr-1" />
+                  Pinned
                 </span>
-              </button>
-            ) : (
-              <span className="flex items-center">
+              )}
+              <span className="mr-4 flex items-center">
                 <svg
                   className="w-4 h-4 mr-1"
                   fill="none"
@@ -221,12 +176,69 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
                   ></path>
                 </svg>
-                {likesCount} likes
+                {post.comments_count || 0} comments
               </span>
-            )}
+
+              {user || isGuestUser ? (
+                <button
+                  onClick={handleLikeClick}
+                  disabled={isLikeLoading}
+                  className={`
+                  like-button flex items-center relative transition-all duration-200 p-2 rounded-full
+                  ${isLikeLoading ? "cursor-not-allowed opacity-70" : ""}
+                  ${
+                    isLiked
+                      ? "text-red-500"
+                      : "text-gray-500 hover:text-red-500"
+                  }
+                `}
+                >
+                  <div className="relative">
+                    <svg
+                      className={`w-4 h-4 mr-1 transition-all duration-300 ${
+                        isLiked && animate ? "heart-animate" : ""
+                      }`}
+                      fill={isLiked ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      ></path>
+                    </svg>
+                    {animate && isLiked && (
+                      <span className="emoji-burst">💖</span>
+                    )}
+                  </div>
+                  <span className={animate ? "count-bounce" : ""}>
+                    {likesCount} likes
+                  </span>
+                </button>
+              ) : (
+                <span className="flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    ></path>
+                  </svg>
+                  {likesCount} likes
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {/* Pin/Unpin button for admin */}
