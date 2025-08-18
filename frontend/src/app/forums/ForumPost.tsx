@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +77,7 @@ export default function ForumPost({
     isLoading: isLikeLoading,
     handleLike,
   } = useLike(id, 0, false);
+  const [animate, setAnimate] = useState(false);
   const isSuperuser = user?.isSuperuser;
 
   const formattedDate = new Date(createdAt);
@@ -88,11 +89,13 @@ export default function ForumPost({
   const handleQuickLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
+    setAnimate(true);
     try {
       await handleLike();
     } catch (error) {
       console.error("Error liking post:", error);
+    } finally {
+      setTimeout(() => setAnimate(false), 600);
     }
   };
 
@@ -144,13 +147,32 @@ export default function ForumPost({
         .mini-heart-pop {
           animation: miniHeartPop 0.3s ease-out;
         }
-
-        .mini-float {
-          animation: miniFloat 0.6s ease-out forwards;
+        .count-bounce {
+          animation: countBounce 0.4s ease-out;
         }
-
-        .fade-in {
-          animation: fadeIn 0.5s ease-out;
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -14px;
+          transform: translateX(-50%);
+          font-size: 1.1rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
         }
       `}</style>
 
@@ -291,19 +313,22 @@ export default function ForumPost({
                 <div className="relative">
                   <span
                     className={`text-lg ${
-                      isLikeLoading ? "animate-pulse" : ""
+                      isLiked && animate ? "mini-heart-pop" : ""
                     }`}
                   >
                     {isLiked ? "❤️" : "🤍"}
                   </span>
-
-                  {isLikeLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
-                    </div>
+                  {animate && isLiked && (
+                    <span className="emoji-burst">💖</span>
                   )}
                 </div>
-                <span className="text-xs font-medium">{likesCount}</span>
+                <span
+                  className={`text-xs font-medium ${
+                    animate ? "count-bounce" : ""
+                  }`}
+                >
+                  {likesCount}
+                </span>
               </button>
 
               {/* Enhanced comments link */}

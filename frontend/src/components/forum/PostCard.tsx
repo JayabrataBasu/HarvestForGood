@@ -23,6 +23,7 @@ interface PostCardProps {
 const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
   const [isGuestUser, setIsGuestUser] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   const {
     isLiked,
@@ -38,13 +39,14 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
 
   const handleLikeClick = async () => {
     if (isLikeLoading) return;
-
+    setAnimate(true);
     try {
       await handleLike();
-      // Optional: Call parent function for any additional handling if needed
       onLike(post.id);
     } catch (error) {
       console.error("Error liking post:", error);
+    } finally {
+      setTimeout(() => setAnimate(false), 600);
     }
   };
 
@@ -98,13 +100,32 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
         .heart-animate {
           animation: heartBeat 0.6s ease-out;
         }
-
-        .float-heart {
-          animation: floatHeart 1s ease-out forwards;
-        }
-
         .count-bounce {
           animation: countBounce 0.4s ease-out;
+        }
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -14px;
+          transform: translateX(-50%);
+          font-size: 1.1rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
         }
 
         .like-button:hover {
@@ -164,7 +185,7 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
                 <div className="relative">
                   <svg
                     className={`w-4 h-4 mr-1 transition-all duration-300 ${
-                      isLiked ? "fill-current scale-110" : ""
+                      isLiked && animate ? "heart-animate" : ""
                     }`}
                     fill={isLiked ? "currentColor" : "none"}
                     stroke="currentColor"
@@ -177,13 +198,13 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
                       d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                     ></path>
                   </svg>
-
-                  {isLikeLoading && (
-                    <div className="absolute inset-0 rounded-full bg-red-200 opacity-50 animate-ping"></div>
+                  {animate && isLiked && (
+                    <span className="emoji-burst">💖</span>
                   )}
                 </div>
-
-                <span>{likesCount} likes</span>
+                <span className={animate ? "count-bounce" : ""}>
+                  {likesCount} likes
+                </span>
               </button>
             ) : (
               <span className="flex items-center">

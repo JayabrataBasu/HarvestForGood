@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLike } from "@/hooks/useLike";
 
 interface TestLikeButtonProps {
@@ -17,54 +17,110 @@ const TestLikeButton: React.FC<TestLikeButtonProps> = ({
     initialLikesCount,
     initialIsLiked
   );
+  const [animate, setAnimate] = useState(false);
 
   const handleClick = async () => {
+    if (isLoading) return;
+    setAnimate(true);
     try {
       await handleLike();
     } catch (error) {
       // Hook handles all error logging and state management
       console.error("Error handling like:", error);
+    } finally {
+      setTimeout(() => setAnimate(false), 600);
     }
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={isLoading}
-      className={`
-        flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform 
-        ${
-          isLoading
-            ? "cursor-not-allowed opacity-70"
-            : "hover:scale-105 active:scale-95"
+    <>
+      <style jsx>{`
+        .heart-animate {
+          animation: heartPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        ${
-          isLiked
-            ? "bg-red-100 text-red-600 border-2 border-red-300 hover:bg-red-200"
-            : "bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200"
+        .count-animate {
+          animation: countBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-      `}
-    >
-      <div className="relative">
-        <span
-          className={`text-lg transition-all duration-300 ${
-            isLoading ? "animate-pulse" : ""
-          }`}
-        >
-          {isLiked ? "❤️" : "🤍"}
+        @keyframes heartPop {
+          0% {
+            transform: scale(1);
+          }
+          40% {
+            transform: scale(1.3);
+          }
+          60% {
+            transform: scale(0.95);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        @keyframes countBounce {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.25);
+          }
+        }
+        .emoji-burst {
+          position: absolute;
+          left: 50%;
+          top: -18px;
+          transform: translateX(-50%);
+          font-size: 1.2rem;
+          opacity: 0.85;
+          pointer-events: none;
+          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes burst {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.2);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) scale(1.4);
+          }
+        }
+      `}</style>
+      <button
+        onClick={handleClick}
+        disabled={isLoading}
+        className={`
+          flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 transform
+          ${
+            isLoading
+              ? "cursor-not-allowed opacity-70"
+              : "hover:scale-105 active:scale-95"
+          }
+          ${
+            isLiked
+              ? "bg-red-100 text-red-600 border-2 border-red-300 hover:bg-red-200"
+              : "bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200"
+          }
+        `}
+      >
+        <div className="relative">
+          <span
+            className={`text-lg transition-all duration-300 ${
+              animate ? "heart-animate" : ""
+            }`}
+          >
+            {isLiked ? "❤️" : "🤍"}
+          </span>
+          {animate && isLiked && <span className="emoji-burst">💖</span>}
+        </div>
+        <span className={`font-medium ${animate ? "count-animate" : ""}`}>
+          {likesCount} {likesCount === 1 ? "like" : "likes"}
         </span>
-
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
-      </div>
-
-      <span className="font-medium">
-        {likesCount} {likesCount === 1 ? "like" : "likes"}
-      </span>
-    </button>
+      </button>
+    </>
   );
 };
 
