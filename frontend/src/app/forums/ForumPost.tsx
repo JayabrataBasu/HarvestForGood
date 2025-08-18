@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike"; // Import the useLike hook
 import ReactMarkdown from "react-markdown";
-
+//for the outercard this file exist
 interface ForumPostProps {
   id: string;
   title: string;
@@ -186,6 +186,41 @@ export default function ForumPost({
             opacity: 0;
             transform: translateX(-50%) scale(1.4);
           }
+        }
+        /* Farm-themed panel styles */
+        .modern-card {
+          background: linear-gradient(120deg, #f9fcf7 0%, #e9fbe5 100%);
+          border: 1.5px solid #d1fae5;
+          box-shadow: 0 4px 24px 0 rgba(160, 196, 157, 0.1),
+            0 1.5px 8px rgba(34, 197, 94, 0.07);
+          border-radius: 1.25rem;
+          position: relative;
+          overflow: hidden;
+        }
+        .modern-card::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 38px;
+          background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.45) 0%,
+            rgba(255, 255, 255, 0.12) 100%
+          );
+          pointer-events: none;
+          border-top-left-radius: 1.25rem;
+          border-top-right-radius: 1.25rem;
+          z-index: 1;
+          filter: blur(0.5px);
+        }
+        .modern-card.fade-in {
+          animation: fadeIn 0.5s ease;
+        }
+        .modern-card .p-6 {
+          position: relative;
+          z-index: 2;
         }
       `}</style>
 
