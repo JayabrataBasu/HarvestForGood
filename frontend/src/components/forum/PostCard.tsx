@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FaThumbtack } from "react-icons/fa";
 import { useLike } from "@/hooks/useLike";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Post {
   id: string;
@@ -20,6 +21,20 @@ interface PostCardProps {
   onLike: (postId: string) => void;
   onPin?: (postId: string, pin: boolean) => void; // Add this prop
 }
+
+// Custom link renderer for markdown
+const markdownComponents = {
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a
+      {...props}
+      className="text-blue-600 underline break-all hover:text-blue-800 pointer-events-auto"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {props.children}
+    </a>
+  ),
+};
 
 const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
   const { user } = useAuth();
@@ -153,9 +168,14 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
       >
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
           <div className="flex-1 min-w-0">
-            {/* Markdown content preview */}
+            {/* Markdown content preview with linkify */}
             <div className="prose prose-sm max-w-none mb-2 text-gray-800 break-words">
-              <ReactMarkdown>{truncatedContent}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {truncatedContent}
+              </ReactMarkdown>
             </div>
             <div className="flex items-center text-gray-500 text-sm">
               {/* Pin icon and label */}
