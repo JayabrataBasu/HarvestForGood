@@ -560,30 +560,36 @@ export default function ForumPostPage({
       )}
       <style jsx>{`
         .heart-animate {
-          animation: heartPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: heartPop 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .count-bounce {
-          animation: countBounce 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: countBounce 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .emoji-burst {
           position: absolute;
           left: 50%;
           top: -18px;
           transform: translateX(-50%);
-          font-size: 1.2rem;
+          font-size: 1.3rem;
           opacity: 0.85;
           pointer-events: none;
-          animation: burst 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: burst 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
         @keyframes heartPop {
           0% {
             transform: scale(1);
           }
-          40% {
-            transform: scale(1.3);
+          30% {
+            transform: scale(1.25);
           }
-          60% {
-            transform: scale(0.95);
+          50% {
+            transform: scale(0.92);
+          }
+          70% {
+            transform: scale(1.12);
+          }
+          85% {
+            transform: scale(0.98);
           }
           100% {
             transform: scale(1);
@@ -594,8 +600,14 @@ export default function ForumPostPage({
           100% {
             transform: scale(1);
           }
-          50% {
-            transform: scale(1.25);
+          40% {
+            transform: scale(1.18);
+          }
+          60% {
+            transform: scale(0.96);
+          }
+          80% {
+            transform: scale(1.08);
           }
         }
         @keyframes burst {
@@ -603,13 +615,17 @@ export default function ForumPostPage({
             opacity: 0;
             transform: translateX(-50%) scale(0.7);
           }
+          30% {
+            opacity: 1;
+            transform: translateX(-50%) scale(1.15);
+          }
           60% {
             opacity: 1;
-            transform: translateX(-50%) scale(1.2);
+            transform: translateX(-50%) scale(1.25);
           }
           100% {
             opacity: 0;
-            transform: translateX(-50%) scale(1.4);
+            transform: translateX(-50%) scale(1.5);
           }
         }
       `}</style>
