@@ -154,7 +154,7 @@ const PostCard = ({ post, onLike, onPin }: PostCardProps) => {
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
           <div className="flex-1 min-w-0">
             {/* Markdown content preview */}
-            <div className="mb-2 text-base text-gray-800 break-words">
+            <div className="prose prose-sm max-w-none mb-2 text-gray-800 break-words">
               <ReactMarkdown>{truncatedContent}</ReactMarkdown>
             </div>
             <div className="flex items-center text-gray-500 text-sm">
