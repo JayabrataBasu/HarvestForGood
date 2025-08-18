@@ -62,9 +62,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-2 sm:px-4 py-8">
       {/* Hero section */}
-      <section className="relative h-[300px] mb-16 rounded-2xl overflow-hidden bg-primary-dark">
+      <section className="relative h-[220px] sm:h-[300px] mb-10 sm:mb-16 rounded-2xl overflow-hidden bg-primary-dark">
         <div className="absolute inset-0">
           <Image
             src="/images/contact-hero.jpg"
@@ -91,10 +91,177 @@ export default function ContactPage() {
       </section>
 
       {/* Contact content */}
-      <div className="flex flex-col lg:flex-row gap-12 mb-20">
+      <div className="flex flex-col-reverse lg:flex-row gap-8 sm:gap-12 mb-16 sm:mb-20">
+        {/* Contact form */}
+        <div className="w-full lg:w-2/3">
+          <div className="bg-white p-4 sm:p-8 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300">
+            <h2 className="text-2xl font-bold text-primary-dark mb-6">
+              Send Us a Message
+            </h2>
+            {submitStatus.message && (
+              <div
+                className={`mb-6 p-4 rounded-lg ${
+                  submitStatus.success
+                    ? "bg-green-50 text-green-700 border border-green-100"
+                    : "bg-red-50 text-red-700 border border-red-100"
+                }`}
+              >
+                {submitStatus.message}
+              </div>
+            )}
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Your Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="mb-6">
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <div className="mb-6">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={5}
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
+                ></textarea>
+              </div>
+              <div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full md:w-auto flex justify-center items-center px-8 py-3 border border-transparent rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
+                    isSubmitting ? "opacity-75 cursor-wait" : ""
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="mt-8 sm:mt-10">
+            <h3 className="text-xl font-bold text-primary-dark mb-4">
+              Frequently Asked Questions
+            </h3>
+            <div className="space-y-4">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  How can I contribute to the research repository?
+                </h4>
+                <p className="text-gray-600">
+                  You can submit your research papers or articles through our
+                  contact form. Our team will review your submission and get
+                  back to you.
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Are you open to research partnerships?
+                </h4>
+                <p className="text-gray-600">
+                  Yes, we welcome research partnerships with universities, NGOs,
+                  and other organizations focused on sustainable agriculture.
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  How often is new research added to the repository?
+                </h4>
+                <p className="text-gray-600">
+                  We update our repository regularly as new research becomes
+                  available. Check back frequently or subscribe to our
+                  newsletter for updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Contact info */}
-        <div className="lg:w-1/3">
-          <div className="bg-white p-8 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300">
+        <div className="w-full lg:w-1/3 mb-8 lg:mb-0">
+          <div className="bg-white p-4 sm:p-8 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300">
             <h2 className="text-2xl font-bold text-primary-dark mb-6">
               Contact Information
             </h2>
@@ -224,7 +391,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="mt-10 p-6 bg-primary/5 rounded-lg">
+            <div className="mt-8 p-4 sm:p-6 bg-primary/5 rounded-lg">
               <h3 className="font-bold text-lg text-primary-dark mb-2">
                 Research Collaboration
               </h3>
@@ -252,173 +419,6 @@ export default function ContactPage() {
                   />
                 </svg>
               </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact form */}
-        <div className="lg:w-2/3">
-          <div className="bg-white p-8 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300">
-            <h2 className="text-2xl font-bold text-primary-dark mb-6">
-              Send Us a Message
-            </h2>
-            {submitStatus.message && (
-              <div
-                className={`mb-6 p-4 rounded-lg ${
-                  submitStatus.success
-                    ? "bg-green-50 text-green-700 border border-green-100"
-                    : "bg-red-50 text-red-700 border border-red-100"
-                }`}
-              >
-                {submitStatus.message}
-              </div>
-            )}
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Your Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
-                  />
-                </div>
-              </div>
-              <div className="mb-6">
-                <label
-                  htmlFor="subject"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div className="mb-6">
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary"
-                ></textarea>
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full md:w-auto flex justify-center items-center px-8 py-3 border border-transparent rounded-lg shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors ${
-                    isSubmitting ? "opacity-75 cursor-wait" : ""
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Message"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* FAQ Section */}
-          <div className="mt-10">
-            <h3 className="text-xl font-bold text-primary-dark mb-4">
-              Frequently Asked Questions
-            </h3>
-            <div className="space-y-4">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  How can I contribute to the research repository?
-                </h4>
-                <p className="text-gray-600">
-                  You can submit your research papers or articles through our
-                  contact form. Our team will review your submission and get
-                  back to you.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Are you open to research partnerships?
-                </h4>
-                <p className="text-gray-600">
-                  Yes, we welcome research partnerships with universities, NGOs,
-                  and other organizations focused on sustainable agriculture.
-                </p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  How often is new research added to the repository?
-                </h4>
-                <p className="text-gray-600">
-                  We update our repository regularly as new research becomes
-                  available. Check back frequently or subscribe to our
-                  newsletter for updates.
-                </p>
-              </div>
             </div>
           </div>
         </div>
