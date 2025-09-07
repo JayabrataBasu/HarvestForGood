@@ -367,7 +367,7 @@ if IS_RAILWAY or not DEBUG:
     CORS_ALLOW_ALL_ORIGINS = False
     CORS_ALLOWED_ORIGINS = [
         'https://harvestforgood.vercel.app',
-        'https://harvestforgood.com',
+        'https://harvestforgood.org',
         #'https://www.harvestforgood.com',
         # Add more domains if needed
     ]
@@ -408,8 +408,8 @@ if IS_RAILWAY or not DEBUG:
     # CSRF settings for production
     CSRF_TRUSTED_ORIGINS = [
         'https://harvestforgood.vercel.app',
-        'https://harvestforgood.com', 
-        'https://www.harvestforgood.com',
+        'https://harvestforgood.org',
+        'https://www.harvestforgood.org',
         'https://harvestforgood-production.up.railway.app',
     ]
 else:
