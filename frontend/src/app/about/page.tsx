@@ -32,6 +32,15 @@ const teamMembers = [
     bio: "Focuses on climate resilience and policy in sustainable agriculture. Drives data-driven research.",
     email: "diya.yang@yorku.ca",
   },
+  {
+    id: 4,
+    name: "Jayabrata Basu",
+    role: "Developer and Maintainer",
+    affiliation: "Student",
+    image: "/team/jayabrata.jpg",
+    bio: "Software developer with of the website.",
+    email: "jayabratabasu@gmail.com",
+  },
 ];
 
 // Modal for team member details
