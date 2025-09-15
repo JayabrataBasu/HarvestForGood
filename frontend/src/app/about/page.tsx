@@ -38,7 +38,7 @@ const teamMembers = [
     role: "Developer and Maintainer",
     affiliation: "Student",
     image: "/team/jayabrata.jpg",
-    bio: "Software developer with of the website.",
+    bio: "Software developer of the website.",
     email: "jayabratabasu@gmail.com",
   },
 ];
@@ -79,7 +79,7 @@ function TeamModal({
             {member.name}
           </h3>
           <p className="text-green-600 mb-2 font-medium">{member.role}</p>
-          <p className="text-gray-700 mb-4 text-center leading-relaxed">
+          <p className="text-gray-700 mb-4 text-center leading-relaxed text-justify">
             {member.bio}
           </p>
           <div className="flex gap-4 mb-4">
@@ -294,7 +294,7 @@ export default function AboutPage() {
                   <p className="text-sm text-teal-700 mb-3 font-medium italic">
                     {member.role}
                   </p>
-                  <p className="text-gray-700 mb-4 leading-relaxed flex-grow">
+                  <p className="text-gray-700 mb-4 leading-relaxed flex-grow text-justify">
                     {member.bio}
                   </p>
                   <button
