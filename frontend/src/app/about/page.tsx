@@ -29,7 +29,7 @@ const teamMembers = [
     role: "PhD Candidate at Schulich School of Business - York University",
     affiliation: "York University",
     image: "/team/diya.jpg",
-    bio: "Focuses on climate resilience and policy in sustainable agriculture. Drives data-driven research.",
+    bio: "Diya Yang is a PhD candidate at the Schulich School of Business, York University. Her research looks at how businesses that combine profit goals with social or public missions—so-called “hybrid firms”—are governed. She focuses on how ownership, boards, and partnerships shape whether these firms succeed at balancing financial returns with social impact. ",
     email: "diya.yang@yorku.ca",
   },
   {
