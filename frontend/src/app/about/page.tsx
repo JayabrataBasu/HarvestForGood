@@ -12,7 +12,7 @@ const teamMembers = [
     affiliation: "York University",
     image: "/team/preet.jpg",
     bio: "Expert in international business strategy and sustainable agriculture. Leads research on global agri-food systems.",
-    email: "preet.aulakh@yorku.ca",
+    email: "paulakh@schulich.yorku.ca",
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ const teamMembers = [
     affiliation: "York University",
     image: "/team/parin.jpg",
     bio: "Researches sustainable business models and community-driven agriculture. Passionate about food security.",
-    email: "parin.shah@yorku.ca",
+    email: "paringshah@gmail.com",
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const teamMembers = [
     affiliation: "York University",
     image: "/team/diya.jpg",
     bio: "Diya Yang is a PhD candidate at the Schulich School of Business, York University. Her research looks at how businesses that combine profit goals with social or public missions—so-called “hybrid firms”—are governed. She focuses on how ownership, boards, and partnerships shape whether these firms succeed at balancing financial returns with social impact. ",
-    email: "diya.yang@yorku.ca",
+    email: "diyayang@schulich.yorku.ca",
   },
   {
     id: 4,
