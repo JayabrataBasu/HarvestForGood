@@ -279,7 +279,7 @@ export default function CategoryPage({ params }: Props) {
       className="min-h-screen relative overflow-hidden"
       style={{
         background:
-          "linear-gradient(to bottom, #F8F9F1, #E2F0CB, #B5D99C, #A3C4A8, #93B48B, #AC8F6F, #816953)",
+          "linear-gradient(to bottom, #F5F5F4, #FFF9DB, #E2F0CB, #B7E4C7, #95D5B2, #74C69D, #40916C)",
       }}
     >
       {/* Farm-inspired blur orbs */}
