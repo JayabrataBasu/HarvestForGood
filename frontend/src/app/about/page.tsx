@@ -17,10 +17,10 @@ const teamMembers = [
   {
     id: 2,
     name: "Parin Shah",
-    role: "Student at Schulich School of Business - York University",
-    affiliation: "York University",
+    role: "JD candidate at the University of Toronto Faculty of Law - University of Toronto",
+    affiliation: "University of Toronto",
     image: "/team/parin.jpg",
-    bio: "Researches sustainable business models and community-driven agriculture. Passionate about food security.",
+    bio: "Parin Shah is a JD candidate at the University of Toronto Faculty of Law and a graduate of the BBA program at the Schulich School of Business. Passionate about creating impact, Parin engages with corporate governance through the provincial legal system and is deeply interested in community-driven agriculture.",
     email: "paringshah@gmail.com",
   },
   {
@@ -38,7 +38,7 @@ const teamMembers = [
     role: "Developer and Maintainer",
     affiliation: "Student",
     image: "/team/jayabrata.jpg",
-    bio: "Software developer of the website.",
+    bio: "Software developer and maintainer of the website.",
     email: "jayabratabasu@gmail.com",
   },
 ];
