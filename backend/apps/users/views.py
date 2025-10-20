@@ -16,6 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 import os
 from django.core.mail import send_mail
+from apps.utils.email_service import send_contact_form_email, send_password_reset_email, send_welcome_email
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -37,20 +38,14 @@ class RegisterView(generics.CreateAPIView):
         return user
 
     def send_verification_email(self, user):
+        """Send welcome email using Resend HTTP API"""
         try:
-            current_site = get_current_site(self.request)
-            mail_subject = 'Welcome to Harvest For Good!'
-            # Use the welcome message template (no verification link)
-            message = render_to_string('users/account_verification_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'current_year': 2025,
-            })
-            email = EmailMessage(mail_subject, message, to=[user.email])
-            email.content_subtype = "html"
-            email.send()
-        except Exception:
-            pass
+            send_welcome_email(email=user.email, username=user.username)
+        except Exception as e:
+            # Log but don't fail registration if email fails
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send welcome email to {user.email}: {e}")
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -82,35 +77,10 @@ def contact(request):
         logger = logging.getLogger(__name__)
         logger.info(f"Contact request from {name} <{email}>: {message[:100]}")  # Log first 100 chars of message
         
-        # Send email to site admins
-        mail_subject = 'New Contact Form Submission'
+        # Send email to site admins using Resend HTTP API
         try:
-            message_html = render_to_string('users/contact_email.html', {
-                'name': name,
-                'email': email,
-                'message': message,
-                'current_year': 2025,
-            })
-
-            # Use CONTACT_EMAIL from settings, fallback to DEFAULT_FROM_EMAIL if missing
-            contact_email = getattr(settings, 'CONTACT_EMAIL', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', None)
-            if not contact_email:
-                logger.error("CONTACT_EMAIL and DEFAULT_FROM_EMAIL are not set in settings.")
-                return Response(
-                    {'error': 'Contact email is not configured on the server.'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-            email_obj = EmailMessage(
-                subject=mail_subject,
-                body=message_html,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[contact_email]
-            )
-            email_obj.content_subtype = "html"
-            email_obj.send(fail_silently=False)
-
-            logger.info(f"Contact email sent successfully to {contact_email}")
+            send_contact_form_email(name=name, email=email, message=message)
+            logger.info(f"Contact email sent successfully via Resend")
 
         except Exception as email_error:
             logger.error(f"Error sending contact email: {str(email_error)}")
@@ -157,37 +127,16 @@ def password_reset_request(request):
             token = default_token_generator.make_token(user)
             
             # Get FRONTEND_URL from settings
-            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://harvestforgood.vercel.app')
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://harvestforgood.org')
             reset_link = f"{frontend_url}/reset-password?uid={uid}&token={token}"
             
             # Log for debugging (remove in production)
             logger.info(f"Generated reset link: {reset_link}")
             
-            mail_subject = 'Password Reset Request - Harvest For Good'
-            
-            # Render email template
+            # Send password reset email using Resend HTTP API
             try:
-                message_html = render_to_string('users/password_reset_email.html', {
-                    'user': user,
-                    'reset_link': reset_link,
-                    'current_year': 2025,
-                })
-                
-                email_obj = EmailMessage(
-                    subject=mail_subject, 
-                    body=message_html, 
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[email]
-                )
-                email_obj.content_subtype = "html"
-                
-                # Send email with proper error handling
-                send_result = email_obj.send(fail_silently=False)
-                
-                if send_result == 1:
-                    logger.info(f"Password reset email sent successfully to {email}")
-                else:
-                    logger.error(f"Email failed to send to {email} - send_result: {send_result}")
+                send_password_reset_email(email=email, reset_link=reset_link)
+                logger.info(f"Password reset email sent successfully to {email} via Resend")
                 
             except Exception as email_error:
                 logger.error(f"Email sending error for {email}: {str(email_error)}")
