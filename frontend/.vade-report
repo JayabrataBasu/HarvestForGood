@@ -1,0 +1,42 @@
+## React Flight / Next.js RCE Advisory Assessment
+
+### Vulnerability Analysis
+This project was assessed for the React Flight / Next.js RCE advisory (CVE details regarding deserialization vulnerabilities in certain React versions and Flight packages).
+
+### Vulnerability Detection Results
+
+**Project Status: ALREADY PATCHED ✅**
+
+The HarvestForGood project is **NOT vulnerable** and requires **NO CHANGES**.
+
+#### Package Analysis:
+
+1. **Next.js Detection:**
+   - ✅ Next.js is used: `next@15.5.7`
+   - ✅ Version is patched: 15.5.7 is the correct patched version for Next.js 15.5.x according to the advisory
+   - No upgrade needed
+
+2. **React Flight / React Server Components Detection:**
+   - ✅ No vulnerable packages found
+   - Project does not use:
+     - `react-server-dom-webpack`
+     - `react-server-dom-parcel`
+     - `react-server-dom-turbopack`
+
+3. **React Versions:**
+   - ✅ `react@18.2.0` - Not affected (vulnerability is in React 19.0.0-19.2.0)
+   - ✅ `react-dom@18.2.0` - Not affected
+
+#### Conclusion:
+The project uses the **patched version of Next.js (15.5.7)** and does not depend on any vulnerable React Flight packages. The React version (18.2.0) is also unaffected by the advisory.
+
+### Changes Made
+**None required.** No modifications were necessary to package.json, lockfiles, or any source code.
+
+### Build Verification
+- ✅ Next.js build completed successfully
+- ✅ Linter check passed (one minor warning about unused eslint-disable directive)
+- ✅ No vulnerabilities detected in dependency tree
+
+### Summary
+The HarvestForGood project is already compliant with the React Flight / Next.js RCE advisory. All vulnerable versions have been avoided through proper dependency management.
