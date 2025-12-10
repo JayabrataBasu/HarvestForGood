@@ -38,7 +38,7 @@ const teamMembers = [
     role: "Developer and Maintainer",
     affiliation: "Student",
     image: "/team/jayabrata.jpg",
-    bio: "Software developer and maintainer of the website.",
+    bio: "Jayabrata Basu is a computer science student and the developer and maintainer of this platform. He is passionate about leveraging technology to create tools and resources that support sustainable agriculture and research dissemination.",
     email: "jayabratabasu@gmail.com",
   },
 ];
