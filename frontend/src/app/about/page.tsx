@@ -1,17 +1,34 @@
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 
 // Remove LinkedIn, research areas, and publications for demo
-const teamMembers = [
+type TeamMemberLink = {
+  label: string;
+  href: string;
+};
+
+type TeamMember = {
+  id: number;
+  name: string;
+  role: string;
+  affiliation: string;
+  image: string;
+  bio: string;
+  email: string;
+  links?: TeamMemberLink[];
+};
+
+const teamMembers: TeamMember[] = [
   {
     id: 1,
     name: "Preet S. Aulakh",
     role: "Professor of Strategy and International Business; Pierre Lassonde Chair in International Business",
     affiliation: "York University",
     image: "/team/preet.jpg",
-    bio: "Expert in international business strategy and sustainable agriculture. Leads research on global agri-food systems.",
+    bio: "Preet Aulakh’s research focuses on understanding the challenges and opportunities in improving the economic well-being of marginal farmers in the Global South. He takes a two-pronged approach. One theme examines the historical and contemporary challenges of institutionalising the property rights of peasant cultivators. The second probes the interrelated aspects of crop diversification and marketing channel coordination in pursuing sustainable agriculture for small farmers.",
     email: "paulakh@schulich.yorku.ca",
     links: [
       {
@@ -62,10 +79,9 @@ function TeamModal({
   member,
   onClose,
 }: {
-  member: (typeof teamMembers)[0];
+  member: TeamMember;
   onClose: () => void;
 }) {
-  if (!member) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-fade-in">
@@ -93,7 +109,7 @@ function TeamModal({
             {member.name}
           </h3>
           <p className="text-green-600 mb-2 font-medium">{member.role}</p>
-          <p className="text-gray-700 mb-4 text-center leading-relaxed text-justify">
+          <p className="text-gray-700 mb-4 leading-relaxed text-justify">
             {member.bio}
           </p>
           <div className="flex gap-4 mb-4">
@@ -107,6 +123,34 @@ function TeamModal({
               <span>Email</span>
             </a>
           </div>
+
+          {member.links && member.links.length > 0 && (
+            <div className="flex flex-col gap-2 w-full">
+              <h4 className="text-gray-600 font-semibold">Links</h4>
+              <div className="flex flex-col gap-2 mt-1 w-full">
+                {member.links.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-left bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      className="flex-shrink-0"
+                    >
+                      <path d="M10.5 3a.5.5 0 010 1H6.707l6.147 6.146a.5.5 0 01-.708.708L6 4.707V8.5a.5.5 0 01-1 0v-5A.5.5 0 015 3h5.5z" />
+                    </svg>
+                    <span>{l.label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -114,9 +158,7 @@ function TeamModal({
 }
 
 export default function AboutPage() {
-  const [modalMember, setModalMember] = useState<
-    (typeof teamMembers)[0] | null
-  >(null);
+  const [modalMember, setModalMember] = useState<TeamMember | null>(null);
 
   return (
     <div

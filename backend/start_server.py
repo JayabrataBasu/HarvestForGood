@@ -7,7 +7,7 @@ import psutil
 
 def kill_process_on_port(port):
     """Kill any process using the specified port"""
-    for proc in psutil.process_iter(['pid', 'name', 'connections']):
+    for proc in psutil.process_iter(['pid', 'name']):
         try:
             for conn in proc.connections():
                 if conn.laddr.port == port:
