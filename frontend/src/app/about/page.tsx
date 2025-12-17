@@ -13,6 +13,20 @@ const teamMembers = [
     image: "/team/preet.jpg",
     bio: "Expert in international business strategy and sustainable agriculture. Leads research on global agri-food systems.",
     email: "paulakh@schulich.yorku.ca",
+    links: [
+      {
+        label: "University profile",
+        href: "https://schulich.yorku.ca/faculty/preet-s-aulakh/",
+      },
+      {
+        label: "Google Scholar",
+        href: "https://scholar.google.com/citations?user=LUNnDj8AAAAJ&hl=en",
+      },
+      {
+        label: "EMPIRE AND THE PEASANT PROPRIETOR",
+        href: "https://academic.oup.com/book/60796",
+      },
+    ],
   },
   {
     id: 2,
