@@ -1,0 +1,19 @@
+
+# robots.txt for HarvestForGood
+# Disallow sensitive or non-public paths to all crawlers.
+User-agent: *
+Disallow: /admin/
+Disallow: /backend/
+Disallow: /core/
+Disallow: /config/
+Disallow: /static/
+Disallow: /templates/
+Disallow: /sent_emails/
+Disallow: /testing/
+Disallow: /manage.py
+Disallow: /settings.py
+Disallow: /.env
+Allow: /
+
+# Production sitemap
+Sitemap: https://www.harvestforgood.org/sitemap.xml
