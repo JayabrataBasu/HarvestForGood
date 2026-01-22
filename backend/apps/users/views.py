@@ -24,6 +24,7 @@ from django.conf import settings
 from .utils.email import is_valid_email
 from .utils.validation import validate_contact_fields, validate_password_reset_fields
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.decorators import throttle_classes
 import logging
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
@@ -59,6 +60,7 @@ class UserViewSet(viewsets.ModelViewSet):
 # Make sure your contact view looks like this:
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
 def contact(request):
     """
     Handle contact form submissions
@@ -101,10 +103,14 @@ def contact(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+# Apply throttle scope for DRF scoped throttling
+contact.throttle_scope = 'contact'
+
 # Replace the entire password_reset_request function (around line 117)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([ScopedRateThrottle])
 def password_reset_request(request):
     """Custom password reset request handler with proper error handling"""
     import logging
@@ -167,6 +173,9 @@ def password_reset_request(request):
             {'error': 'An error occurred processing your request. Please try again later.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+# Apply throttle scope for DRF scoped throttling
+password_reset_request.throttle_scope = 'password_reset'
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

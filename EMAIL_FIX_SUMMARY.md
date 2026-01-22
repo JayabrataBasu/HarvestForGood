@@ -20,7 +20,7 @@ Go to Railway Dashboard → Your Backend Service → Variables and update these:
 ### Required Changes:
 ```
 # Resend API Configuration
-RESEND_API_KEY=RESEND_API_KEY_REDACTED
+RESEND_API_KEY=YOUR_RESEND_API_KEY
 DEFAULT_FROM_EMAIL=noreply@harvestforgood.org
 ADMIN_EMAIL=contact@harvestforgood.org
 

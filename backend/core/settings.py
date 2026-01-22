@@ -116,28 +116,33 @@ SITE_ID = 1
 
 
 # Email settings
-# Email settings - Update to use Gmail SMTP for reliable delivery
-if IS_RAILWAY or not DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-    
-    # Add timeout settings for better reliability
-    EMAIL_TIMEOUT = 30
-    EMAIL_USE_SSL = False  # We're using TLS instead
+# Allow a hard kill-switch for emails in any environment
+if os.getenv('DISABLE_EMAILS', 'False') == 'True':
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@harvestforgood.org')
 else:
-    # Development settings
-    EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-    EMAIL_HOST = os.getenv('EMAIL_HOST')
-    EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+    # Email settings - Update to use Gmail SMTP for reliable delivery
+    if IS_RAILWAY or not DEBUG:
+        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+        EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+        EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+        EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+        EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+        EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+        DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+        
+        # Add timeout settings for better reliability
+        EMAIL_TIMEOUT = 30
+        EMAIL_USE_SSL = False  # We're using TLS instead
+    else:
+        # Development settings
+        EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+        EMAIL_HOST = os.getenv('EMAIL_HOST')
+        EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+        EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+        EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+        EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+        DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 # Authentication settings
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow login with username OR email
@@ -286,7 +291,8 @@ REST_FRAMEWORK = {
         'forum_posts': '200/hour',
         'auth_attempts': '20/hour',
         'dj_rest_auth': '20/min',
-        'password_reset': '10/hour',  # Add rate limiting for password reset
+        'password_reset': '10/hour',  # Rate limiting for password reset
+        'contact': '20/hour',         # Rate limiting for contact form
     }
 }
 
