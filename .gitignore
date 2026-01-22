@@ -38,6 +38,13 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Markdown documentation - ignore all except README
+*.md
+!README.md
+!README*.md
+!frontend/README.md
+!backend/README.md
+
 # Frontend
 frontend/node_modules/
 frontend/.next/
